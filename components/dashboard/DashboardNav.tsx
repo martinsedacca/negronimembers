@@ -15,7 +15,9 @@ import {
   Building2,
   Filter,
   Calendar,
-  Settings
+  Settings,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
 
@@ -28,6 +30,7 @@ export default function DashboardNav({ user }: DashboardNavProps) {
   const router = useRouter()
   const supabase = createClient()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
@@ -48,69 +51,87 @@ export default function DashboardNav({ user }: DashboardNavProps) {
   }
 
   return (
-    <nav className="bg-neutral-800 shadow-sm border-b border-neutral-700">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex">
-            <div className="flex-shrink-0 flex items-center">
-              <img 
-                src="/NEGRONI-Logo-hueso_png.png" 
-                alt="Negroni" 
-                className="h-8 w-auto"
-              />
-            </div>
-            <div className="hidden sm:ml-8 sm:flex sm:space-x-8">
-              {navigation.map((item) => {
-                const Icon = item.icon
-                const isActive = pathname === item.href
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition ${
-                      isActive
-                        ? 'border-brand-500 text-white'
-                        : 'border-transparent text-neutral-300 hover:border-neutral-500 hover:text-white'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4 mr-2" />
-                    {item.name}
-                  </Link>
-                )
-              })}
-            </div>
-          </div>
-          <div className="hidden sm:ml-6 sm:flex sm:items-center">
-            <div className="flex items-center mr-4">
-              <span className="text-sm text-neutral-300">{user.email}</span>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Salir
-            </button>
-          </div>
-          <div className="flex items-center sm:hidden">
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-neutral-400 hover:text-neutral-500 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-orange-500"
-            >
-              {mobileMenuOpen ? (
-                <X className="block h-6 w-6" />
-              ) : (
-                <Menu className="block h-6 w-6" />
-              )}
-            </button>
-          </div>
+    <>
+      {/* Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-neutral-800 border-b border-neutral-700">
+        <div className="flex items-center justify-between h-16 px-4">
+          <img 
+            src="/NEGRONI-Logo-hueso_png.png" 
+            alt="Negroni" 
+            className="h-8 w-auto"
+          />
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-2 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-700 transition"
+          >
+            {mobileMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
+          </button>
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile Sidebar Overlay */}
       {mobileMenuOpen && (
-        <div className="sm:hidden bg-neutral-800">
-          <div className="pt-2 pb-3 space-y-1">
+        <div 
+          className="lg:hidden fixed inset-0 z-40 bg-black bg-opacity-50"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`
+          fixed top-0 left-0 z-40 h-screen transition-all duration-300 ease-in-out
+          bg-neutral-800 border-r border-neutral-700
+          ${
+            mobileMenuOpen 
+              ? 'translate-x-0' 
+              : '-translate-x-full lg:translate-x-0'
+          }
+          ${
+            sidebarCollapsed 
+              ? 'lg:w-20' 
+              : 'lg:w-64'
+          }
+          w-64
+        `}
+      >
+        {/* Logo */}
+        <div className="hidden lg:flex items-center justify-between h-16 px-4 border-b border-neutral-700">
+          {!sidebarCollapsed && (
+            <img 
+              src="/NEGRONI-Logo-hueso_png.png" 
+              alt="Negroni" 
+              className="h-8 w-auto"
+            />
+          )}
+          <button
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="p-2 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-700 transition ml-auto"
+          >
+            {sidebarCollapsed ? (
+              <ChevronRight className="h-5 w-5" />
+            ) : (
+              <ChevronLeft className="h-5 w-5" />
+            )}
+          </button>
+        </div>
+
+        {/* Logo mobile */}
+        <div className="lg:hidden flex items-center h-16 px-4 border-b border-neutral-700">
+          <img 
+            src="/NEGRONI-Logo-hueso_png.png" 
+            alt="Negroni" 
+            className="h-8 w-auto"
+          />
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto py-4">
+          <div className="space-y-1 px-3">
             {navigation.map((item) => {
               const Icon = item.icon
               const isActive = pathname === item.href
@@ -118,37 +139,67 @@ export default function DashboardNav({ user }: DashboardNavProps) {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
-                    isActive
-                      ? 'bg-neutral-900 border-brand-500 text-white'
-                      : 'border-transparent text-neutral-300 hover:bg-neutral-700 hover:border-neutral-500 hover:text-white'
-                  }`}
                   onClick={() => setMobileMenuOpen(false)}
+                  className={`
+                    flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-all
+                    ${
+                      isActive
+                        ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/50'
+                        : 'text-neutral-300 hover:bg-neutral-700 hover:text-white'
+                    }
+                    ${
+                      sidebarCollapsed 
+                        ? 'justify-center' 
+                        : ''
+                    }
+                  `}
+                  title={sidebarCollapsed ? item.name : ''}
                 >
-                  <div className="flex items-center">
-                    <Icon className="w-5 h-5 mr-3" />
-                    {item.name}
-                  </div>
+                  <Icon className={`h-5 w-5 flex-shrink-0 ${
+                    sidebarCollapsed ? '' : 'mr-3'
+                  }`} />
+                  {!sidebarCollapsed && <span>{item.name}</span>}
                 </Link>
               )
             })}
           </div>
-          <div className="pt-4 pb-3 border-t border-neutral-700">
-            <div className="flex items-center px-4 mb-3">
-              <div className="text-sm font-medium text-neutral-200">{user.email}</div>
-            </div>
+        </nav>
+
+        {/* User Section */}
+        <div className="border-t border-neutral-700 p-4">
+          {!sidebarCollapsed ? (
+            <>
+              <div className="flex items-center mb-3">
+                <div className="flex-shrink-0">
+                  <div className="h-8 w-8 rounded-full bg-brand-500 flex items-center justify-center text-white font-medium text-sm">
+                    {user.email?.[0].toUpperCase()}
+                  </div>
+                </div>
+                <div className="ml-3 min-w-0 flex-1">
+                  <p className="text-sm font-medium text-white truncate">
+                    {user.email}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center px-3 py-2 rounded-lg text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 transition"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Salir
+              </button>
+            </>
+          ) : (
             <button
               onClick={handleLogout}
-              className="block w-full text-left px-4 py-2 text-base font-medium text-neutral-300 hover:text-white hover:bg-neutral-700"
+              className="w-full flex items-center justify-center p-3 rounded-lg text-neutral-300 hover:bg-neutral-700 hover:text-white transition"
+              title="Salir"
             >
-              <div className="flex items-center">
-                <LogOut className="w-5 h-5 mr-3" />
-                Salir
-              </div>
+              <LogOut className="h-5 w-5" />
             </button>
-          </div>
+          )}
         </div>
-      )}
-    </nav>
+      </aside>
+    </>
   )
 }
