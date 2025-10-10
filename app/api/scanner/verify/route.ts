@@ -1,0 +1,108 @@
+import { createClient } from '@/lib/supabase/server'
+import { NextRequest, NextResponse } from 'next/server'
+
+export async function POST(request: NextRequest) {
+  try {
+    const supabase = await createClient()
+    const { member_number } = await request.json()
+
+    if (!member_number) {
+      return NextResponse.json(
+        { error: 'member_number is required' },
+        { status: 400 }
+      )
+    }
+
+    // Get member info
+    const { data: member, error: memberError } = await supabase
+      .from('members')
+      .select('*')
+      .eq('member_number', member_number)
+      .single()
+
+    if (memberError || !member) {
+      return NextResponse.json(
+        { error: 'Miembro no encontrado' },
+        { status: 404 }
+      )
+    }
+
+    // Get member stats
+    const { data: stats } = await supabase
+      .from('member_stats')
+      .select('*')
+      .eq('id', member.id)
+      .single()
+
+    // Get available promotions
+    const { data: availablePromotions } = await supabase
+      .from('member_available_promotions')
+      .select(`
+        promotion_id,
+        title,
+        description,
+        discount_type,
+        discount_value,
+        start_date,
+        end_date,
+        is_assigned
+      `)
+      .eq('member_id', member.id)
+
+    // Get assigned promotions that are pending
+    const { data: assignedPromotions } = await supabase
+      .from('member_assigned_promotions')
+      .select(`
+        id,
+        promotion_id,
+        auto_apply,
+        assigned_at,
+        promotions (
+          title,
+          description,
+          discount_type,
+          discount_value
+        )
+      `)
+      .eq('member_id', member.id)
+      .eq('status', 'pending')
+
+    // Get recent usage history
+    const { data: recentUsage } = await supabase
+      .from('card_usage')
+      .select('*')
+      .eq('member_id', member.id)
+      .order('usage_date', { ascending: false })
+      .limit(5)
+
+    return NextResponse.json({
+      member: {
+        id: member.id,
+        full_name: member.full_name,
+        email: member.email,
+        phone: member.phone,
+        membership_type: member.membership_type,
+        status: member.status,
+        member_number: member.member_number,
+        points: member.points,
+      },
+      stats: stats || {
+        total_visits: 0,
+        lifetime_spent: 0,
+        visits_last_30_days: 0,
+        spent_last_30_days: 0,
+        last_visit: null,
+        average_purchase: 0,
+      },
+      available_promotions: availablePromotions || [],
+      assigned_promotions: assignedPromotions || [],
+      recent_usage: recentUsage || [],
+    })
+  } catch (error: any) {
+    console.error('Scanner verify error:', error)
+    return NextResponse.json(
+      { error: 'Error al verificar miembro', details: error.message },
+      { status: 500 }
+    )
+  }
+}
