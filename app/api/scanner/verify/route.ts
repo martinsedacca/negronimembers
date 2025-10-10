@@ -100,8 +100,13 @@ export async function POST(request: NextRequest) {
     })
   } catch (error: any) {
     console.error('Scanner verify error:', error)
+    console.error('Error stack:', error.stack)
     return NextResponse.json(
-      { error: 'Error al verificar miembro', details: error.message },
+      { 
+        error: 'Error al verificar miembro', 
+        details: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined 
+      },
       { status: 500 }
     )
   }

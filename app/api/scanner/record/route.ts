@@ -4,6 +4,18 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
+    
+    let body
+    try {
+      body = await request.json()
+    } catch (e: any) {
+      console.error('JSON parse error:', e)
+      return NextResponse.json(
+        { error: 'Invalid JSON', details: e.message },
+        { status: 400 }
+      )
+    }
+
     const {
       member_id,
       event_type = 'purchase',
@@ -11,7 +23,7 @@ export async function POST(request: NextRequest) {
       branch_location,
       applied_promotions = [],
       notes,
-    } = await request.json()
+    } = body
 
     if (!member_id) {
       return NextResponse.json(
@@ -22,6 +34,7 @@ export async function POST(request: NextRequest) {
 
     // Get current user
     const { data: { user } } = await supabase.auth.getUser()
+    console.log('User authenticated:', user?.id)
 
     // Calculate points earned (1 point per dollar spent, or 10 points for events/visits)
     let points_earned = 0
@@ -30,8 +43,10 @@ export async function POST(request: NextRequest) {
     } else if (event_type === 'event' || event_type === 'visit') {
       points_earned = 10
     }
+    console.log('Points to earn:', points_earned)
 
     // Insert card usage record
+    console.log('Inserting card usage...', { member_id, event_type, amount_spent, branch_location })
     const { data: cardUsage, error: usageError } = await supabase
       .from('card_usage')
       .insert({
@@ -48,8 +63,10 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (usageError) {
+      console.error('Card usage insert error:', usageError)
       throw usageError
     }
+    console.log('Card usage created:', cardUsage.id)
 
     // Update member points - Get current points first
     const { data: currentMember } = await supabase
@@ -141,8 +158,13 @@ export async function POST(request: NextRequest) {
     })
   } catch (error: any) {
     console.error('Scanner record error:', error)
+    console.error('Error stack:', error.stack)
     return NextResponse.json(
-      { error: 'Error al registrar transacción', details: error.message },
+      { 
+        error: 'Error al registrar transacción', 
+        details: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined 
+      },
       { status: 500 }
     )
   }
