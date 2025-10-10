@@ -5,7 +5,19 @@ import { Search, Mail, Phone, Calendar, Award } from 'lucide-react'
 import type { Database } from '@/lib/types/database'
 import MemberDetailModal from './MemberDetailModal'
 
-type Member = Database['public']['Tables']['members']['Row']
+type Member = Database['public']['Tables']['members']['Row'] & {
+  total_visits?: number
+  total_purchases?: number
+  total_events?: number
+  lifetime_spent?: number
+  visits_last_30_days?: number
+  spent_last_30_days?: number
+  visits_last_90_days?: number
+  spent_last_90_days?: number
+  last_visit?: string | null
+  average_purchase?: number
+  promotions_used?: number
+}
 type MembershipType = Database['public']['Tables']['membership_types']['Row']
 
 interface MembersListProps {
@@ -97,6 +109,12 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
                   Puntos
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
+                  Visitas
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
+                  Gasto Total
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
                   Fecha de Ingreso
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">
@@ -160,6 +178,12 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                     <span className="font-semibold">{member.points}</span> pts
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                    <span className="font-semibold">{member.total_visits || 0}</span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                    <span className="font-semibold text-green-400">${(member.lifetime_spent || 0).toFixed(2)}</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-400">
                     <div className="flex items-center">

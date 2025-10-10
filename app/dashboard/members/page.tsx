@@ -7,9 +7,9 @@ export default async function MembersPage() {
   const supabase = await createClient()
 
   const { data: members, error } = await supabase
-    .from('members')
+    .from('member_stats')
     .select('*')
-    .order('created_at', { ascending: false })
+    .order('joined_date', { ascending: false })
 
   const { data: membershipTypes } = await supabase
     .from('membership_types')
