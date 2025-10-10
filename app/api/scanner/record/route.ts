@@ -20,7 +20,8 @@ export async function POST(request: NextRequest) {
       member_id,
       event_type = 'purchase',
       amount_spent = 0,
-      branch_location,
+      branch_id,
+      branch_location, // Backward compatibility
       applied_promotions = [],
       notes,
     } = body
@@ -31,6 +32,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    console.log('Request body:', { member_id, event_type, amount_spent, branch_id, branch_location })
 
     // Get current user
     const { data: { user } } = await supabase.auth.getUser()
@@ -46,14 +49,15 @@ export async function POST(request: NextRequest) {
     console.log('Points to earn:', points_earned)
 
     // Insert card usage record
-    console.log('Inserting card usage...', { member_id, event_type, amount_spent, branch_location })
+    console.log('Inserting card usage...', { member_id, event_type, amount_spent, branch_id, branch_location })
     const { data: cardUsage, error: usageError } = await supabase
       .from('card_usage')
       .insert({
         member_id,
         event_type,
         amount_spent,
-        branch_location,
+        branch_id: branch_id || null,
+        branch_location: branch_location || null,
         served_by: user?.id,
         points_earned,
         notes,

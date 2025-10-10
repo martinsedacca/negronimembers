@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { DollarSign, MapPin, Save, Loader2, PartyPopper } from 'lucide-react'
 
 interface TransactionFormProps {
@@ -13,18 +13,30 @@ export default function TransactionForm({ memberData, onComplete, onCancel }: Tr
   const [formData, setFormData] = useState({
     event_type: 'purchase' as 'purchase' | 'event' | 'visit',
     amount_spent: '',
-    branch_location: '',
+    branch_id: '',
+    branch_location: '', // Backward compatibility
     notes: '',
   })
+  const [branches, setBranches] = useState<any[]>([])
   const [selectedPromotions, setSelectedPromotions] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState<any>(null)
+
+  useEffect(() => {
+    fetch('/api/branches')
+      .then(res => res.json())
+      .then(data => setBranches(data.filter((b: any) => b.is_active)))
+      .catch(console.error)
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
     try {
+      // Get branch name for backward compatibility
+      const selectedBranch = branches.find(b => b.id === formData.branch_id)
+      
       const response = await fetch('/api/scanner/record', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -32,7 +44,8 @@ export default function TransactionForm({ memberData, onComplete, onCancel }: Tr
           member_id: memberData.member.id,
           event_type: formData.event_type,
           amount_spent: parseFloat(formData.amount_spent) || 0,
-          branch_location: formData.branch_location,
+          branch_id: formData.branch_id,
+          branch_location: selectedBranch?.name || formData.branch_location,
           applied_promotions: selectedPromotions,
           notes: formData.notes,
         }),
@@ -149,14 +162,19 @@ export default function TransactionForm({ memberData, onComplete, onCancel }: Tr
         <div>
           <label className="block text-sm font-medium text-neutral-300 mb-2">Sucursal</label>
           <div className="relative">
-            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
-            <input
-              type="text"
-              value={formData.branch_location}
-              onChange={(e) => setFormData({ ...formData, branch_location: e.target.value })}
-              placeholder="Ej: Palermo, Recoleta..."
-              className="w-full pl-10 pr-4 py-3 bg-neutral-700 border border-neutral-600 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder-neutral-400"
-            />
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500 pointer-events-none z-10" />
+            <select
+              value={formData.branch_id}
+              onChange={(e) => setFormData({ ...formData, branch_id: e.target.value })}
+              className="w-full pl-10 pr-4 py-3 bg-neutral-700 border border-neutral-600 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none"
+            >
+              <option value="">Selecciona una sucursal...</option>
+              {branches.map((branch) => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.name}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
