@@ -37,7 +37,7 @@ export default async function DashboardPage() {
       name: 'Total Miembros',
       value: totalMembers || 0,
       icon: Users,
-      color: 'bg-blue-500',
+      color: 'bg-brand-500',
       href: '/dashboard/members',
     },
     {
@@ -51,7 +51,7 @@ export default async function DashboardPage() {
       name: 'Promociones Activas',
       value: activePromotions || 0,
       icon: Tag,
-      color: 'bg-purple-500',
+      color: 'bg-brand-500',
       href: '/dashboard/promotions',
     },
     {
@@ -149,7 +149,7 @@ export default async function DashboardPage() {
           <div className="px-6 py-4 bg-neutral-900/50">
             <Link
               href="/dashboard/members"
-              className="text-sm font-medium text-indigo-400 hover:text-indigo-300"
+              className="text-sm font-medium text-brand-400 hover:text-brand-400"
             >
               Ver todos los miembros →
             </Link>

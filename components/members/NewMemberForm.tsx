@@ -90,7 +90,7 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
             required
             value={formData.full_name}
             onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-brand-500 focus:border-brand-500"
           />
         </div>
 
@@ -104,7 +104,7 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
             required
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-brand-500 focus:border-brand-500"
           />
         </div>
 
@@ -117,7 +117,7 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
             id="phone"
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-brand-500 focus:border-brand-500"
           />
         </div>
 
@@ -130,7 +130,7 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
             required
             value={formData.membership_type}
             onChange={(e) => setFormData({ ...formData, membership_type: e.target.value })}
-            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-brand-500 focus:border-brand-500"
           >
             {membershipTypes.map((type) => (
               <option key={type.id} value={type.name}>
@@ -149,7 +149,7 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
             required
             value={formData.status}
             onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-brand-500 focus:border-brand-500"
           >
             <option value="active">Activo</option>
             <option value="inactive">Inactivo</option>
@@ -178,14 +178,14 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
         <button
           type="button"
           onClick={() => router.back()}
-          className="px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-md shadow-sm text-sm font-medium text-neutral-300 bg-neutral-800 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          className="px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-md shadow-sm text-sm font-medium text-neutral-300 bg-neutral-800 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
         >
           Cancelar
         </button>
         <button
           type="submit"
           disabled={loading}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brand-500 hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
           {loading ? 'Creando...' : 'Crear Miembro'}

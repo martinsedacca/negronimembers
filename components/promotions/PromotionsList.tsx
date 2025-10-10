@@ -74,13 +74,13 @@ export default function PromotionsList({ promotions }: PromotionsListProps) {
               placeholder="Buscar promociones..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-full px-4 py-2 bg-neutral-700 border border-neutral-600 text-white rounded-md focus:ring-indigo-500 focus:border-indigo-500 placeholder-neutral-400"
+              className="pl-10 w-full px-4 py-2 bg-neutral-700 border border-neutral-600 text-white rounded-md focus:ring-brand-500 focus:border-brand-500 placeholder-neutral-400"
             />
           </div>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 bg-neutral-700 border border-neutral-600 text-white rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+            className="px-4 py-2 bg-neutral-700 border border-neutral-600 text-white rounded-md focus:ring-brand-500 focus:border-brand-500"
           >
             <option value="all">Todas las promociones</option>
             <option value="active">Activas</option>
@@ -128,7 +128,7 @@ export default function PromotionsList({ promotions }: PromotionsListProps) {
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-neutral-400">Descuento:</span>
-                      <span className="font-semibold text-indigo-400 text-lg">
+                      <span className="font-semibold text-brand-400 text-lg">
                         {getDiscountDisplay(promo)}
                       </span>
                     </div>
@@ -159,7 +159,7 @@ export default function PromotionsList({ promotions }: PromotionsListProps) {
                         {promo.applicable_membership_types.map((type) => (
                           <span
                             key={type}
-                            className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800"
+                            className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-brand-100 text-indigo-800"
                           >
                             {type}
                           </span>

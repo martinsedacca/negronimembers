@@ -47,13 +47,13 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
               placeholder="Buscar miembros..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-full px-4 py-2 bg-neutral-700 border border-neutral-600 text-white rounded-md focus:ring-indigo-500 focus:border-indigo-500 placeholder-neutral-400"
+              className="pl-10 w-full px-4 py-2 bg-neutral-700 border border-neutral-600 text-white rounded-md focus:ring-brand-500 focus:border-brand-500 placeholder-neutral-400"
             />
           </div>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 bg-neutral-700 border border-neutral-600 text-white rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+            className="px-4 py-2 bg-neutral-700 border border-neutral-600 text-white rounded-md focus:ring-brand-500 focus:border-brand-500"
           >
             <option value="all">Todos los estados</option>
             <option value="active">Activo</option>
@@ -63,7 +63,7 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="px-4 py-2 bg-neutral-700 border border-neutral-600 text-white rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+            className="px-4 py-2 bg-neutral-700 border border-neutral-600 text-white rounded-md focus:ring-brand-500 focus:border-brand-500"
           >
             <option value="all">Todos los tipos</option>
             {membershipTypes.map((type) => (
@@ -109,8 +109,8 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
                 <tr key={member.id} className="hover:bg-neutral-700">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                        <span className="text-indigo-600 font-medium text-sm">
+                      <div className="flex-shrink-0 h-10 w-10 bg-brand-100 rounded-full flex items-center justify-center">
+                        <span className="text-brand-500 font-medium text-sm">
                           {member.full_name.charAt(0).toUpperCase()}
                         </span>
                       </div>
@@ -170,7 +170,7 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <Link
                       href={`/dashboard/members/${member.id}`}
-                      className="text-indigo-400 hover:text-indigo-300"
+                      className="text-brand-400 hover:text-brand-400"
                     >
                       Ver detalles
                     </Link>

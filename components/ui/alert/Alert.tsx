@@ -37,8 +37,8 @@ const Alert: React.FC<AlertProps> = ({
     },
     info: {
       container:
-        "border-blue-light-500 bg-blue-light-50 dark:border-blue-light-500/30 dark:bg-blue-light-500/15",
-      icon: "text-blue-light-500",
+        "border-brand-light-500 bg-brand-light-50 dark:border-brand-light-500/30 dark:bg-brand-light-500/15",
+      icon: "text-brand-light-500",
     },
   };
 

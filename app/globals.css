@@ -23,6 +23,18 @@
   --color-neutral-800: #262626;
   --color-neutral-900: #171717;
   --color-neutral-950: #0a0a0a;
+  
+  /* Color principal Negroni (dorado/beige) */
+  --color-brand-50: #fef9f3;
+  --color-brand-100: #fdf3e6;
+  --color-brand-200: #fae5cc;
+  --color-brand-300: #f6d7b3;
+  --color-brand-400: #f3c999;
+  --color-brand-500: #F0DBC0;
+  --color-brand-600: #c0af9a;
+  --color-brand-700: #908373;
+  --color-brand-800: #60584d;
+  --color-brand-900: #302c26;
 }
 
 @media (prefers-color-scheme: dark) {
