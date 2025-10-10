@@ -17,11 +17,13 @@ import type { User } from '@supabase/supabase-js'
 
 interface DashboardNavProps {
   user: User
+}
 
 export default function DashboardNav({ user }: DashboardNavProps) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
@@ -30,6 +32,8 @@ export default function DashboardNav({ user }: DashboardNavProps) {
     { name: 'Promociones', href: '/dashboard/promotions', icon: Tag },
     { name: 'Tarjetas', href: '/dashboard/cards', icon: CreditCard },
   ]
+
+  const handleLogout = async () => {
     await supabase.auth.signOut()
     router.push('/login')
     router.refresh()
