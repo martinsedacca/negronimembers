@@ -23,8 +23,8 @@ export default async function CardsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Tarjetas Digitales</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className="text-3xl font-bold text-white">Tarjetas Digitales</h1>
+          <p className="mt-2 text-gray-400">
             Gestiona y genera tarjetas para Apple Wallet y Google Wallet
           </p>
         </div>
@@ -43,14 +43,14 @@ export default async function CardsPage() {
             <Wallet className="w-8 h-8 text-indigo-600" />
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg font-semibold text-white mb-2">
               Generación de Tarjetas Digitales
             </h3>
             <p className="text-gray-700 mb-4">
               Desde aquí podrás generar tarjetas digitales para Apple Wallet y Google Wallet 
               para cada miembro activo. Las tarjetas incluirán:
             </p>
-            <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
+            <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-400 mb-4">
               <li className="flex items-center">
                 <span className="w-2 h-2 bg-indigo-400 rounded-full mr-2"></span>
                 Información del miembro
@@ -82,13 +82,13 @@ export default async function CardsPage() {
               </p>
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Apple Wallet</span>
+                  <span className="text-gray-400">Apple Wallet</span>
                   <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-medium">
                     Pendiente
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Google Wallet</span>
+                  <span className="text-gray-400">Google Wallet</span>
                   <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-medium">
                     Pendiente
                   </span>

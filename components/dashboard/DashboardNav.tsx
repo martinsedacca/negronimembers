@@ -39,7 +39,7 @@ export default function DashboardNav({ user }: DashboardNavProps) {
   }
 
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200">
+    <nav className="bg-gray-800 shadow-sm border-b border-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
@@ -60,8 +60,8 @@ export default function DashboardNav({ user }: DashboardNavProps) {
                     href={item.href}
                     className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition ${
                       isActive
-                        ? 'border-indigo-500 text-gray-900'
-                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                        ? 'border-indigo-500 text-white'
+                        : 'border-transparent text-gray-300 hover:border-gray-500 hover:text-white'
                     }`}
                   >
                     <Icon className="w-4 h-4 mr-2" />
@@ -73,7 +73,7 @@ export default function DashboardNav({ user }: DashboardNavProps) {
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
             <div className="flex items-center mr-4">
-              <span className="text-sm text-gray-700">{user.email}</span>
+              <span className="text-sm text-gray-300">{user.email}</span>
             </div>
             <button
               onClick={handleLogout}
@@ -100,7 +100,7 @@ export default function DashboardNav({ user }: DashboardNavProps) {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="sm:hidden">
+        <div className="sm:hidden bg-gray-800">
           <div className="pt-2 pb-3 space-y-1">
             {navigation.map((item) => {
               const Icon = item.icon
@@ -111,8 +111,8 @@ export default function DashboardNav({ user }: DashboardNavProps) {
                   href={item.href}
                   className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
                     isActive
-                      ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
-                      : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'
+                      ? 'bg-gray-900 border-indigo-500 text-white'
+                      : 'border-transparent text-gray-300 hover:bg-gray-700 hover:border-gray-500 hover:text-white'
                   }`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -124,13 +124,13 @@ export default function DashboardNav({ user }: DashboardNavProps) {
               )
             })}
           </div>
-          <div className="pt-4 pb-3 border-t border-gray-200">
+          <div className="pt-4 pb-3 border-t border-gray-700">
             <div className="flex items-center px-4 mb-3">
-              <div className="text-sm font-medium text-gray-800">{user.email}</div>
+              <div className="text-sm font-medium text-gray-200">{user.email}</div>
             </div>
             <button
               onClick={handleLogout}
-              className="block w-full text-left px-4 py-2 text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100"
+              className="block w-full text-left px-4 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700"
             >
               <div className="flex items-center">
                 <LogOut className="w-5 h-5 mr-3" />

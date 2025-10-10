@@ -36,9 +36,9 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
   }
 
   return (
-    <div className="bg-white shadow rounded-lg">
+    <div className="bg-gray-800 border border-gray-700 shadow rounded-lg">
       {/* Filters */}
-      <div className="p-6 border-b border-gray-200">
+      <div className="p-6 border-b border-gray-700">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -47,13 +47,13 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
               placeholder="Buscar miembros..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+              className="pl-10 w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-md focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-400"
             />
           </div>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+            className="px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-md focus:ring-indigo-500 focus:border-indigo-500"
           >
             <option value="all">Todos los estados</option>
             <option value="active">Activo</option>
@@ -63,7 +63,7 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+            className="px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-md focus:ring-indigo-500 focus:border-indigo-500"
           >
             <option value="all">Todos los tipos</option>
             {membershipTypes.map((type) => (
@@ -78,25 +78,25 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
       {/* Members List */}
       <div className="overflow-x-auto">
         {filteredMembers.length > 0 ? (
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-700">
+            <thead className="bg-gray-900">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Miembro
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Contacto
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Tipo
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Estado
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Puntos
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Fecha de Ingreso
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -104,9 +104,9 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-gray-800 divide-y divide-gray-700">
               {filteredMembers.map((member) => (
-                <tr key={member.id} className="hover:bg-gray-50">
+                <tr key={member.id} className="hover:bg-gray-700">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center">
@@ -115,22 +115,22 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
                         </span>
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-sm font-medium text-white">
                           {member.full_name}
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-gray-400">
                           #{member.member_number}
                         </div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900 flex items-center">
+                    <div className="text-sm text-white flex items-center">
                       <Mail className="w-4 h-4 mr-2 text-gray-400" />
                       {member.email}
                     </div>
                     {member.phone && (
-                      <div className="text-sm text-gray-500 flex items-center mt-1">
+                      <div className="text-sm text-gray-400 flex items-center mt-1">
                         <Phone className="w-4 h-4 mr-2 text-gray-400" />
                         {member.phone}
                       </div>
@@ -158,10 +158,10 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
                       {member.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                     <span className="font-semibold">{member.points}</span> pts
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
                     <div className="flex items-center">
                       <Calendar className="w-4 h-4 mr-2 text-gray-400" />
                       {new Date(member.joined_date).toLocaleDateString('es-ES')}
@@ -170,7 +170,7 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <Link
                       href={`/dashboard/members/${member.id}`}
-                      className="text-indigo-600 hover:text-indigo-900"
+                      className="text-indigo-400 hover:text-indigo-300"
                     >
                       Ver detalles
                     </Link>
@@ -181,14 +181,14 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
           </table>
         ) : (
           <div className="text-center py-12">
-            <p className="text-gray-500">No se encontraron miembros</p>
+            <p className="text-gray-400">No se encontraron miembros</p>
           </div>
         )}
       </div>
 
       {/* Summary */}
-      <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-        <p className="text-sm text-gray-700">
+      <div className="px-6 py-4 bg-gray-900/50 border-t border-gray-700">
+        <p className="text-sm text-gray-300">
           Mostrando <span className="font-medium">{filteredMembers.length}</span> de{' '}
           <span className="font-medium">{members.length}</span> miembros
         </p>
