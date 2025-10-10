@@ -35,6 +35,18 @@
   --color-brand-700: #908373;
   --color-brand-800: #60584d;
   --color-brand-900: #302c26;
+  
+  /* Color de botones Negroni (naranja) */
+  --color-orange-50: #fef5f0;
+  --color-orange-100: #fde8da;
+  --color-orange-200: #fbd0b5;
+  --color-orange-300: #f9b88f;
+  --color-orange-400: #f6916c;
+  --color-orange-500: #E85A23;
+  --color-orange-600: #d04919;
+  --color-orange-700: #a83a14;
+  --color-orange-800: #7f2c0f;
+  --color-orange-900: #561e0a;
 }
 
 @media (prefers-color-scheme: dark) {

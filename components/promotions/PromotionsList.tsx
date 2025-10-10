@@ -74,13 +74,13 @@ export default function PromotionsList({ promotions }: PromotionsListProps) {
               placeholder="Buscar promociones..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-full px-4 py-2 bg-neutral-700 border border-neutral-600 text-white rounded-md focus:ring-brand-500 focus:border-brand-500 placeholder-neutral-400"
+              className="pl-10 w-full px-4 py-2 bg-neutral-700 border border-neutral-600 text-white rounded-md focus:ring-orange-500 focus:border-brand-500 placeholder-neutral-400"
             />
           </div>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 bg-neutral-700 border border-neutral-600 text-white rounded-md focus:ring-brand-500 focus:border-brand-500"
+            className="px-4 py-2 bg-neutral-700 border border-neutral-600 text-white rounded-md focus:ring-orange-500 focus:border-brand-500"
           >
             <option value="all">Todas las promociones</option>
             <option value="active">Activas</option>

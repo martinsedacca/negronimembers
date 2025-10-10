@@ -93,7 +93,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
             required
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-brand-500 focus:border-brand-500"
+            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
             placeholder="Ej: Descuento de Verano"
           />
         </div>
@@ -107,7 +107,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
             rows={3}
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-brand-500 focus:border-brand-500"
+            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
             placeholder="Describe los detalles de la promoción"
           />
         </div>
@@ -122,7 +122,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
               required
               value={formData.discount_type}
               onChange={(e) => setFormData({ ...formData, discount_type: e.target.value as any })}
-              className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-brand-500 focus:border-brand-500"
+              className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
             >
               <option value="percentage">Porcentaje (%)</option>
               <option value="fixed">Monto Fijo ($)</option>
@@ -142,7 +142,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
               min="0"
               value={formData.discount_value}
               onChange={(e) => setFormData({ ...formData, discount_value: e.target.value })}
-              className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-brand-500 focus:border-brand-500"
+              className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
               placeholder={formData.discount_type === 'percentage' ? '10' : '100'}
             />
           </div>
@@ -159,7 +159,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
               required
               value={formData.start_date}
               onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-              className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-brand-500 focus:border-brand-500"
+              className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
             />
           </div>
 
@@ -173,7 +173,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
               required
               value={formData.end_date}
               onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-              className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-brand-500 focus:border-brand-500"
+              className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
             />
           </div>
         </div>
@@ -189,7 +189,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
               min="0"
               value={formData.min_usage_count}
               onChange={(e) => setFormData({ ...formData, min_usage_count: e.target.value })}
-              className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-brand-500 focus:border-brand-500"
+              className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
               placeholder="0"
             />
             <p className="mt-1 text-xs text-neutral-500">
@@ -207,7 +207,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
               min="1"
               value={formData.max_usage_count}
               onChange={(e) => setFormData({ ...formData, max_usage_count: e.target.value })}
-              className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-brand-500 focus:border-brand-500"
+              className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
               placeholder="Ilimitado"
             />
             <p className="mt-1 text-xs text-neutral-500">
@@ -227,7 +227,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
                   type="checkbox"
                   checked={formData.applicable_membership_types.includes(type.name)}
                   onChange={() => handleMembershipTypeToggle(type.name)}
-                  className="h-4 w-4 text-brand-500 focus:ring-brand-500 border-neutral-600 rounded"
+                  className="h-4 w-4 text-brand-500 focus:ring-orange-500 border-neutral-600 rounded"
                 />
                 <span className="ml-2 text-sm text-neutral-300">{type.name}</span>
               </label>
@@ -247,7 +247,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
             rows={4}
             value={formData.terms_conditions}
             onChange={(e) => setFormData({ ...formData, terms_conditions: e.target.value })}
-            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-brand-500 focus:border-brand-500"
+            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
             placeholder="Términos y condiciones de la promoción"
           />
         </div>
@@ -258,7 +258,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
             id="is_active"
             checked={formData.is_active}
             onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-            className="h-4 w-4 text-brand-500 focus:ring-brand-500 border-neutral-600 rounded"
+            className="h-4 w-4 text-brand-500 focus:ring-orange-500 border-neutral-600 rounded"
           />
           <label htmlFor="is_active" className="ml-2 block text-sm text-white">
             Activar promoción inmediatamente
@@ -270,14 +270,14 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
         <button
           type="button"
           onClick={() => router.back()}
-          className="px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-md shadow-sm text-sm font-medium text-neutral-300 bg-neutral-800 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
+          className="px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-md shadow-sm text-sm font-medium text-neutral-300 bg-neutral-800 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
         >
           Cancelar
         </button>
         <button
           type="submit"
           disabled={loading}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brand-500 hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
           {loading ? 'Creando...' : 'Crear Promoción'}

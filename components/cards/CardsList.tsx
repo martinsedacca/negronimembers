@@ -116,7 +116,7 @@ export default function CardsList({ members }: CardsListProps) {
             placeholder="Buscar por nombre, email o número de miembro..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 w-full px-4 py-3 bg-neutral-700 border border-neutral-600 text-white rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent placeholder-neutral-400"
+            className="pl-10 w-full px-4 py-3 bg-neutral-700 border border-neutral-600 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder-neutral-400"
           />
         </div>
       </div>
@@ -229,7 +229,7 @@ export default function CardsList({ members }: CardsListProps) {
                   </button>
                   <button
                     onClick={() => handleGenerateGoogleWallet(member)}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition font-medium text-sm"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition font-medium text-sm"
                   >
                     <Download className="w-4 h-4" />
                     Generar Google Wallet
