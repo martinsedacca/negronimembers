@@ -122,14 +122,15 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
                 <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
                   Fecha de Ingreso
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                  Acciones
-                </th>
               </tr>
             </thead>
             <tbody className="bg-neutral-800 divide-y divide-neutral-700">
               {filteredMembers.map((member) => (
-                <tr key={member.id} className="hover:bg-neutral-700">
+                <tr 
+                  key={member.id} 
+                  onClick={() => setSelectedMember(member)}
+                  className="hover:bg-neutral-700 cursor-pointer transition"
+                >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10 bg-brand-100 rounded-full flex items-center justify-center">
@@ -213,14 +214,6 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
                       <Calendar className="w-4 h-4 mr-2 text-neutral-400" />
                       {new Date(member.joined_date).toLocaleDateString('es-ES')}
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => setSelectedMember(member)}
-                      className="text-brand-400 hover:text-brand-300 transition"
-                    >
-                      Ver detalles
-                    </button>
                   </td>
                 </tr>
               ))}

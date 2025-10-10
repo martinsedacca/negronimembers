@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { X, Save, Mail, Phone, Award, Calendar, CreditCard, TrendingUp, BarChart3, Smartphone, Send, QrCode, Download, RefreshCw } from 'lucide-react'
+import { X, Save, Mail, Phone, Award, Calendar, CreditCard, TrendingUp, BarChart3, Smartphone, Send, QrCode, Download, RefreshCw, Clock, Gift, ShoppingCart, MapPin } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Database } from '@/lib/types/database'
 import QRCode from 'qrcode'
@@ -29,7 +29,7 @@ interface MemberDetailModalProps {
 
 export default function MemberDetailModal({ member, membershipTypes, onClose, onUpdate }: MemberDetailModalProps) {
   const supabase = createClient()
-  const [activeTab, setActiveTab] = useState<'info' | 'stats'>('info')
+  const [activeTab, setActiveTab] = useState<'info' | 'stats' | 'history'>('info')
   const [isEditing, setIsEditing] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     full_name: member.full_name,
@@ -43,6 +43,8 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('')
   const [sendingCard, setSendingCard] = useState(false)
   const [syncingGHL, setSyncingGHL] = useState(false)
+  const [historyData, setHistoryData] = useState<any[]>([])
+  const [loadingHistory, setLoadingHistory] = useState(false)
 
   // Generate QR code for member card download
   useEffect(() => {
@@ -54,6 +56,35 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
         .catch(console.error)
     }
   }, [activeTab, member.id])
+
+  // Load history when tab changes to history
+  useEffect(() => {
+    if (activeTab === 'history') {
+      loadHistory()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab])
+
+  const loadHistory = async () => {
+    setLoadingHistory(true)
+    try {
+      // Fetch card usage (visits, purchases, promos)
+      const { data, error } = await supabase
+        .from('card_usage')
+        .select('*')
+        .eq('member_id', member.id)
+        .order('created_at', { ascending: false })
+      
+      if (error) throw error
+      
+      setHistoryData(data || [])
+    } catch (error) {
+      console.error('Error loading history:', error)
+      setHistoryData([])
+    } finally {
+      setLoadingHistory(false)
+    }
+  }
 
   const handleSave = async () => {
     console.log('🟢 [DEBUG] handleSave called - Starting save process')
@@ -306,6 +337,19 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
                 <span>Estadísticas y Tarjeta</span>
               </div>
             </button>
+            <button
+              onClick={() => setActiveTab('history')}
+              className={`flex-1 px-6 py-3 text-sm font-medium transition ${
+                activeTab === 'history'
+                  ? 'bg-neutral-800 text-white border-b-2 border-orange-500'
+                  : 'text-neutral-400 hover:text-white hover:bg-neutral-800/50'
+              }`}
+            >
+              <div className="flex items-center justify-center gap-2">
+                <Clock className="w-4 h-4" />
+                <span>Historial</span>
+              </div>
+            </button>
           </div>
         </div>
 
@@ -371,7 +415,7 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
                 </div>
               </div>
             </div>
-          ) : (
+          ) : activeTab === 'stats' ? (
             <div className="p-6 space-y-6">
               {/* Statistics Grid */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -477,6 +521,110 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
               {member.last_visit && (
                 <div className="text-sm text-neutral-400 text-center">
                   Última visita: {new Date(member.last_visit).toLocaleDateString('es-ES')}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="p-6">
+              {/* Timeline de Historial */}
+              <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
+                <Clock className="w-5 h-5" />
+                Historial de Actividad
+              </h3>
+
+              {loadingHistory ? (
+                <div className="text-center py-12">
+                  <div className="inline-block w-8 h-8 border-4 border-neutral-600 border-t-orange-500 rounded-full animate-spin"></div>
+                  <p className="text-neutral-400 mt-4">Cargando historial...</p>
+                </div>
+              ) : historyData.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-neutral-400">No hay actividad registrada</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {historyData.map((item, index) => {
+                    const getIcon = () => {
+                      if (item.event_type === 'visit') return <MapPin className="w-5 h-5 text-blue-500" />
+                      if (item.event_type === 'purchase') return <ShoppingCart className="w-5 h-5 text-green-500" />
+                      if (item.event_type === 'promo_redeemed') return <Gift className="w-5 h-5 text-purple-500" />
+                      return <Clock className="w-5 h-5 text-neutral-500" />
+                    }
+
+                    const getTitle = () => {
+                      if (item.event_type === 'visit') return 'Visita registrada'
+                      if (item.event_type === 'purchase') return 'Compra realizada'
+                      if (item.event_type === 'promo_redeemed') return 'Promoción canjeada'
+                      return item.event_type
+                    }
+
+                    const getBgColor = () => {
+                      if (item.event_type === 'visit') return 'bg-blue-500/10 border-blue-500/30'
+                      if (item.event_type === 'purchase') return 'bg-green-500/10 border-green-500/30'
+                      if (item.event_type === 'promo_redeemed') return 'bg-purple-500/10 border-purple-500/30'
+                      return 'bg-neutral-700/50 border-neutral-600'
+                    }
+
+                    return (
+                      <div
+                        key={item.id}
+                        className={`relative border ${getBgColor()} rounded-lg p-4 transition hover:shadow-lg`}
+                      >
+                        {/* Timeline line */}
+                        {index !== historyData.length - 1 && (
+                          <div className="absolute left-[30px] top-[60px] bottom-[-16px] w-0.5 bg-neutral-700"></div>
+                        )}
+
+                        <div className="flex gap-4">
+                          {/* Icon */}
+                          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center z-10">
+                            {getIcon()}
+                          </div>
+
+                          {/* Content */}
+                          <div className="flex-1">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <h4 className="text-white font-semibold">{getTitle()}</h4>
+                                <p className="text-sm text-neutral-400 mt-1">
+                                  {new Date(item.created_at).toLocaleDateString('es-ES', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </p>
+                              </div>
+                              {item.points_earned > 0 && (
+                                <span className="text-sm font-semibold text-orange-400">
+                                  +{item.points_earned} pts
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Details */}
+                            {item.amount_spent > 0 && (
+                              <div className="mt-2 text-sm text-green-400 font-semibold">
+                                ${item.amount_spent.toFixed(2)}
+                              </div>
+                            )}
+
+                            {item.notes && (
+                              <p className="mt-2 text-sm text-neutral-300">{item.notes}</p>
+                            )}
+
+                            {item.promotion_id && (
+                              <div className="mt-2 flex items-center gap-1 text-sm text-purple-400">
+                                <Gift className="w-4 h-4" />
+                                <span>Promoción aplicada</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               )}
             </div>
