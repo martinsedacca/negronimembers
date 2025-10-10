@@ -156,16 +156,33 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
             options={membershipTypes.map(t => ({ value: t.name, label: t.name }))}
           />
           
-          <EditableField 
-            label="Estado" 
-            field="status" 
-            icon={TrendingUp}
-            options={[
-              { value: 'active', label: 'Activo' },
-              { value: 'inactive', label: 'Inactivo' },
-              { value: 'suspended', label: 'Suspendido' }
-            ]}
-          />
+          {/* Status Toggle */}
+          <div>
+            <div className="flex items-center gap-3 mb-3">
+              <TrendingUp className="w-4 h-4 text-brand-400" />
+              <span className="text-xs text-neutral-500 uppercase tracking-wide">Estado</span>
+            </div>
+            <button
+              onClick={() => setFormData({ 
+                ...formData, 
+                status: formData.status === 'active' ? 'inactive' : 'active' 
+              })}
+              className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
+                formData.status === 'active' ? 'bg-green-500' : 'bg-neutral-600'
+              }`}
+            >
+              <span
+                className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                  formData.status === 'active' ? 'translate-x-7' : 'translate-x-1'
+                }`}
+              />
+            </button>
+            <span className={`ml-3 text-lg font-medium ${
+              formData.status === 'active' ? 'text-green-400' : 'text-neutral-400'
+            }`}>
+              {formData.status === 'active' ? 'Activo' : 'Inactivo'}
+            </span>
+          </div>
 
           <EditableField label="Puntos" field="points" icon={Award} type="number" />
 
