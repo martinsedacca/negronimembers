@@ -144,8 +144,8 @@ export default function DashboardNav({ user }: DashboardNavProps) {
                     flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-all
                     ${
                       isActive
-                        ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/50'
-                        : 'text-neutral-300 hover:bg-neutral-700 hover:text-white'
+                        ? 'bg-neutral-700 text-white border border-neutral-600'
+                        : 'text-neutral-300 hover:bg-neutral-700/50 hover:text-white'
                     }
                     ${
                       sidebarCollapsed 
