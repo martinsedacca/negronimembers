@@ -28,25 +28,25 @@ export default async function CardsPage() {
             Gestiona y genera tarjetas para Apple Wallet y Google Wallet
           </p>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg">
-          <Wallet className="w-5 h-5 text-blue-600" />
-          <span className="text-sm text-blue-700 font-medium">
+        <div className="flex items-center gap-2 px-4 py-2 bg-blue-900/20 border border-blue-700 rounded-lg">
+          <Wallet className="w-5 h-5 text-blue-400" />
+          <span className="text-sm text-blue-300 font-medium">
             {members?.length || 0} miembros activos
           </span>
         </div>
       </div>
 
       {/* Info Banner */}
-      <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-lg p-6">
+      <div className="bg-gradient-to-r from-gray-900 to-gray-800 border border-gray-700 rounded-lg p-6">
         <div className="flex items-start gap-4">
           <div className="flex-shrink-0">
-            <Wallet className="w-8 h-8 text-indigo-600" />
+            <Wallet className="w-8 h-8 text-indigo-400" />
           </div>
           <div className="flex-1">
             <h3 className="text-lg font-semibold text-white mb-2">
               Generación de Tarjetas Digitales
             </h3>
-            <p className="text-gray-700 mb-4">
+            <p className="text-gray-300 mb-4">
               Desde aquí podrás generar tarjetas digitales para Apple Wallet y Google Wallet 
               para cada miembro activo. Las tarjetas incluirán:
             </p>
@@ -76,8 +76,8 @@ export default async function CardsPage() {
                 Actualizaciones en tiempo real
               </li>
             </ul>
-            <div className="bg-white rounded-lg p-4 border border-indigo-100">
-              <p className="text-sm text-gray-700 mb-2">
+            <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+              <p className="text-sm text-gray-300 mb-2">
                 <span className="font-semibold">📱 Estado de Integración:</span>
               </p>
               <div className="flex flex-col gap-2">
@@ -94,9 +94,9 @@ export default async function CardsPage() {
                   </span>
                 </div>
               </div>
-              <p className="text-xs text-gray-500 mt-3">
+              <p className="text-xs text-gray-400 mt-3">
                 Para implementar la generación de tarjetas, consulta la guía en{' '}
-                <code className="bg-gray-100 px-1 py-0.5 rounded">WALLET_INTEGRATION.md</code>
+                <code className="bg-gray-700 px-1 py-0.5 rounded">WALLET_INTEGRATION.md</code>
               </p>
             </div>
           </div>
