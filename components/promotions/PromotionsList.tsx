@@ -103,12 +103,14 @@ export default function PromotionsList({ promotions }: PromotionsListProps) {
                   key={promo.id}
                   glowColor={active ? '#10b981' : '#E85A23'}
                   glowSize={280}
-                  className="hover:scale-[1.02] transition-transform duration-300"
+                  className="hover:scale-[1.02] transition-transform duration-300 shadow-lg"
                 >
                 <div
-                  className={`p-6 rounded-xl ${
-                    active ? 'bg-green-900/30' : 'bg-neutral-900/30'
-                  }`}
+                  className={`p-6 rounded-xl border ${
+                    active 
+                      ? 'bg-green-900/30 border-green-600/30' 
+                      : 'bg-neutral-900/40 border-neutral-700/50'
+                  } shadow-xl`}
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className={`p-3 rounded-lg ${active ? 'bg-green-900/50' : 'bg-neutral-700'}`}>
