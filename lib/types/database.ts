@@ -397,6 +397,47 @@ export type Database = {
           changed_at?: string
         }
       }
+      branches: {
+        Row: {
+          id: string
+          name: string
+          address: string | null
+          city: string | null
+          phone: string | null
+          email: string | null
+          manager_name: string | null
+          is_active: boolean
+          opening_hours: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          address?: string | null
+          city?: string | null
+          phone?: string | null
+          email?: string | null
+          manager_name?: string | null
+          is_active?: boolean
+          opening_hours?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          address?: string | null
+          city?: string | null
+          phone?: string | null
+          email?: string | null
+          manager_name?: string | null
+          is_active?: boolean
+          opening_hours?: Json
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       member_stats: {
@@ -421,6 +462,25 @@ export type Database = {
           last_visit: string | null
           average_purchase: number
           promotions_used: number
+        }
+      }
+      branch_stats: {
+        Row: {
+          id: string
+          name: string
+          address: string | null
+          city: string | null
+          is_active: boolean
+          unique_customers: number
+          total_transactions: number
+          total_purchases: number
+          total_visits: number
+          total_events: number
+          total_revenue: number
+          average_purchase: number
+          transactions_last_30_days: number
+          revenue_last_30_days: number
+          last_transaction_date: string | null
         }
       }
     }
