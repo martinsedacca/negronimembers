@@ -185,6 +185,13 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
 
     setSendingPush(true)
     try {
+      console.log('🔔 [Frontend] Sending push notification:', {
+        title: pushTitle,
+        message: pushMessage,
+        url: pushUrl,
+        memberCount: matchingMembers.length
+      })
+
       const response = await fetch('/api/push/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -198,10 +205,15 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
         }),
       })
 
+      console.log('🔔 [Frontend] Response status:', response.status)
+
       const data = await response.json()
+      
+      console.log('🔔 [Frontend] Response data:', data)
 
       if (!response.ok) {
-        throw new Error(data.error || 'Error al enviar notificaciones')
+        console.error('🔴 [Frontend] Error details:', data)
+        throw new Error(data.details || data.error || 'Error al enviar notificaciones')
       }
 
       if (data.success) {

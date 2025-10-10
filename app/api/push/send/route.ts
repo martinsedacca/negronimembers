@@ -4,8 +4,12 @@ import { sendBulkPushNotifications } from '@/lib/services/push-notifications'
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('🔔 [Push] Starting push notification send')
+    
     const supabase = await createClient()
     const body = await request.json()
+    
+    console.log('🔔 [Push] Request body:', JSON.stringify(body, null, 2))
     
     const { 
       title, 
@@ -18,13 +22,14 @@ export async function POST(request: NextRequest) {
     } = body
 
     if (!title || !message) {
+      console.error('🔴 [Push] Missing title or message')
       return NextResponse.json(
         { error: 'Title and message are required' },
         { status: 400 }
       )
     }
 
-    console.log('🔔 [Push] Preparing to send notification:', { title, target_type })
+    console.log('🔔 [Push] Preparing to send notification:', { title, target_type, target_filter })
 
     // Create notification record
     const { data: notification, error: notificationError } = await supabase
@@ -48,25 +53,19 @@ export async function POST(request: NextRequest) {
       .select('*')
       .eq('is_active', true)
 
-    if (target_type === 'individual' && member_ids.length > 0) {
+    // Use member_ids directly (frontend already filtered)
+    if (member_ids.length > 0) {
+      console.log(`🔔 [Push] Filtering by ${member_ids.length} member IDs`)
       subscriptionsQuery = subscriptionsQuery.in('member_id', member_ids)
-    } else if (target_type === 'segment' && Object.keys(target_filter).length > 0) {
-      // Get member IDs that match the filter
-      const { data: filteredMembers } = await supabase
-        .from('member_stats')
-        .select('id')
-        .match(target_filter)
-
-      if (filteredMembers && filteredMembers.length > 0) {
-        const memberIds = filteredMembers.map(m => m.id)
-        subscriptionsQuery = subscriptionsQuery.in('member_id', memberIds)
-      } else {
-        console.log('⚠️ [Push] No members found matching filter')
-        return NextResponse.json({
-          success: false,
-          message: 'No members found matching filter',
-        })
-      }
+    } else if (target_type === 'all') {
+      console.log('🔔 [Push] Sending to all members')
+      // No filter, send to all
+    } else {
+      console.log('⚠️ [Push] No member IDs provided and not sending to all')
+      return NextResponse.json({
+        success: false,
+        message: 'No members specified',
+      })
     }
 
     const { data: subscriptions, error: subError } = await subscriptionsQuery
@@ -155,8 +154,15 @@ export async function POST(request: NextRequest) {
     })
   } catch (error: any) {
     console.error('❌ [Push] Error sending notifications:', error)
+    console.error('❌ [Push] Error stack:', error.stack)
+    console.error('❌ [Push] Error details:', JSON.stringify(error, null, 2))
+    
     return NextResponse.json(
-      { error: 'Failed to send notifications', details: error.message },
+      { 
+        error: 'Failed to send notifications', 
+        details: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      },
       { status: 500 }
     )
   }

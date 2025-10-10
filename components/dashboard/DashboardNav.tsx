@@ -20,6 +20,7 @@ import {
   ChevronRight
 } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
+import PushNotificationButton from '@/components/ui/PushNotificationButton'
 
 interface DashboardNavProps {
   user: User
@@ -60,16 +61,19 @@ export default function DashboardNav({ user }: DashboardNavProps) {
             alt="Negroni" 
             className="h-8 w-auto"
           />
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-700 transition"
-          >
-            {mobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            <PushNotificationButton />
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-700 transition"
+            >
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
