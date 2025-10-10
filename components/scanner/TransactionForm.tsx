@@ -41,7 +41,10 @@ export default function TransactionForm({ memberData, onComplete, onCancel }: Tr
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Error al registrar transacción')
+        console.error('API Error Response:', data)
+        const errorMsg = data.details ? `${data.error}: ${data.details}` : data.error
+        alert(`Error: ${errorMsg}`)
+        throw new Error(errorMsg || 'Error al registrar transacción')
       }
 
       setSuccess(data)
