@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Save, Loader2, DollarSign, Users, Calendar, Award, Webhook, Lock, Unlock } from 'lucide-react'
+import { Save, Loader2, DollarSign, Users, Calendar, Award, Webhook, Lock, Unlock, RefreshCw } from 'lucide-react'
 
 interface SettingsFormProps {
   initialConfig: {
@@ -17,6 +17,8 @@ interface SettingsFormProps {
       Platinum: { min_spent: number; min_visits: number }
     }
     ghl_webhook_url?: string
+    ghl_api_token?: string
+    ghl_location_id?: string
   }
 }
 
@@ -35,7 +37,10 @@ export default function SettingsForm({ initialConfig }: SettingsFormProps) {
   })
 
   const [ghlWebhook, setGhlWebhook] = useState(initialConfig.ghl_webhook_url || '')
+  const [ghlApiToken, setGhlApiToken] = useState(initialConfig.ghl_api_token || '')
+  const [ghlLocationId, setGhlLocationId] = useState(initialConfig.ghl_location_id || '8CuDDsReJB6uihox2LBw')
   const [webhookUnlocked, setWebhookUnlocked] = useState(false)
+  const [syncing, setSyncing] = useState(false)
   const [saving, setSaving] = useState(false)
 
   const handleSave = async () => {
@@ -48,6 +53,8 @@ export default function SettingsForm({ initialConfig }: SettingsFormProps) {
           points_rules: pointsRules,
           tier_thresholds: tierThresholds,
           ghl_webhook_url: ghlWebhook,
+          ghl_api_token: ghlApiToken,
+          ghl_location_id: ghlLocationId,
         }),
       })
 
@@ -58,6 +65,31 @@ export default function SettingsForm({ initialConfig }: SettingsFormProps) {
       alert('Error: ' + error.message)
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleSyncAll = async () => {
+    if (!confirm('¿Sincronizar todos los miembros activos con GoHighLevel? Esto puede tomar varios minutos.')) {
+      return
+    }
+
+    setSyncing(true)
+    try {
+      const response = await fetch('/api/ghl/sync-all', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ active_only: true }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) throw new Error(data.error || 'Error al sincronizar')
+
+      alert(`✅ Sincronización completada!\n\nTotal: ${data.results.total}\nSincronizados: ${data.results.synced}\nCreados: ${data.results.created}\nActualizados: ${data.results.updated}\nFallidos: ${data.results.failed}`)
+    } catch (error: any) {
+      alert('❌ Error: ' + error.message)
+    } finally {
+      setSyncing(false)
     }
   }
 
@@ -230,6 +262,56 @@ export default function SettingsForm({ initialConfig }: SettingsFormProps) {
           <div className="p-4 bg-yellow-900/20 border border-yellow-700/50 rounded-lg">
             <p className="text-sm text-yellow-300">
               ⚠️ <strong>Información Sensible:</strong> El webhook está protegido. Haz click en "Desbloquear" para editarlo.
+            </p>
+          </div>
+
+          {/* API Token */}
+          <div>
+            <label className="block text-sm font-medium text-neutral-300 mb-2">
+              GHL Private Integration Token (PIT)
+            </label>
+            <input
+              type={webhookUnlocked ? "text" : "password"}
+              value={ghlApiToken}
+              onChange={(e) => setGhlApiToken(e.target.value)}
+              disabled={!webhookUnlocked}
+              placeholder="Obtén tu PIT en Settings → Private Integrations"
+              className="w-full px-4 py-3 bg-neutral-700 text-white border border-neutral-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+            <p className="text-xs text-neutral-500 mt-2">
+              Token privado para acceder a la API de GoHighLevel. Requiere permisos de View/Edit Contacts y Custom Fields.
+            </p>
+          </div>
+
+          {/* Location ID */}
+          <div>
+            <label className="block text-sm font-medium text-neutral-300 mb-2">
+              Location ID (Sub-account)
+            </label>
+            <input
+              type="text"
+              value={ghlLocationId}
+              onChange={(e) => setGhlLocationId(e.target.value)}
+              placeholder="8CuDDsReJB6uihox2LBw"
+              className="w-full px-4 py-3 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
+            />
+            <p className="text-xs text-neutral-500 mt-2">
+              ID de la sub-cuenta de GHL donde se sincronizarán los contactos (default: Doral)
+            </p>
+          </div>
+
+          {/* Sync All Button */}
+          <div className="pt-4 border-t border-neutral-700">
+            <button
+              onClick={handleSyncAll}
+              disabled={syncing || !ghlApiToken || !ghlLocationId}
+              className="w-full px-6 py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-neutral-700 disabled:cursor-not-allowed text-white rounded-lg font-medium transition flex items-center justify-center gap-2"
+            >
+              <RefreshCw className={`w-5 h-5 ${syncing ? 'animate-spin' : ''}`} />
+              {syncing ? 'Sincronizando...' : 'Sincronizar Todos los Miembros Activos'}
+            </button>
+            <p className="text-xs text-neutral-400 mt-2 text-center">
+              Sincroniza todos los miembros activos con GoHighLevel. Esto creará o actualizará contactos y custom fields.
             </p>
           </div>
         </div>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { X, Save, Mail, Phone, Award, Calendar, CreditCard, TrendingUp, BarChart3, Smartphone, Send, QrCode, Download } from 'lucide-react'
+import { X, Save, Mail, Phone, Award, Calendar, CreditCard, TrendingUp, BarChart3, Smartphone, Send, QrCode, Download, RefreshCw } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Database } from '@/lib/types/database'
 import QRCode from 'qrcode'
@@ -42,6 +42,7 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
   const [saving, setSaving] = useState(false)
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('')
   const [sendingCard, setSendingCard] = useState(false)
+  const [syncingGHL, setSyncingGHL] = useState(false)
 
   // Generate QR code for member card download
   useEffect(() => {
@@ -97,6 +98,31 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
       alert('❌ Error: ' + error.message)
     } finally {
       setSendingCard(false)
+    }
+  }
+
+  const handleSyncToGHL = async () => {
+    setSyncingGHL(true)
+    try {
+      const response = await fetch('/api/ghl/sync-member', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          member_id: member.id,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al sincronizar con GHL')
+      }
+
+      alert(`✅ ${data.message}\n\nContact ID: ${data.contact_id}`)
+    } catch (error: any) {
+      alert('❌ Error: ' + error.message)
+    } finally {
+      setSyncingGHL(false)
     }
   }
 
@@ -379,6 +405,14 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
                     >
                       <Download className="w-4 h-4" />
                       Ver Tarjeta en Nueva Pestaña
+                    </button>
+                    <button
+                      onClick={handleSyncToGHL}
+                      disabled={syncingGHL}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-neutral-700 disabled:cursor-not-allowed text-white rounded-lg font-medium transition"
+                    >
+                      <RefreshCw className={`w-4 h-4 ${syncingGHL ? 'animate-spin' : ''}`} />
+                      {syncingGHL ? 'Sincronizando...' : 'Sincronizar con GoHighLevel'}
                     </button>
                   </div>
                 </div>
