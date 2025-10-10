@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Users, Save, Play, Download, Mail } from 'lucide-react'
+import { Users, Save, Play, Download, Tag, Loader2 } from 'lucide-react'
 import type { Database } from '@/lib/types/database'
 
 type MemberSegment = Database['public']['Tables']['member_segments']['Row']
 type MembershipType = Database['public']['Tables']['membership_types']['Row']
+type Promotion = Database['public']['Tables']['promotions']['Row']
 
 interface SegmentFilters {
   // Financieros
@@ -39,6 +40,19 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
   const [segmentName, setSegmentName] = useState('')
   const [segmentDescription, setSegmentDescription] = useState('')
   const [saving, setSaving] = useState(false)
+  const [showAssignPromo, setShowAssignPromo] = useState(false)
+  const [promotions, setPromotions] = useState<Promotion[]>([])
+  const [selectedPromo, setSelectedPromo] = useState('')
+  const [autoApply, setAutoApply] = useState(false)
+  const [assigning, setAssigning] = useState(false)
+
+  useEffect(() => {
+    // Fetch promotions
+    fetch('/api/promotions')
+      .then(res => res.json())
+      .then(data => setPromotions(data.filter((p: Promotion) => p.is_active)))
+      .catch(console.error)
+  }, [])
 
   const applyFilters = async () => {
     setLoading(true)
@@ -115,6 +129,41 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
     a.href = url
     a.download = `segmento_${segmentName || 'export'}_${new Date().toISOString().slice(0, 10)}.csv`
     a.click()
+  }
+
+  const assignPromotion = async () => {
+    if (!selectedPromo) {
+      alert('Selecciona una promoción')
+      return
+    }
+
+    setAssigning(true)
+    try {
+      const member_ids = matchingMembers.map(m => m.id)
+      
+      const response = await fetch('/api/promotions/assign-bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          member_ids,
+          promotion_id: selectedPromo,
+          auto_apply: autoApply,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) throw new Error(data.error)
+
+      alert(`Promoción asignada a ${data.assigned_count} miembros exitosamente!`)
+      setShowAssignPromo(false)
+      setSelectedPromo('')
+      setAutoApply(false)
+    } catch (error: any) {
+      alert('Error: ' + error.message)
+    } finally {
+      setAssigning(false)
+    }
   }
 
   return (
@@ -284,6 +333,13 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
               {matchingMembers.length > 0 && (
                 <div className="flex gap-2">
                   <button
+                    onClick={() => setShowAssignPromo(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
+                  >
+                    <Tag className="w-4 h-4" />
+                    Asignar Promoción
+                  </button>
+                  <button
                     onClick={exportToCSV}
                     className="flex items-center gap-2 px-4 py-2 bg-neutral-700 text-white rounded-lg hover:bg-neutral-600 transition"
                   >
@@ -377,6 +433,89 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
           )}
         </div>
       </div>
+
+      {/* Assign Promotion Modal */}
+      {showAssignPromo && (
+        <div 
+          className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowAssignPromo(false)}
+        >
+          <div 
+            className="bg-neutral-800 border border-neutral-700 rounded-xl max-w-md w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-bold text-white mb-4">Asignar Promoción Masiva</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  Selecciona Promoción
+                </label>
+                <select
+                  value={selectedPromo}
+                  onChange={(e) => setSelectedPromo(e.target.value)}
+                  className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
+                >
+                  <option value="">Selecciona...</option>
+                  {promotions.map((promo) => (
+                    <option key={promo.id} value={promo.id}>
+                      {promo.title} - {promo.discount_value}{promo.discount_type === 'percentage' ? '%' : '$'} OFF
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-neutral-300">
+                  Auto-aplicar en próxima visita
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setAutoApply(!autoApply)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
+                    autoApply ? 'bg-orange-500' : 'bg-neutral-600'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
+                      autoApply ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <div className="bg-neutral-900/50 p-3 rounded-lg">
+                <p className="text-sm text-neutral-400">
+                  Se asignará a <span className="font-bold text-white">{matchingMembers.length}</span> miembros
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setShowAssignPromo(false)}
+                  className="flex-1 px-4 py-2 bg-neutral-700 text-white rounded-lg hover:bg-neutral-600 transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={assignPromotion}
+                  disabled={assigning || !selectedPromo}
+                  className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {assigning ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Asignando...
+                    </>
+                  ) : (
+                    'Asignar'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
