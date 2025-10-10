@@ -51,19 +51,21 @@ export async function POST(request: NextRequest) {
       throw usageError
     }
 
-    // Update member points
-    const { error: pointsError } = await supabase.rpc('increment', {
-      row_id: member_id,
-      x: points_earned,
-    }).catch(() => {
-      // If function doesn't exist, update manually
-      return supabase
+    // Update member points - Get current points first
+    const { data: currentMember } = await supabase
+      .from('members')
+      .select('points')
+      .eq('id', member_id)
+      .single()
+
+    if (currentMember) {
+      await supabase
         .from('members')
         .update({ 
-          points: supabase.raw(`points + ${points_earned}`)
+          points: (currentMember.points || 0) + points_earned
         })
         .eq('id', member_id)
-    })
+    }
 
     // Apply promotions
     let total_discount = 0
@@ -123,9 +125,9 @@ export async function POST(request: NextRequest) {
       .eq('member_id', member_id)
       .order('changed_at', { ascending: false })
       .limit(1)
-      .single()
+      .maybeSingle()
 
-    const tier_changed = tierHistory && tierHistory.new_tier !== updatedMember?.membership_type
+    const tier_changed = tierHistory && tierHistory.new_tier === updatedMember?.membership_type
 
     return NextResponse.json({
       success: true,
