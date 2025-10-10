@@ -17,6 +17,7 @@ export async function POST(request: NextRequest) {
     }
 
     const {
+      transaction_id,
       member_id,
       event_type = 'purchase',
       amount_spent = 0,
@@ -33,7 +34,35 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('Request body:', { member_id, event_type, amount_spent, branch_id, branch_location })
+    console.log('🔵 [Scanner Record] Request received:', { 
+      transaction_id, 
+      member_id, 
+      event_type, 
+      amount_spent, 
+      branch_id, 
+      timestamp: new Date().toISOString() 
+    })
+    
+    // Check for duplicate transaction_id
+    if (transaction_id) {
+      const { data: existingTransaction } = await supabase
+        .from('card_usage')
+        .select('id')
+        .eq('transaction_id', transaction_id)
+        .maybeSingle()
+      
+      if (existingTransaction) {
+        console.warn('⚠️ [Scanner Record] Duplicate transaction detected:', transaction_id)
+        return NextResponse.json(
+          { 
+            error: 'Duplicate transaction', 
+            details: 'This transaction has already been processed',
+            transaction_id 
+          },
+          { status: 409 } // Conflict
+        )
+      }
+    }
 
     // Get current user
     const { data: { user } } = await supabase.auth.getUser()
@@ -49,10 +78,17 @@ export async function POST(request: NextRequest) {
     console.log('Points to earn:', points_earned)
 
     // Insert card usage record
-    console.log('Inserting card usage...', { member_id, event_type, amount_spent, branch_id, branch_location })
+    console.log('🟢 [Scanner Record] Inserting card usage...', { 
+      transaction_id,
+      member_id, 
+      event_type, 
+      amount_spent, 
+      points_earned 
+    })
     const { data: cardUsage, error: usageError } = await supabase
       .from('card_usage')
       .insert({
+        transaction_id,
         member_id,
         event_type,
         amount_spent,
@@ -67,10 +103,24 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (usageError) {
-      console.error('Card usage insert error:', usageError)
+      console.error('🔴 [Scanner Record] Card usage insert error:', usageError)
+      // Check if it's a duplicate key error
+      if (usageError.code === '23505') { // PostgreSQL unique violation
+        return NextResponse.json(
+          { 
+            error: 'Duplicate transaction', 
+            details: 'This transaction has already been processed',
+            transaction_id 
+          },
+          { status: 409 }
+        )
+      }
       throw usageError
     }
-    console.log('Card usage created:', cardUsage.id)
+    console.log('✅ [Scanner Record] Card usage created:', {
+      id: cardUsage.id,
+      transaction_id: cardUsage.transaction_id
+    })
 
     // Update member points - Get current points first
     const { data: currentMember } = await supabase

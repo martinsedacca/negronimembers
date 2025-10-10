@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { DollarSign, MapPin, Save, Loader2, PartyPopper } from 'lucide-react'
 
 interface TransactionFormProps {
@@ -21,6 +21,8 @@ export default function TransactionForm({ memberData, onComplete, onCancel }: Tr
   const [selectedPromotions, setSelectedPromotions] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState<any>(null)
+  const submittingRef = useRef(false) // Prevent double submit
+  const transactionIdRef = useRef<string | null>(null)
 
   useEffect(() => {
     fetch('/api/branches')
@@ -31,9 +33,28 @@ export default function TransactionForm({ memberData, onComplete, onCancel }: Tr
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    //防止双重提交 - Prevent double submit
+    if (submittingRef.current) {
+      console.warn('⚠️ Transaction already in progress, ignoring duplicate submit')
+      return
+    }
+    
+    submittingRef.current = true
     setLoading(true)
 
     try {
+      // Generate unique transaction ID for deduplication
+      const transactionId = `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      transactionIdRef.current = transactionId
+      
+      console.log('🔵 [TransactionForm] Submitting transaction:', {
+        transactionId,
+        member_id: memberData.member.id,
+        event_type: formData.event_type,
+        timestamp: new Date().toISOString()
+      })
+      
       // Get branch name for backward compatibility
       const selectedBranch = branches.find(b => b.id === formData.branch_id)
       
@@ -41,6 +62,7 @@ export default function TransactionForm({ memberData, onComplete, onCancel }: Tr
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          transaction_id: transactionId,
           member_id: memberData.member.id,
           event_type: formData.event_type,
           amount_spent: parseFloat(formData.amount_spent) || 0,
@@ -54,12 +76,18 @@ export default function TransactionForm({ memberData, onComplete, onCancel }: Tr
       const data = await response.json()
 
       if (!response.ok) {
-        console.error('API Error Response:', data)
+        console.error('🔴 [TransactionForm] API Error Response:', data)
         const errorMsg = data.details ? `${data.error}: ${data.details}` : data.error
         alert(`Error: ${errorMsg}`)
         throw new Error(errorMsg || 'Error al registrar transacción')
       }
 
+      console.log('✅ [TransactionForm] Transaction successful:', {
+        transactionId: transactionIdRef.current,
+        card_usage_id: data.card_usage_id,
+        points_earned: data.points_earned
+      })
+      
       setSuccess(data)
       
       // Auto-close after 3 seconds
@@ -67,9 +95,11 @@ export default function TransactionForm({ memberData, onComplete, onCancel }: Tr
         onComplete()
       }, 3000)
     } catch (err: any) {
+      console.error('🔴 [TransactionForm] Error:', err)
       alert(`Error: ${err.message}`)
     } finally {
       setLoading(false)
+      submittingRef.current = false
     }
   }
 

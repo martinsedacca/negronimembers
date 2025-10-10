@@ -144,6 +144,7 @@ export type Database = {
       card_usage: {
         Row: {
           id: string
+          transaction_id: string | null
           member_id: string
           usage_date: string
           location: string | null
@@ -152,11 +153,13 @@ export type Database = {
           amount_spent: number
           event_type: 'purchase' | 'event' | 'visit'
           branch_location: string | null
+          branch_id: string | null
           served_by: string | null
           created_at: string
         }
         Insert: {
           id?: string
+          transaction_id?: string | null
           member_id: string
           usage_date?: string
           location?: string | null
@@ -170,6 +173,7 @@ export type Database = {
         }
         Update: {
           id?: string
+          transaction_id?: string | null
           member_id?: string
           usage_date?: string
           location?: string | null
