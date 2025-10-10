@@ -1,0 +1,24 @@
+{
+  "formatVersion": 1,
+  "passTypeIdentifier": "pass.com.onetimeleads.negroni",
+  "teamIdentifier": "G736PJ3Z4Z",
+  "organizationName": "Negroni Membership",
+  "serialNumber": "",
+  "description": "Tarjeta de Membresía",
+  "logoText": "Negroni",
+  "foregroundColor": "rgb(255, 255, 255)",
+  "backgroundColor": "rgb(99, 102, 241)",
+  "labelColor": "rgb(255, 255, 255)",
+  "storeCard": {
+    "headerFields": [],
+    "primaryFields": [],
+    "secondaryFields": [],
+    "auxiliaryFields": [],
+    "backFields": []
+  },
+  "barcode": {
+    "message": "",
+    "format": "PKBarcodeFormatQR",
+    "messageEncoding": "iso-8859-1"
+  }
+}

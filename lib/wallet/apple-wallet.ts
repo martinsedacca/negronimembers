@@ -1,0 +1,151 @@
+import { PKPass } from 'passkit-generator';
+import path from 'path';
+import fs from 'fs';
+import type { Database } from '@/lib/types/database';
+
+type Member = Database['public']['Tables']['members']['Row'];
+
+// Todos los tipos tendrán fondo negro como la referencia
+const getMembershipColor = (): string => {
+  return 'rgb(0, 0, 0)'; // Negro para todos
+};
+
+export async function generateApplePass(member: Member): Promise<Buffer> {
+  try {
+    // Read certificates as buffers
+    const wwdr = fs.readFileSync(path.resolve(process.cwd(), 'certificates/wwdr.pem'));
+    const signerCert = fs.readFileSync(path.resolve(process.cwd(), 'certificates/signerCert.pem'));
+    const signerKey = fs.readFileSync(path.resolve(process.cwd(), 'certificates/signerKey.pem'));
+
+    // Create a temporary directory for this pass - MUST end with .pass
+    const os = require('os');
+    const tempDirName = `apple-pass-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.pass`;
+    const tempDir = path.join(os.tmpdir(), tempDirName);
+    
+    // Ensure temp directory exists
+    fs.mkdirSync(tempDir, { recursive: true });
+    
+    try {
+      // Copy template files to temp directory
+      const templatePath = path.resolve(process.cwd(), 'wallet-templates/apple.pass');
+      const files = fs.readdirSync(templatePath);
+      
+      for (const file of files) {
+        const srcPath = path.join(templatePath, file);
+        const destPath = path.join(tempDir, file);
+        
+        if (file === 'pass.json') {
+          // Modify pass.json with member-specific values
+          const passTemplate = JSON.parse(fs.readFileSync(srcPath, 'utf8'));
+          passTemplate.serialNumber = member.member_number;
+          passTemplate.description = 'Tarjeta de Membresía Negroni';
+          passTemplate.backgroundColor = getMembershipColor(); // Negro
+          passTemplate.foregroundColor = 'rgb(240, 219, 192)'; // #F0DBC0
+          passTemplate.labelColor = 'rgb(240, 219, 192)'; // #F0DBC0 para labels
+          // Eliminar logoText para que solo muestre el logo
+          delete passTemplate.logoText;
+          passTemplate.barcode.message = member.member_number;
+          fs.writeFileSync(destPath, JSON.stringify(passTemplate, null, 2));
+        } else {
+          // Copy other files as-is
+          fs.copyFileSync(srcPath, destPath);
+        }
+      }
+
+      // Create pass from the temp template (without .pass extension in the path)
+      const pass = await PKPass.from({
+        model: tempDir.replace('.pass', ''),
+        certificates: {
+          wwdr,
+          signerCert,
+          signerKey,
+        },
+      });
+
+      // Set pass type
+      pass.type = 'storeCard';
+
+      // Header field - Valid Until
+      if (member.expiry_date) {
+        pass.headerFields.push({
+          key: 'expiry_date',
+          label: 'VALID UNTIL',
+          value: member.expiry_date,
+          dateStyle: 'PKDateStyleMedium',
+        });
+      } else {
+        pass.headerFields.push({
+          key: 'expiry_date',
+          label: 'VALID UNTIL',
+          value: 'Unlimited',
+        });
+      }
+
+      // NO usar Primary field - dejar vacío para más espacio
+
+      // Secondary field - Member name (primera fila)
+      pass.secondaryFields.push({
+        key: 'member_name',
+        label: "MEMBER'S NAME",
+        value: member.full_name,
+      });
+
+      // Auxiliary field - Membership tier (segunda fila, DEBAJO del nombre)
+      pass.auxiliaryFields.push({
+        key: 'membership_tier',
+        label: 'MEMBERSHIP TIER',
+        value: member.membership_type.toUpperCase(),
+      });
+
+      // Back fields - Additional info
+      pass.backFields.push(
+        {
+          key: 'email',
+          label: 'Email',
+          value: member.email,
+        },
+        {
+          key: 'joined_date',
+          label: 'Miembro desde',
+          value: member.joined_date,
+          dateStyle: 'PKDateStyleMedium',
+        }
+      );
+
+      if (member.phone) {
+        pass.backFields.push({
+          key: 'phone',
+          label: 'Teléfono',
+          value: member.phone,
+        });
+      }
+
+      pass.backFields.push({
+        key: 'terms',
+        label: 'Términos y Condiciones',
+        value: 'Esta tarjeta es personal e intransferible. Válida solo para el titular. Para más información visita nuestro sitio web.',
+      });
+
+      // Add barcode
+      pass.setBarcodes({
+        message: member.member_number,
+        format: 'PKBarcodeFormatQR',
+        messageEncoding: 'iso-8859-1',
+      });
+
+      // Generate and return the pass buffer
+      const buffer = pass.getAsBuffer();
+      return buffer;
+    } finally {
+      // Clean up temporary directory
+      try {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+      } catch (cleanupError) {
+        console.error('Error cleaning up temp directory:', cleanupError);
+      }
+    }
+  } catch (error) {
+    console.error('Error generating Apple Wallet pass:', error);
+    throw new Error(`Failed to generate Apple Wallet pass: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}

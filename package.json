@@ -6,22 +6,44 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:status": "supabase status",
+    "supabase:reset": "supabase db reset",
+    "supabase:studio": "open http://127.0.0.1:54323",
+    "setup": "./scripts/setup.sh"
   },
   "dependencies": {
+    "@supabase/auth-helpers-nextjs": "^0.10.0",
+    "@supabase/ssr": "^0.7.0",
+    "@supabase/supabase-js": "^2.75.0",
+    "@tailwindcss/forms": "^0.5.10",
+    "apexcharts": "^5.3.5",
+    "date-fns": "^4.1.0",
+    "flatpickr": "^4.6.13",
+    "lucide-react": "^0.545.0",
+    "next": "15.5.4",
+    "passkit-generator": "^3.5.0",
+    "qrcode": "^1.5.4",
     "react": "19.1.0",
+    "react-apexcharts": "^1.7.0",
     "react-dom": "19.1.0",
-    "next": "15.5.4"
+    "sharp": "^0.34.4",
+    "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@eslint/eslintrc": "^3",
+    "@svgr/webpack": "^8.1.0",
+    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/qrcode": "^1.5.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
-    "@eslint/eslintrc": "^3"
+    "supabase": "^2.48.3",
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }
