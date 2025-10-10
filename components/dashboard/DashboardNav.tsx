@@ -1,38 +1,35 @@
 'use client'
-
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { 
-  CreditCard, 
-  Users, 
-  Tag, 
-  BarChart3, 
+  Home,
+  Users,
+  Tag,
+  CreditCard,
   LogOut,
   Menu,
-  X
+  X,
+  ScanLine
 } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
 
 interface DashboardNavProps {
   user: User
-}
 
 export default function DashboardNav({ user }: DashboardNavProps) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: BarChart3 },
+    { name: 'Dashboard', href: '/dashboard', icon: Home },
+    { name: 'Scanner', href: '/dashboard/scanner', icon: ScanLine },
     { name: 'Miembros', href: '/dashboard/members', icon: Users },
     { name: 'Promociones', href: '/dashboard/promotions', icon: Tag },
     { name: 'Tarjetas', href: '/dashboard/cards', icon: CreditCard },
   ]
-
-  const handleLogout = async () => {
     await supabase.auth.signOut()
     router.push('/login')
     router.refresh()
