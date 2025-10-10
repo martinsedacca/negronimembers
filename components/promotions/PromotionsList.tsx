@@ -1,21 +1,25 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, Calendar, Percent, DollarSign, Award, TrendingUp } from 'lucide-react'
+import { Search, Calendar, Percent, DollarSign, Award, TrendingUp, Edit } from 'lucide-react'
 import type { Database } from '@/lib/types/database'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import GlowCard from '@/components/ui/GlowCard'
+import EditPromotionModal from './EditPromotionModal'
 
 type Promotion = Database['public']['Tables']['promotions']['Row']
+type MembershipType = Database['public']['Tables']['membership_types']['Row']
 
 interface PromotionsListProps {
   promotions: Promotion[]
+  membershipTypes: MembershipType[]
 }
 
-export default function PromotionsList({ promotions }: PromotionsListProps) {
+export default function PromotionsList({ promotions, membershipTypes }: PromotionsListProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [selectedPromotion, setSelectedPromotion] = useState<Promotion | null>(null)
 
   const now = new Date()
 
@@ -175,6 +179,15 @@ export default function PromotionsList({ promotions }: PromotionsListProps) {
                       </div>
                     </div>
                   )}
+
+                  {/* Edit Button */}
+                  <button
+                    onClick={() => setSelectedPromotion(promo)}
+                    className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 bg-neutral-700 text-white rounded-lg hover:bg-neutral-600 transition"
+                  >
+                    <Edit className="w-4 h-4" />
+                    Editar Promoción
+                  </button>
                 </div>
                 </GlowCard>
               )
@@ -194,6 +207,19 @@ export default function PromotionsList({ promotions }: PromotionsListProps) {
           <span className="font-medium">{promotions.length}</span> promociones
         </p>
       </div>
+
+      {/* Edit Modal */}
+      {selectedPromotion && (
+        <EditPromotionModal
+          promotion={selectedPromotion}
+          membershipTypes={membershipTypes}
+          onClose={() => setSelectedPromotion(null)}
+          onUpdate={() => {
+            setSelectedPromotion(null)
+            window.location.reload()
+          }}
+        />
+      )}
     </div>
   )
 }

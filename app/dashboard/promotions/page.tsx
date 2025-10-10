@@ -11,6 +11,11 @@ export default async function PromotionsPage() {
     .select('*')
     .order('created_at', { ascending: false })
 
+  const { data: membershipTypes } = await supabase
+    .from('membership_types')
+    .select('*')
+    .order('name')
+
   if (error) {
     console.error('Error fetching promotions:', error)
   }
@@ -33,7 +38,10 @@ export default async function PromotionsPage() {
         </Link>
       </div>
 
-      <PromotionsList promotions={promotions || []} />
+      <PromotionsList 
+        promotions={promotions || []} 
+        membershipTypes={membershipTypes || []}
+      />
     </div>
   )
 }
