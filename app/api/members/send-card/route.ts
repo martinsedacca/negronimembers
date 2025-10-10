@@ -47,8 +47,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Prepare card URL
-    const cardUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/cards/${member_id}`
+    // Prepare card URL - Link directo para instalar en Apple Wallet (sin login requerido)
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const walletPassUrl = `${baseUrl}/api/wallet/apple/${member_id}`
 
     // Prepare webhook payload
     const webhookPayload = {
@@ -63,8 +64,9 @@ export async function POST(request: NextRequest) {
         membership_type: member.membership_type,
         points: member.points,
       },
-      card_url: cardUrl,
-      qr_code_url: cardUrl, // Same URL, GHL can generate QR if needed
+      wallet_pass_url: walletPassUrl,
+      add_to_wallet_button: `<a href="${walletPassUrl}" style="display:inline-block;padding:12px 24px;background:#000;color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;">📱 Agregar a Apple Wallet</a>`,
+      instructions: `Haz click en el botón para agregar tu tarjeta de membresía a Apple Wallet. También puedes escanear el QR code si estás viendo este email en otro dispositivo.`,
     }
 
     console.log('🔵 [Send Card] Sending webhook to GHL:', {
@@ -102,7 +104,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Tarjeta enviada exitosamente',
-      card_url: cardUrl,
+      wallet_pass_url: walletPassUrl,
     })
   } catch (error: any) {
     console.error('🔴 [Send Card] Error:', error)

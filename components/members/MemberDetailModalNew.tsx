@@ -47,7 +47,8 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
   // Generate QR code for member card download
   useEffect(() => {
     if (activeTab === 'stats') {
-      const cardUrl = `${window.location.origin}/cards/${member.id}`
+      // URL correcta para instalar la tarjeta en Wallet (sin necesidad de login)
+      const cardUrl = `${window.location.origin}/api/wallet/apple/${member.id}`
       QRCode.toDataURL(cardUrl, { width: 300, margin: 2 })
         .then(setQrCodeUrl)
         .catch(console.error)
