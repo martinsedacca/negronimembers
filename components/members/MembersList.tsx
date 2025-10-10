@@ -49,18 +49,16 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
               placeholder="Buscar miembros..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-full px-4 py-2 bg-neutral-700 border border-neutral-600 text-white rounded-md focus:ring-orange-500 focus:border-brand-500 placeholder-neutral-400"
             />
           </div>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 bg-neutral-700 border border-neutral-600 text-white rounded-md focus:ring-orange-500 focus:border-brand-500"
+            className="px-4 py-2 bg-neutral-700 border border-neutral-600 text-white rounded-md focus:ring-orange-500 focus:border-orange-500"
           >
             <option value="all">Todos los estados</option>
             <option value="active">Activo</option>
             <option value="inactive">Inactivo</option>
-            <option value="suspended">Suspendido</option>
           </select>
           <select
             value={typeFilter}
