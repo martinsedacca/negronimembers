@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { GHLSyncService } from '@/lib/services/ghl-sync'
 
 export async function POST(request: NextRequest) {
   try {
@@ -199,6 +200,86 @@ export async function POST(request: NextRequest) {
       .maybeSingle()
 
     const tier_changed = tierHistory && tierHistory.new_tier === updatedMember?.membership_type
+
+    // Sync member stats to GHL asynchronously (non-blocking)
+    console.log('🔵 [Scanner Record] Triggering GHL sync for member:', member_id)
+    
+    // Run GHL sync in background (don't wait for it)
+    const syncToGHL = async () => {
+      try {
+        // Get GHL config
+        const { data: config } = await supabase
+          .from('system_config')
+          .select('key, value')
+          .in('key', ['ghl_api_token', 'ghl_location_id'])
+
+        const configMap = config?.reduce((acc, item) => {
+          acc[item.key] = item.value
+          return acc
+        }, {} as Record<string, string>)
+
+        const ghlToken = configMap?.ghl_api_token || process.env.GHL_API_SECRET
+        const ghlLocationId = configMap?.ghl_location_id || '8CuDDsReJB6uihox2LBw'
+
+        if (!ghlToken) {
+          console.log('⚠️ [Scanner Record] GHL not configured, skipping sync')
+          return
+        }
+
+        // Get member with stats
+        const { data: memberData } = await supabase
+          .from('member_stats')
+          .select('*')
+          .eq('id', member_id)
+          .single()
+
+        if (!memberData) {
+          console.log('⚠️ [Scanner Record] Member not found for sync')
+          return
+        }
+
+        // Get stored contact ID
+        const { data: memberRecord } = await supabase
+          .from('members')
+          .select('ghl_contact_id')
+          .eq('id', member_id)
+          .single()
+
+        const existingContactId = memberRecord?.ghl_contact_id || null
+
+        // Sync to GHL
+        const ghlService = new GHLSyncService(ghlToken, ghlLocationId)
+        const result = await ghlService.syncMember(memberData, existingContactId)
+
+        if (result.success) {
+          console.log('✅ [Scanner Record] Member synced to GHL successfully')
+          
+          // Save contact ID if new
+          if (result.contactId && result.contactId !== existingContactId) {
+            await supabase
+              .from('members')
+              .update({ ghl_contact_id: result.contactId })
+              .eq('id', member_id)
+          }
+
+          // Log the sync
+          await supabase.from('ghl_sync_log').insert({
+            member_id,
+            contact_id: result.contactId,
+            action: result.created ? 'create' : 'update',
+            success: true,
+            synced_at: new Date().toISOString(),
+          })
+        } else {
+          console.error('🔴 [Scanner Record] GHL sync failed:', result.error)
+        }
+      } catch (err) {
+        console.error('🔴 [Scanner Record] GHL sync exception:', err)
+      }
+    }
+
+    // Start sync in background
+    syncToGHL()
 
     return NextResponse.json({
       success: true,

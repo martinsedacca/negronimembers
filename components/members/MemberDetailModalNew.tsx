@@ -55,15 +55,47 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
   }, [activeTab, member.id])
 
   const handleSave = async () => {
+    console.log('🟢 [DEBUG] handleSave called - Starting save process')
     setSaving(true)
     try {
+      console.log('🟢 [DEBUG] Updating member in database:', member.id)
       const { error } = await supabase
         .from('members')
         .update(formData)
         .eq('id', member.id)
 
-      if (error) throw error
+      if (error) {
+        console.error('🔴 [DEBUG] Database update error:', error)
+        throw error
+      }
 
+      console.log('✅ [DEBUG] Member updated in database successfully')
+
+      // Sync to GHL automatically (WAIT for it to complete)
+      console.log('🔵 [Auto-Sync] Starting automatic GHL sync for member:', member.id)
+      
+      try {
+        const syncResponse = await fetch('/api/ghl/sync-member', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            member_id: member.id,
+          }),
+        })
+        
+        const syncData = await syncResponse.json()
+        
+        if (syncResponse.ok && syncData.success) {
+          console.log('✅ [Auto-Sync] Member synced successfully to GHL')
+        } else {
+          console.warn('⚠️ [Auto-Sync] GHL sync completed with issues:', syncData)
+        }
+      } catch (err) {
+        console.error('🔴 [Auto-Sync] GHL sync failed:', err)
+        // Don't block the UI if GHL sync fails
+      }
+
+      console.log('🟢 [DEBUG] Calling onUpdate and onClose')
       onUpdate()
       onClose()
     } catch (error: any) {
@@ -104,6 +136,13 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
   const handleSyncToGHL = async () => {
     setSyncingGHL(true)
     try {
+      console.log('🔵 [Frontend] Starting GHL sync for member:', member.id)
+      console.log('🔵 [Frontend] Member data:', {
+        id: member.id,
+        email: member.email,
+        name: member.full_name,
+      })
+      
       const response = await fetch('/api/ghl/sync-member', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -112,15 +151,30 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
         }),
       })
 
+      console.log('🔵 [Frontend] Response status:', response.status)
+      
       const data = await response.json()
+      console.log('🔵 [Frontend] Response data:', JSON.stringify(data, null, 2))
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al sincronizar con GHL')
+      // Display server logs in browser console
+      if (data.logs && Array.isArray(data.logs)) {
+        console.log('📋 [Server Logs] ============================')
+        data.logs.forEach((log: string) => console.log(log))
+        console.log('📋 [Server Logs] ============================')
       }
 
+      if (!response.ok) {
+        const errorMessage = data.details || data.error || 'Error desconocido'
+        console.error('🔴 [Frontend] Error details:', JSON.stringify(data, null, 2))
+        console.error('🔴 [Frontend] Full stack:', data.stack)
+        throw new Error(errorMessage)
+      }
+
+      console.log('✅ [Frontend] Sync successful!')
       alert(`✅ ${data.message}\n\nContact ID: ${data.contact_id}`)
     } catch (error: any) {
-      alert('❌ Error: ' + error.message)
+      console.error('🔴 [Frontend] Sync error:', error)
+      alert(`❌ Error al sincronizar:\n\n${error.message}\n\n⚠️ IMPORTANTE: Abre la consola del navegador (F12) y copia TODOS los logs que veas.`)
     } finally {
       setSyncingGHL(false)
     }

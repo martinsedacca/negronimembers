@@ -49,18 +49,48 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
         expiryDate.setFullYear(expiryDate.getFullYear() + 1)
       }
 
-      const { error: insertError } = await supabase.from('members').insert({
-        full_name: formData.full_name,
-        email: formData.email,
-        phone: formData.phone || null,
-        membership_type: formData.membership_type,
-        status: formData.status,
-        member_number: memberNumber,
-        expiry_date: expiryDate.toISOString(),
-        points: 0,
-      })
+      const { data: newMember, error: insertError } = await supabase
+        .from('members')
+        .insert({
+          full_name: formData.full_name,
+          email: formData.email,
+          phone: formData.phone || null,
+          membership_type: formData.membership_type,
+          status: formData.status,
+          member_number: memberNumber,
+          expiry_date: expiryDate.toISOString(),
+          points: 0,
+        })
+        .select()
+        .single()
 
       if (insertError) throw insertError
+
+      // Sync to GHL automatically
+      if (newMember) {
+        console.log('🔵 [Auto-Sync] Starting automatic GHL sync for new member:', newMember.id)
+        
+        try {
+          const syncResponse = await fetch('/api/ghl/sync-member', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              member_id: newMember.id,
+            }),
+          })
+          
+          const syncData = await syncResponse.json()
+          
+          if (syncResponse.ok && syncData.success) {
+            console.log('✅ [Auto-Sync] New member synced successfully to GHL')
+          } else {
+            console.warn('⚠️ [Auto-Sync] GHL sync completed with issues:', syncData)
+          }
+        } catch (err) {
+          console.error('🔴 [Auto-Sync] GHL sync failed:', err)
+          // Don't block member creation if GHL sync fails
+        }
+      }
 
       router.push('/dashboard/members')
       router.refresh()
