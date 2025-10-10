@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Search, Mail, Phone, Calendar, Award } from 'lucide-react'
 import type { Database } from '@/lib/types/database'
-import Link from 'next/link'
+import MemberDetailModal from './MemberDetailModal'
 
 type Member = Database['public']['Tables']['members']['Row']
 type MembershipType = Database['public']['Tables']['membership_types']['Row']
@@ -17,6 +17,8 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [typeFilter, setTypeFilter] = useState<string>('all')
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const filteredMembers = members.filter((member) => {
     const matchesSearch =
@@ -168,12 +170,12 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <Link
-                      href={`/dashboard/members/${member.id}`}
-                      className="text-brand-400 hover:text-brand-400"
+                    <button
+                      onClick={() => setSelectedMember(member)}
+                      className="text-brand-400 hover:text-brand-300 transition"
                     >
                       Ver detalles
-                    </Link>
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -193,6 +195,20 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
           <span className="font-medium">{members.length}</span> miembros
         </p>
       </div>
+
+      {/* Member Detail Modal */}
+      {selectedMember && (
+        <MemberDetailModal
+          member={selectedMember}
+          membershipTypes={membershipTypes}
+          onClose={() => setSelectedMember(null)}
+          onUpdate={() => {
+            setRefreshKey(prev => prev + 1)
+            setSelectedMember(null)
+            window.location.reload()
+          }}
+        />
+      )}
     </div>
   )
 }
