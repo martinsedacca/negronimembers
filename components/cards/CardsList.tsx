@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Search, Smartphone, Download, QrCode, Award, Calendar, X } from 'lucide-react'
 import type { Database } from '@/lib/types/database'
 import QRCodeLib from 'qrcode'
+import GlowCard from '@/components/ui/GlowCard'
 
 type Member = Database['public']['Tables']['members']['Row'] & {
   wallet_passes?: Database['public']['Tables']['wallet_passes']['Row'][]
@@ -125,10 +126,13 @@ export default function CardsList({ members }: CardsListProps) {
       {filteredMembers.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredMembers.map((member) => (
-            <div
+            <GlowCard
               key={member.id}
-              className="bg-neutral-800 border border-neutral-700 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
+              className="overflow-hidden hover:scale-[1.02] transition-transform duration-300"
+              glowColor="#F0DBC0"
             >
+              <div className="bg-neutral-800/90 rounded-xl shadow-lg"
+              >
               {/* Card Preview - EXACTO a la referencia VIP */}
               <div className={`bg-gradient-to-br ${getMembershipColor()} p-6 relative min-h-[320px] flex flex-col`} style={{ color: '#F0DBC0' }}>
                 {/* Header: Logo y Valid Until */}
@@ -243,7 +247,8 @@ export default function CardsList({ members }: CardsListProps) {
                   </button>
                 </div>
               </div>
-            </div>
+              </div>
+            </GlowCard>
           ))}
         </div>
       ) : (

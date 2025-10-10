@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { Users, CreditCard, Tag, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
+import GlowCard from '@/components/ui/GlowCard'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -77,10 +78,10 @@ export default async function DashboardPage() {
         {stats.map((stat) => {
           const Icon = stat.icon
           return (
+            <GlowCard key={stat.name} glowColor="#E85A23" glowSize={250}>
             <Link
-              key={stat.name}
               href={stat.href}
-              className="bg-neutral-800 border border-neutral-700 overflow-hidden shadow rounded-lg hover:shadow-md transition"
+              className="block bg-neutral-800/90 overflow-hidden rounded-xl hover:scale-[1.02] transition-transform duration-300"
             >
               <div className="p-5">
                 <div className="flex items-center">
@@ -100,6 +101,7 @@ export default async function DashboardPage() {
                 </div>
               </div>
             </Link>
+            </GlowCard>
           )
         })}
       </div>
