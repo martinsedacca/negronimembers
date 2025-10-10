@@ -1,34 +1,17 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { sendMembershipCardEmail } from '@/lib/services/email'
+import QRCode from 'qrcode'
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
     const body = await request.json()
-    const { member_id, email, phone, full_name } = body
+    const { member_id } = body
 
     if (!member_id) {
       return NextResponse.json(
         { error: 'member_id is required' },
-        { status: 400 }
-      )
-    }
-
-    // Get webhook URL from system config
-    const { data: config } = await supabase
-      .from('system_config')
-      .select('value')
-      .eq('key', 'ghl_webhook_url')
-      .single()
-
-    const webhookUrl = config?.value
-
-    if (!webhookUrl) {
-      return NextResponse.json(
-        { 
-          error: 'Webhook no configurado', 
-          details: 'Configura la URL del webhook de GoHighLevel en Configuración' 
-        },
         { status: 400 }
       )
     }
@@ -47,50 +30,52 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Verificar que el miembro tenga email
+    if (!member.email) {
+      return NextResponse.json(
+        { error: 'El miembro no tiene email registrado' },
+        { status: 400 }
+      )
+    }
+
+    console.log('📧 [Send Card] Sending card to:', member.email)
+
     // Prepare card URL - Link directo para instalar en Apple Wallet (sin login requerido)
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     const walletPassUrl = `${baseUrl}/api/wallet/apple/${member_id}`
 
-    // Prepare webhook payload
-    const webhookPayload = {
-      event: 'send_membership_card',
-      timestamp: new Date().toISOString(),
-      member: {
-        id: member.id,
-        member_number: member.member_number,
-        full_name: member.full_name,
-        email: member.email,
-        phone: member.phone,
-        membership_type: member.membership_type,
-        points: member.points,
-      },
-      wallet_pass_url: walletPassUrl,
-      add_to_wallet_button: `<a href="${walletPassUrl}" style="display:inline-block;padding:12px 24px;background:#000;color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;">📱 Agregar a Apple Wallet</a>`,
-      instructions: `Haz click en el botón para agregar tu tarjeta de membresía a Apple Wallet. También puedes escanear el QR code si estás viendo este email en otro dispositivo.`,
+    // Generate QR Code
+    let qrCodeDataUrl: string | undefined
+    try {
+      qrCodeDataUrl = await QRCode.toDataURL(walletPassUrl, {
+        width: 400,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF',
+        },
+      })
+    } catch (error) {
+      console.error('⚠️ [Send Card] Error generating QR code:', error)
+      // Continue without QR code
     }
 
-    console.log('🔵 [Send Card] Sending webhook to GHL:', {
-      url: webhookUrl,
-      member_id,
-      email,
+    // Send email
+    const emailResult = await sendMembershipCardEmail({
+      to: member.email,
+      memberName: member.full_name,
+      memberNumber: member.member_number,
+      membershipType: member.membership_type,
+      walletPassUrl,
+      qrCodeDataUrl,
     })
 
-    // Send webhook to GoHighLevel
-    const webhookResponse = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(webhookPayload),
-    })
-
-    if (!webhookResponse.ok) {
-      const errorText = await webhookResponse.text()
-      console.error('🔴 [Send Card] Webhook failed:', errorText)
-      throw new Error(`Webhook failed: ${webhookResponse.status} - ${errorText}`)
+    if (!emailResult.success) {
+      console.error('🔴 [Send Card] Email failed:', emailResult.error)
+      throw new Error(`Error al enviar email: ${emailResult.error}`)
     }
 
-    console.log('✅ [Send Card] Webhook sent successfully')
+    console.log('✅ [Send Card] Email sent successfully')
 
     // Log the action
     await supabase.from('card_usage').insert({
@@ -98,13 +83,14 @@ export async function POST(request: NextRequest) {
       event_type: 'event',
       amount_spent: 0,
       points_earned: 0,
-      notes: `Tarjeta digital enviada a ${email || phone}`,
+      notes: `Tarjeta digital enviada a ${member.email}`,
     })
 
     return NextResponse.json({
       success: true,
-      message: 'Tarjeta enviada exitosamente',
+      message: `Tarjeta enviada exitosamente a ${member.email}`,
       wallet_pass_url: walletPassUrl,
+      email_id: emailResult.emailId,
     })
   } catch (error: any) {
     console.error('🔴 [Send Card] Error:', error)
