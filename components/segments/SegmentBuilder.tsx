@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Users, Save, Play, Download, Tag, Loader2, Bell } from 'lucide-react'
+import { Users, Save, Play, Download, Tag, Loader2, Bell, CreditCard } from 'lucide-react'
 import type { Database } from '@/lib/types/database'
 
 type MemberSegment = Database['public']['Tables']['member_segments']['Row']
@@ -52,6 +52,11 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
   const [pushMessage, setPushMessage] = useState('')
   const [pushUrl, setPushUrl] = useState('')
   const [sendingPush, setSendingPush] = useState(false)
+  
+  // Wallet push states
+  const [showWalletPushModal, setShowWalletPushModal] = useState(false)
+  const [walletPushMessage, setWalletPushMessage] = useState('')
+  const [sendingWalletPush, setSendingWalletPush] = useState(false)
 
   useEffect(() => {
     // Fetch promotions
@@ -169,6 +174,62 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
       alert('Error: ' + error.message)
     } finally {
       setAssigning(false)
+    }
+  }
+
+  const sendWalletPushNotification = async () => {
+    if (!walletPushMessage.trim()) {
+      alert('Ingresa un mensaje para la notificación')
+      return
+    }
+
+    if (matchingMembers.length === 0) {
+      alert('No hay miembros para enviar la notificación')
+      return
+    }
+
+    setSendingWalletPush(true)
+    try {
+      console.log('📲 [Frontend] Sending wallet push notification:', {
+        message: walletPushMessage,
+        memberCount: matchingMembers.length
+      })
+
+      const response = await fetch('/api/wallet/push/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: walletPushMessage,
+          target_type: 'segment',
+          target_filter: filters,
+          member_ids: matchingMembers.map(m => m.id),
+        }),
+      })
+
+      console.log('📲 [Frontend] Response status:', response.status)
+
+      const data = await response.json()
+      
+      console.log('📲 [Frontend] Response data:', data)
+
+      if (!response.ok) {
+        console.error('🔴 [Frontend] Error details:', data)
+        throw new Error(data.details || data.error || 'Error al enviar notificaciones')
+      }
+
+      if (data.success) {
+        alert(`✅ Notificación enviada a Apple Wallet\n\n` +
+              `Total enviadas: ${data.stats.sent}\n` +
+              `Fallidas: ${data.stats.failed}`)
+        setShowWalletPushModal(false)
+        setWalletPushMessage('')
+      } else {
+        alert(`⚠️ ${data.message || 'No se pudieron enviar notificaciones'}`)
+      }
+    } catch (error: any) {
+      alert('Error: ' + error.message)
+    } finally {
+      setSendingWalletPush(false)
     }
   }
 
@@ -399,13 +460,22 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
               </div>
 
               {matchingMembers.length > 0 && (
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    onClick={() => setShowWalletPushModal(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition"
+                    title="Notificación a Apple Wallet (iOS)"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    Enviar a Wallet
+                  </button>
                   <button
                     onClick={() => setShowPushModal(true)}
                     className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                    title="Notificación web push (todos los dispositivos)"
                   >
                     <Bell className="w-4 h-4" />
-                    Enviar Push
+                    Enviar Web Push
                   </button>
                   <button
                     onClick={() => setShowAssignPromo(true)}
@@ -683,6 +753,82 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
                   ) : (
                     <>
                       <Bell className="w-4 h-4" />
+                      Enviar
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Wallet Push Notification Modal */}
+      {showWalletPushModal && (
+        <div 
+          className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowWalletPushModal(false)}
+        >
+          <div 
+            className="bg-neutral-800 border border-neutral-700 rounded-xl max-w-md w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <CreditCard className="w-6 h-6 text-purple-500" />
+              Notificación a Apple Wallet
+            </h3>
+            
+            <div className="space-y-4">
+              <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3">
+                <p className="text-sm text-purple-200">
+                  📱 Esta notificación llegará a los iPhones que tengan la tarjeta instalada en Apple Wallet
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  Mensaje *
+                </label>
+                <textarea
+                  value={walletPushMessage}
+                  onChange={(e) => setWalletPushMessage(e.target.value)}
+                  placeholder="Ej: ¡Nueva promoción disponible! 20% OFF en tu próxima visita"
+                  className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
+                  rows={3}
+                  maxLength={120}
+                />
+                <p className="text-xs text-neutral-500 mt-1">{walletPushMessage.length}/120 caracteres</p>
+              </div>
+
+              <div className="bg-neutral-900/50 p-3 rounded-lg">
+                <p className="text-sm text-neutral-400">
+                  Se enviará a <span className="font-bold text-white">{matchingMembers.length}</span> miembros
+                </p>
+                <p className="text-xs text-neutral-500 mt-1">
+                  Solo llegarán a los que tengan la tarjeta en Wallet
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setShowWalletPushModal(false)}
+                  className="flex-1 px-4 py-2 bg-neutral-700 text-white rounded-lg hover:bg-neutral-600 transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={sendWalletPushNotification}
+                  disabled={sendingWalletPush || !walletPushMessage.trim()}
+                  className="flex-1 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {sendingWalletPush ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="w-4 h-4" />
                       Enviar
                     </>
                   )}
