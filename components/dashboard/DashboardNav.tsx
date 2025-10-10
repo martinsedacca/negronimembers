@@ -13,7 +13,8 @@ import {
   X,
   ScanLine,
   Building2,
-  Filter
+  Filter,
+  Calendar
 } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
 
@@ -33,6 +34,7 @@ export default function DashboardNav({ user }: DashboardNavProps) {
     { name: 'Miembros', href: '/dashboard/members', icon: Users },
     { name: 'Segmentos', href: '/dashboard/segments', icon: Filter },
     { name: 'Promociones', href: '/dashboard/promotions', icon: Tag },
+    { name: 'Eventos', href: '/dashboard/events', icon: Calendar },
     { name: 'Sucursales', href: '/dashboard/branches', icon: Building2 },
     { name: 'Tarjetas', href: '/dashboard/cards', icon: CreditCard },
   ]
