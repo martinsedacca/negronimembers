@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Users, Save, Play, Download, Tag, Loader2 } from 'lucide-react'
+import { Users, Save, Play, Download, Tag, Loader2, Bell } from 'lucide-react'
 import type { Database } from '@/lib/types/database'
 
 type MemberSegment = Database['public']['Tables']['member_segments']['Row']
@@ -45,6 +45,13 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
   const [selectedPromo, setSelectedPromo] = useState('')
   const [autoApply, setAutoApply] = useState(false)
   const [assigning, setAssigning] = useState(false)
+  
+  // Push notification states
+  const [showPushModal, setShowPushModal] = useState(false)
+  const [pushTitle, setPushTitle] = useState('')
+  const [pushMessage, setPushMessage] = useState('')
+  const [pushUrl, setPushUrl] = useState('')
+  const [sendingPush, setSendingPush] = useState(false)
 
   useEffect(() => {
     // Fetch promotions
@@ -67,7 +74,6 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
       setMatchingMembers(data.members || [])
     } catch (error) {
       console.error('Error applying filters:', error)
-      alert('Error al aplicar filtros')
     } finally {
       setLoading(false)
     }
@@ -163,6 +169,56 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
       alert('Error: ' + error.message)
     } finally {
       setAssigning(false)
+    }
+  }
+
+  const sendPushNotification = async () => {
+    if (!pushTitle.trim() || !pushMessage.trim()) {
+      alert('Ingresa título y mensaje para la notificación')
+      return
+    }
+
+    if (matchingMembers.length === 0) {
+      alert('No hay miembros para enviar la notificación')
+      return
+    }
+
+    setSendingPush(true)
+    try {
+      const response = await fetch('/api/push/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: pushTitle,
+          body: pushMessage,
+          url: pushUrl || undefined,
+          target_type: 'segment',
+          target_filter: filters,
+          member_ids: matchingMembers.map(m => m.id),
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al enviar notificaciones')
+      }
+
+      if (data.success) {
+        alert(`✅ Notificación enviada exitosamente\n\n` +
+              `Total enviadas: ${data.stats.sent}\n` +
+              `Fallidas: ${data.stats.failed}`)
+        setShowPushModal(false)
+        setPushTitle('')
+        setPushMessage('')
+        setPushUrl('')
+      } else {
+        alert(`⚠️ ${data.message || 'No se pudieron enviar notificaciones'}`)
+      }
+    } catch (error: any) {
+      alert('Error: ' + error.message)
+    } finally {
+      setSendingPush(false)
     }
   }
 
@@ -332,6 +388,13 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
 
               {matchingMembers.length > 0 && (
                 <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowPushModal(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                  >
+                    <Bell className="w-4 h-4" />
+                    Enviar Push
+                  </button>
                   <button
                     onClick={() => setShowAssignPromo(true)}
                     className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
@@ -509,6 +572,107 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
                     </>
                   ) : (
                     'Asignar'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Push Notification Modal */}
+      {showPushModal && (
+        <div 
+          className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowPushModal(false)}
+        >
+          <div 
+            className="bg-neutral-800 border border-neutral-700 rounded-xl max-w-md w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <Bell className="w-6 h-6 text-blue-500" />
+              Enviar Notificación Push
+            </h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  Título *
+                </label>
+                <input
+                  type="text"
+                  value={pushTitle}
+                  onChange={(e) => setPushTitle(e.target.value)}
+                  placeholder="Ej: Nueva promoción disponible"
+                  className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
+                  maxLength={50}
+                />
+                <p className="text-xs text-neutral-500 mt-1">{pushTitle.length}/50 caracteres</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  Mensaje *
+                </label>
+                <textarea
+                  value={pushMessage}
+                  onChange={(e) => setPushMessage(e.target.value)}
+                  placeholder="Ej: ¡Obtén 20% de descuento en tu próxima visita!"
+                  className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
+                  rows={3}
+                  maxLength={120}
+                />
+                <p className="text-xs text-neutral-500 mt-1">{pushMessage.length}/120 caracteres</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  URL (opcional)
+                </label>
+                <input
+                  type="url"
+                  value={pushUrl}
+                  onChange={(e) => setPushUrl(e.target.value)}
+                  placeholder="https://ejemplo.com/promocion"
+                  className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
+                />
+                <p className="text-xs text-neutral-500 mt-1">
+                  Se abrirá al hacer click en la notificación
+                </p>
+              </div>
+
+              <div className="bg-neutral-900/50 p-3 rounded-lg">
+                <p className="text-sm text-neutral-400">
+                  Se enviará a <span className="font-bold text-white">{matchingMembers.length}</span> miembros
+                </p>
+                <p className="text-xs text-neutral-500 mt-1">
+                  Solo a los que tengan notificaciones habilitadas
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setShowPushModal(false)}
+                  className="flex-1 px-4 py-2 bg-neutral-700 text-white rounded-lg hover:bg-neutral-600 transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={sendPushNotification}
+                  disabled={sendingPush || !pushTitle.trim() || !pushMessage.trim()}
+                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {sendingPush ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      <Bell className="w-4 h-4" />
+                      Enviar
+                    </>
                   )}
                 </button>
               </div>
