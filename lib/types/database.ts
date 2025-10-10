@@ -438,6 +438,85 @@ export type Database = {
           updated_at?: string
         }
       }
+      events: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          event_date: string
+          end_date: string | null
+          location: string | null
+          branch_id: string | null
+          max_attendees: number | null
+          points_reward: number
+          status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled'
+          image_url: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          event_date: string
+          end_date?: string | null
+          location?: string | null
+          branch_id?: string | null
+          max_attendees?: number | null
+          points_reward?: number
+          status?: 'upcoming' | 'ongoing' | 'completed' | 'cancelled'
+          image_url?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          event_date?: string
+          end_date?: string | null
+          location?: string | null
+          branch_id?: string | null
+          max_attendees?: number | null
+          points_reward?: number
+          status?: 'upcoming' | 'ongoing' | 'completed' | 'cancelled'
+          image_url?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      event_attendees: {
+        Row: {
+          id: string
+          event_id: string
+          member_id: string
+          status: 'invited' | 'confirmed' | 'attended' | 'cancelled'
+          invited_at: string
+          attended_at: string | null
+          notes: string | null
+        }
+        Insert: {
+          id?: string
+          event_id: string
+          member_id: string
+          status?: 'invited' | 'confirmed' | 'attended' | 'cancelled'
+          invited_at?: string
+          attended_at?: string | null
+          notes?: string | null
+        }
+        Update: {
+          id?: string
+          event_id?: string
+          member_id?: string
+          status?: 'invited' | 'confirmed' | 'attended' | 'cancelled'
+          invited_at?: string
+          attended_at?: string | null
+          notes?: string | null
+        }
+      }
     }
     Views: {
       member_stats: {
@@ -481,6 +560,26 @@ export type Database = {
           transactions_last_30_days: number
           revenue_last_30_days: number
           last_transaction_date: string | null
+        }
+      }
+      event_stats: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          event_date: string
+          end_date: string | null
+          location: string | null
+          branch_id: string | null
+          max_attendees: number | null
+          points_reward: number
+          status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled'
+          image_url: string | null
+          created_at: string
+          total_invited: number
+          confirmed_count: number
+          attended_count: number
+          cancelled_count: number
         }
       }
     }
