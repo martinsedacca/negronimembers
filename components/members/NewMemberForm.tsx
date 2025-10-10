@@ -90,7 +90,7 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
             required
             value={formData.full_name}
             onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
+            className="mt-1 block w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
           />
         </div>
 
@@ -104,7 +104,7 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
             required
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
+            className="mt-1 block w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
           />
         </div>
 
@@ -117,7 +117,7 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
             id="phone"
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
+            className="mt-1 block w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
           />
         </div>
 
@@ -130,7 +130,7 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
             required
             value={formData.membership_type}
             onChange={(e) => setFormData({ ...formData, membership_type: e.target.value })}
-            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
+            className="mt-1 block w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
           >
             {membershipTypes.map((type) => (
               <option key={type.id} value={type.name}>
@@ -149,16 +149,15 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
             required
             value={formData.status}
             onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
+            className="mt-1 block w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
           >
             <option value="active">Activo</option>
             <option value="inactive">Inactivo</option>
-            <option value="suspended">Suspendido</option>
           </select>
         </div>
       </div>
 
-      <div className="bg-neutral-50 p-4 rounded-md">
+      <div className="bg-neutral-900/50 p-4 rounded-md border border-neutral-700">
         <h4 className="text-sm font-medium text-white mb-2">Información de la Membresía</h4>
         {membershipTypes.find(t => t.name === formData.membership_type) && (
           <div className="text-sm text-neutral-400 space-y-1">
@@ -178,7 +177,7 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
         <button
           type="button"
           onClick={() => router.back()}
-          className="px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-md shadow-sm text-sm font-medium text-neutral-300 bg-neutral-800 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+          className="px-4 py-2 text-neutral-300 bg-neutral-700 hover:bg-neutral-600 border border-neutral-600 rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
         >
           Cancelar
         </button>

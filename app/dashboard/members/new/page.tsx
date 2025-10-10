@@ -16,18 +16,18 @@ export default async function NewMemberPage() {
       <div>
         <Link
           href="/dashboard/members"
-          className="inline-flex items-center text-sm text-neutral-500 hover:text-neutral-700 mb-4"
+          className="inline-flex items-center text-sm text-neutral-400 hover:text-brand-400 mb-4 transition"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Volver a miembros
         </Link>
-        <h1 className="text-3xl font-bold text-neutral-900">Nuevo Miembro</h1>
-        <p className="mt-2 text-neutral-600">
+        <h1 className="text-3xl font-bold text-white">Nuevo Miembro</h1>
+        <p className="mt-2 text-neutral-400">
           Completa el formulario para agregar un nuevo miembro
         </p>
       </div>
 
-      <div className="bg-white shadow rounded-lg p-6">
+      <div className="bg-neutral-800 border border-neutral-700 shadow rounded-lg p-6">
         <NewMemberForm membershipTypes={membershipTypes || []} />
       </div>
     </div>

@@ -16,18 +16,18 @@ export default async function NewPromotionPage() {
       <div>
         <Link
           href="/dashboard/promotions"
-          className="inline-flex items-center text-sm text-neutral-500 hover:text-neutral-700 mb-4"
+          className="inline-flex items-center text-sm text-neutral-400 hover:text-brand-400 mb-4 transition"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Volver a promociones
         </Link>
-        <h1 className="text-3xl font-bold text-neutral-900">Nueva Promoción</h1>
-        <p className="mt-2 text-neutral-600">
+        <h1 className="text-3xl font-bold text-white">Nueva Promoción</h1>
+        <p className="mt-2 text-neutral-400">
           Crea una nueva promoción para aplicar a las tarjetas de membresía
         </p>
       </div>
 
-      <div className="bg-white shadow rounded-lg p-6">
+      <div className="bg-neutral-800 border border-neutral-700 shadow rounded-lg p-6">
         <NewPromotionForm membershipTypes={membershipTypes || []} />
       </div>
     </div>

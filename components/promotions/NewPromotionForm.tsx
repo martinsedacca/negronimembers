@@ -93,7 +93,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
             required
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
+            className="mt-1 block w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
             placeholder="Ej: Descuento de Verano"
           />
         </div>
@@ -107,7 +107,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
             rows={3}
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
+            className="mt-1 block w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
             placeholder="Describe los detalles de la promoción"
           />
         </div>
@@ -122,7 +122,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
               required
               value={formData.discount_type}
               onChange={(e) => setFormData({ ...formData, discount_type: e.target.value as any })}
-              className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
+              className="mt-1 block w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
             >
               <option value="percentage">Porcentaje (%)</option>
               <option value="fixed">Monto Fijo ($)</option>
@@ -142,7 +142,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
               min="0"
               value={formData.discount_value}
               onChange={(e) => setFormData({ ...formData, discount_value: e.target.value })}
-              className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
+              className="mt-1 block w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
               placeholder={formData.discount_type === 'percentage' ? '10' : '100'}
             />
           </div>
@@ -159,7 +159,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
               required
               value={formData.start_date}
               onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-              className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
+              className="mt-1 block w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
             />
           </div>
 
@@ -173,7 +173,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
               required
               value={formData.end_date}
               onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-              className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
+              className="mt-1 block w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
             />
           </div>
         </div>
@@ -189,7 +189,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
               min="0"
               value={formData.min_usage_count}
               onChange={(e) => setFormData({ ...formData, min_usage_count: e.target.value })}
-              className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
+              className="mt-1 block w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
               placeholder="0"
             />
             <p className="mt-1 text-xs text-neutral-500">
@@ -207,7 +207,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
               min="1"
               value={formData.max_usage_count}
               onChange={(e) => setFormData({ ...formData, max_usage_count: e.target.value })}
-              className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
+              className="mt-1 block w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
               placeholder="Ilimitado"
             />
             <p className="mt-1 text-xs text-neutral-500">
@@ -247,7 +247,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
             rows={4}
             value={formData.terms_conditions}
             onChange={(e) => setFormData({ ...formData, terms_conditions: e.target.value })}
-            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
+            className="mt-1 block w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
             placeholder="Términos y condiciones de la promoción"
           />
         </div>
