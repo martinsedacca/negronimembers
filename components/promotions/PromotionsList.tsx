@@ -5,6 +5,7 @@ import { Search, Calendar, Percent, DollarSign, Award, TrendingUp } from 'lucide
 import type { Database } from '@/lib/types/database'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import GlowCard from '@/components/ui/GlowCard'
 
 type Promotion = Database['public']['Tables']['promotions']['Row']
 
@@ -98,10 +99,15 @@ export default function PromotionsList({ promotions }: PromotionsListProps) {
               const active = isPromotionActive(promo)
 
               return (
-                <div
+                <GlowCard
                   key={promo.id}
-                  className={`border rounded-lg p-6 hover:shadow-md transition ${
-                    active ? 'border-green-600 bg-green-900/20' : 'border-neutral-700 bg-neutral-900/20'
+                  glowColor={active ? '#10b981' : '#E85A23'}
+                  glowSize={280}
+                  className="hover:scale-[1.02] transition-transform duration-300"
+                >
+                <div
+                  className={`p-6 rounded-xl ${
+                    active ? 'bg-green-900/30' : 'bg-neutral-900/30'
                   }`}
                 >
                   <div className="flex items-start justify-between mb-4">
@@ -168,6 +174,7 @@ export default function PromotionsList({ promotions }: PromotionsListProps) {
                     </div>
                   )}
                 </div>
+                </GlowCard>
               )
             })}
           </div>
