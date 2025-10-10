@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, Mail, Phone, Calendar, Award } from 'lucide-react'
+import { Search, Mail, Phone, Calendar, Award, Smartphone, CheckCircle2, XCircle } from 'lucide-react'
 import type { Database } from '@/lib/types/database'
 import MemberDetailModal from './MemberDetailModal'
 
@@ -17,6 +17,8 @@ type Member = Database['public']['Tables']['members']['Row'] & {
   last_visit?: string | null
   average_purchase?: number
   promotions_used?: number
+  has_wallet?: boolean
+  wallet_types?: string[] | null
 }
 type MembershipType = Database['public']['Tables']['membership_types']['Row']
 
@@ -114,6 +116,9 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
                 <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
                   Gasto Total
                 </th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-neutral-400 uppercase tracking-wider">
+                  Tarjeta
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
                   Fecha de Ingreso
                 </th>
@@ -184,6 +189,24 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                     <span className="font-semibold text-green-400">${(member.lifetime_spent || 0).toFixed(2)}</span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center justify-center gap-1">
+                      {member.has_wallet ? (
+                        <>
+                          {member.wallet_types?.includes('apple') && (
+                            <span title="Apple Wallet" className="text-lg">🍎</span>
+                          )}
+                          {member.wallet_types?.includes('google') && (
+                            <span title="Google Wallet" className="text-lg">📱</span>
+                          )}
+                        </>
+                      ) : (
+                        <span title="Sin tarjeta">
+                          <XCircle className="w-5 h-5 text-neutral-600" />
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-400">
                     <div className="flex items-center">

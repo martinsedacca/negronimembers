@@ -75,6 +75,13 @@ export async function POST(request: NextRequest) {
       .order('usage_date', { ascending: false })
       .limit(5)
 
+    // Get wallet status
+    const { data: walletPasses } = await supabase
+      .from('wallet_passes')
+      .select('pass_type, pass_id, created_at, last_updated')
+      .eq('member_id', member.id)
+      .order('created_at', { ascending: false })
+
     return NextResponse.json({
       member: {
         id: member.id,
@@ -97,6 +104,14 @@ export async function POST(request: NextRequest) {
       available_promotions: availablePromotions || [],
       assigned_promotions: assignedPromotions || [],
       recent_usage: recentUsage || [],
+      wallet_status: {
+        has_wallet: walletPasses && walletPasses.length > 0,
+        passes: walletPasses?.map(pass => ({
+          pass_type: pass.pass_type,
+          installed_at: pass.created_at,
+          last_updated: pass.last_updated,
+        })) || [],
+      },
     })
   } catch (error: any) {
     console.error('Scanner verify error:', error)

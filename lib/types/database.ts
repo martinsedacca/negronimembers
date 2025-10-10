@@ -545,6 +545,8 @@ export type Database = {
           last_visit: string | null
           average_purchase: number
           promotions_used: number
+          has_wallet: boolean
+          wallet_types: string[] | null
         }
       }
       branch_stats: {

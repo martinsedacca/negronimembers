@@ -1,6 +1,6 @@
 'use client'
 
-import { Award, Mail, Phone, TrendingUp, Clock, X } from 'lucide-react'
+import { Award, Mail, Phone, TrendingUp, Clock, X, Smartphone, CheckCircle2, XCircle } from 'lucide-react'
 
 interface MemberInfoProps {
   memberData: any
@@ -8,7 +8,7 @@ interface MemberInfoProps {
 }
 
 export default function MemberInfo({ memberData, onReset }: MemberInfoProps) {
-  const { member, stats, available_promotions, assigned_promotions } = memberData
+  const { member, stats, available_promotions, assigned_promotions, wallet_status } = memberData
 
   const tierColors: Record<string, string> = {
     Basic: 'bg-neutral-600',
@@ -59,6 +59,40 @@ export default function MemberInfo({ memberData, onReset }: MemberInfoProps) {
             )}
           </div>
         </div>
+
+        {/* Wallet Status */}
+        {wallet_status && (
+          <div className="bg-neutral-900/50 border border-neutral-700 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Smartphone className="w-5 h-5 text-neutral-400" />
+                <span className="text-sm font-medium text-white">Tarjeta Digital</span>
+              </div>
+              {wallet_status.has_wallet ? (
+                <CheckCircle2 className="w-5 h-5 text-green-500" />
+              ) : (
+                <XCircle className="w-5 h-5 text-neutral-500" />
+              )}
+            </div>
+            {wallet_status.has_wallet ? (
+              <div className="mt-2 space-y-1">
+                {wallet_status.passes.map((pass: any, index: number) => (
+                  <div key={index} className="flex items-center gap-2 text-xs text-neutral-400">
+                    <span className="capitalize">
+                      {pass.pass_type === 'apple' ? '🍎 Apple Wallet' : '📱 Google Wallet'}
+                    </span>
+                    <span className="text-neutral-600">•</span>
+                    <span>Instalada {new Date(pass.installed_at).toLocaleDateString('es-ES')}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-2 text-xs text-neutral-500">
+                No tiene tarjeta instalada
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-4">
