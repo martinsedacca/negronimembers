@@ -25,7 +25,7 @@ export default async function MembersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white">Miembros</h1>
-          <p className="mt-2 text-gray-400">
+          <p className="mt-2 text-neutral-400">
             Gestiona todos los miembros y sus membresías
           </p>
         </div>

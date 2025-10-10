@@ -81,7 +81,7 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <div className="sm:col-span-2">
-          <label htmlFor="full_name" className="block text-sm font-medium text-gray-300">
+          <label htmlFor="full_name" className="block text-sm font-medium text-neutral-300">
             Nombre Completo *
           </label>
           <input
@@ -90,12 +90,12 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
             required
             value={formData.full_name}
             onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-            className="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-300">
+          <label htmlFor="email" className="block text-sm font-medium text-neutral-300">
             Email *
           </label>
           <input
@@ -104,12 +104,12 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
             required
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            className="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
 
         <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-gray-300">
+          <label htmlFor="phone" className="block text-sm font-medium text-neutral-300">
             Teléfono
           </label>
           <input
@@ -117,12 +117,12 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
             id="phone"
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            className="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
 
         <div>
-          <label htmlFor="membership_type" className="block text-sm font-medium text-gray-300">
+          <label htmlFor="membership_type" className="block text-sm font-medium text-neutral-300">
             Tipo de Membresía *
           </label>
           <select
@@ -130,7 +130,7 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
             required
             value={formData.membership_type}
             onChange={(e) => setFormData({ ...formData, membership_type: e.target.value })}
-            className="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
           >
             {membershipTypes.map((type) => (
               <option key={type.id} value={type.name}>
@@ -141,7 +141,7 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
         </div>
 
         <div>
-          <label htmlFor="status" className="block text-sm font-medium text-gray-300">
+          <label htmlFor="status" className="block text-sm font-medium text-neutral-300">
             Estado *
           </label>
           <select
@@ -149,7 +149,7 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
             required
             value={formData.status}
             onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-            className="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
           >
             <option value="active">Activo</option>
             <option value="inactive">Inactivo</option>
@@ -158,10 +158,10 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
         </div>
       </div>
 
-      <div className="bg-gray-50 p-4 rounded-md">
+      <div className="bg-neutral-50 p-4 rounded-md">
         <h4 className="text-sm font-medium text-white mb-2">Información de la Membresía</h4>
         {membershipTypes.find(t => t.name === formData.membership_type) && (
-          <div className="text-sm text-gray-400 space-y-1">
+          <div className="text-sm text-neutral-400 space-y-1">
             <p>
               <span className="font-medium">Duración:</span>{' '}
               {membershipTypes.find(t => t.name === formData.membership_type)?.duration_months} meses
@@ -178,7 +178,7 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
         <button
           type="button"
           onClick={() => router.back()}
-          className="px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-300 bg-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          className="px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-md shadow-sm text-sm font-medium text-neutral-300 bg-neutral-800 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >
           Cancelar
         </button>

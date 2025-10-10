@@ -39,7 +39,7 @@ export default function DashboardNav({ user }: DashboardNavProps) {
   }
 
   return (
-    <nav className="bg-gray-800 shadow-sm border-b border-gray-700">
+    <nav className="bg-neutral-800 shadow-sm border-b border-neutral-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
@@ -61,7 +61,7 @@ export default function DashboardNav({ user }: DashboardNavProps) {
                     className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition ${
                       isActive
                         ? 'border-indigo-500 text-white'
-                        : 'border-transparent text-gray-300 hover:border-gray-500 hover:text-white'
+                        : 'border-transparent text-neutral-300 hover:border-neutral-500 hover:text-white'
                     }`}
                   >
                     <Icon className="w-4 h-4 mr-2" />
@@ -73,7 +73,7 @@ export default function DashboardNav({ user }: DashboardNavProps) {
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
             <div className="flex items-center mr-4">
-              <span className="text-sm text-gray-300">{user.email}</span>
+              <span className="text-sm text-neutral-300">{user.email}</span>
             </div>
             <button
               onClick={handleLogout}
@@ -86,7 +86,7 @@ export default function DashboardNav({ user }: DashboardNavProps) {
           <div className="flex items-center sm:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+              className="inline-flex items-center justify-center p-2 rounded-md text-neutral-400 hover:text-neutral-500 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
             >
               {mobileMenuOpen ? (
                 <X className="block h-6 w-6" />
@@ -100,7 +100,7 @@ export default function DashboardNav({ user }: DashboardNavProps) {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="sm:hidden bg-gray-800">
+        <div className="sm:hidden bg-neutral-800">
           <div className="pt-2 pb-3 space-y-1">
             {navigation.map((item) => {
               const Icon = item.icon
@@ -111,8 +111,8 @@ export default function DashboardNav({ user }: DashboardNavProps) {
                   href={item.href}
                   className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
                     isActive
-                      ? 'bg-gray-900 border-indigo-500 text-white'
-                      : 'border-transparent text-gray-300 hover:bg-gray-700 hover:border-gray-500 hover:text-white'
+                      ? 'bg-neutral-900 border-indigo-500 text-white'
+                      : 'border-transparent text-neutral-300 hover:bg-neutral-700 hover:border-neutral-500 hover:text-white'
                   }`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -124,13 +124,13 @@ export default function DashboardNav({ user }: DashboardNavProps) {
               )
             })}
           </div>
-          <div className="pt-4 pb-3 border-t border-gray-700">
+          <div className="pt-4 pb-3 border-t border-neutral-700">
             <div className="flex items-center px-4 mb-3">
-              <div className="text-sm font-medium text-gray-200">{user.email}</div>
+              <div className="text-sm font-medium text-neutral-200">{user.email}</div>
             </div>
             <button
               onClick={handleLogout}
-              className="block w-full text-left px-4 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700"
+              className="block w-full text-left px-4 py-2 text-base font-medium text-neutral-300 hover:text-white hover:bg-neutral-700"
             >
               <div className="flex items-center">
                 <LogOut className="w-5 h-5 mr-3" />

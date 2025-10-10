@@ -84,7 +84,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
 
       <div className="space-y-6">
         <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-300">
+          <label htmlFor="title" className="block text-sm font-medium text-neutral-300">
             Título *
           </label>
           <input
@@ -93,13 +93,13 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
             required
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
             placeholder="Ej: Descuento de Verano"
           />
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-300">
+          <label htmlFor="description" className="block text-sm font-medium text-neutral-300">
             Descripción
           </label>
           <textarea
@@ -107,14 +107,14 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
             rows={3}
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
             placeholder="Describe los detalles de la promoción"
           />
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>
-            <label htmlFor="discount_type" className="block text-sm font-medium text-gray-300">
+            <label htmlFor="discount_type" className="block text-sm font-medium text-neutral-300">
               Tipo de Descuento *
             </label>
             <select
@@ -122,7 +122,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
               required
               value={formData.discount_type}
               onChange={(e) => setFormData({ ...formData, discount_type: e.target.value as any })}
-              className="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
             >
               <option value="percentage">Porcentaje (%)</option>
               <option value="fixed">Monto Fijo ($)</option>
@@ -131,7 +131,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
           </div>
 
           <div>
-            <label htmlFor="discount_value" className="block text-sm font-medium text-gray-300">
+            <label htmlFor="discount_value" className="block text-sm font-medium text-neutral-300">
               Valor del Descuento *
             </label>
             <input
@@ -142,7 +142,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
               min="0"
               value={formData.discount_value}
               onChange={(e) => setFormData({ ...formData, discount_value: e.target.value })}
-              className="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
               placeholder={formData.discount_type === 'percentage' ? '10' : '100'}
             />
           </div>
@@ -150,7 +150,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>
-            <label htmlFor="start_date" className="block text-sm font-medium text-gray-300">
+            <label htmlFor="start_date" className="block text-sm font-medium text-neutral-300">
               Fecha de Inicio *
             </label>
             <input
@@ -159,12 +159,12 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
               required
               value={formData.start_date}
               onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-              className="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
 
           <div>
-            <label htmlFor="end_date" className="block text-sm font-medium text-gray-300">
+            <label htmlFor="end_date" className="block text-sm font-medium text-neutral-300">
               Fecha de Fin *
             </label>
             <input
@@ -173,14 +173,14 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
               required
               value={formData.end_date}
               onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-              className="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>
-            <label htmlFor="min_usage_count" className="block text-sm font-medium text-gray-300">
+            <label htmlFor="min_usage_count" className="block text-sm font-medium text-neutral-300">
               Uso Mínimo Requerido
             </label>
             <input
@@ -189,16 +189,16 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
               min="0"
               value={formData.min_usage_count}
               onChange={(e) => setFormData({ ...formData, min_usage_count: e.target.value })}
-              className="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
               placeholder="0"
             />
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-neutral-500">
               Número de veces que el miembro debe haber usado su tarjeta
             </p>
           </div>
 
           <div>
-            <label htmlFor="max_usage_count" className="block text-sm font-medium text-gray-300">
+            <label htmlFor="max_usage_count" className="block text-sm font-medium text-neutral-300">
               Uso Máximo Permitido
             </label>
             <input
@@ -207,17 +207,17 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
               min="1"
               value={formData.max_usage_count}
               onChange={(e) => setFormData({ ...formData, max_usage_count: e.target.value })}
-              className="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
               placeholder="Ilimitado"
             />
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-neutral-500">
               Dejar vacío para uso ilimitado
             </p>
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-3">
+          <label className="block text-sm font-medium text-neutral-300 mb-3">
             Tipos de Membresía Aplicables
           </label>
           <div className="space-y-2">
@@ -227,19 +227,19 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
                   type="checkbox"
                   checked={formData.applicable_membership_types.includes(type.name)}
                   onChange={() => handleMembershipTypeToggle(type.name)}
-                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-600 rounded"
+                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-neutral-600 rounded"
                 />
-                <span className="ml-2 text-sm text-gray-300">{type.name}</span>
+                <span className="ml-2 text-sm text-neutral-300">{type.name}</span>
               </label>
             ))}
           </div>
-          <p className="mt-2 text-xs text-gray-500">
+          <p className="mt-2 text-xs text-neutral-500">
             Si no seleccionas ninguno, la promoción aplicará a todos los tipos
           </p>
         </div>
 
         <div>
-          <label htmlFor="terms_conditions" className="block text-sm font-medium text-gray-300">
+          <label htmlFor="terms_conditions" className="block text-sm font-medium text-neutral-300">
             Términos y Condiciones
           </label>
           <textarea
@@ -247,7 +247,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
             rows={4}
             value={formData.terms_conditions}
             onChange={(e) => setFormData({ ...formData, terms_conditions: e.target.value })}
-            className="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="mt-1 block w-full px-3 py-2 border border-neutral-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
             placeholder="Términos y condiciones de la promoción"
           />
         </div>
@@ -258,7 +258,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
             id="is_active"
             checked={formData.is_active}
             onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-600 rounded"
+            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-neutral-600 rounded"
           />
           <label htmlFor="is_active" className="ml-2 block text-sm text-white">
             Activar promoción inmediatamente
@@ -270,7 +270,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
         <button
           type="button"
           onClick={() => router.back()}
-          className="px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-300 bg-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          className="px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-md shadow-sm text-sm font-medium text-neutral-300 bg-neutral-800 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >
           Cancelar
         </button>

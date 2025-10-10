@@ -67,7 +67,7 @@ export default async function DashboardPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-        <p className="mt-2 text-gray-400">
+        <p className="mt-2 text-neutral-400">
           Resumen general del sistema de membresías
         </p>
       </div>
@@ -80,7 +80,7 @@ export default async function DashboardPage() {
             <Link
               key={stat.name}
               href={stat.href}
-              className="bg-gray-800 border border-gray-700 overflow-hidden shadow rounded-lg hover:shadow-md transition"
+              className="bg-neutral-800 border border-neutral-700 overflow-hidden shadow rounded-lg hover:shadow-md transition"
             >
               <div className="p-5">
                 <div className="flex items-center">
@@ -89,7 +89,7 @@ export default async function DashboardPage() {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-400 truncate">
+                      <dt className="text-sm font-medium text-neutral-400 truncate">
                         {stat.name}
                       </dt>
                       <dd className="text-3xl font-semibold text-white">
@@ -106,20 +106,20 @@ export default async function DashboardPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Recent Members */}
-        <div className="bg-gray-800 border border-gray-700 shadow rounded-lg">
-          <div className="px-6 py-5 border-b border-gray-700">
+        <div className="bg-neutral-800 border border-neutral-700 shadow rounded-lg">
+          <div className="px-6 py-5 border-b border-neutral-700">
             <h3 className="text-lg font-medium text-white">Miembros Recientes</h3>
           </div>
-          <div className="divide-y divide-gray-700">
+          <div className="divide-y divide-neutral-700">
             {recentMembers && recentMembers.length > 0 ? (
               recentMembers.map((member) => (
-                <div key={member.id} className="px-6 py-4 hover:bg-gray-700">
+                <div key={member.id} className="px-6 py-4 hover:bg-neutral-700">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-white">
                         {member.full_name}
                       </p>
-                      <p className="text-sm text-gray-400">{member.email}</p>
+                      <p className="text-sm text-neutral-400">{member.email}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-medium text-white">
@@ -130,7 +130,7 @@ export default async function DashboardPage() {
                           member.status === 'active'
                             ? 'bg-green-100 text-green-800'
                             : member.status === 'inactive'
-                            ? 'bg-gray-100 text-gray-800'
+                            ? 'bg-neutral-100 text-neutral-800'
                             : 'bg-red-100 text-red-800'
                         }`}
                       >
@@ -141,12 +141,12 @@ export default async function DashboardPage() {
                 </div>
               ))
             ) : (
-              <div className="px-6 py-8 text-center text-gray-400">
+              <div className="px-6 py-8 text-center text-neutral-400">
                 No hay miembros registrados aún
               </div>
             )}
           </div>
-          <div className="px-6 py-4 bg-gray-900/50">
+          <div className="px-6 py-4 bg-neutral-900/50">
             <Link
               href="/dashboard/members"
               className="text-sm font-medium text-indigo-400 hover:text-indigo-300"
@@ -157,20 +157,20 @@ export default async function DashboardPage() {
         </div>
 
         {/* Recent Card Usage */}
-        <div className="bg-gray-800 border border-gray-700 shadow rounded-lg">
-          <div className="px-6 py-5 border-b border-gray-700">
+        <div className="bg-neutral-800 border border-neutral-700 shadow rounded-lg">
+          <div className="px-6 py-5 border-b border-neutral-700">
             <h3 className="text-lg font-medium text-white">Uso Reciente de Tarjetas</h3>
           </div>
-          <div className="divide-y divide-gray-700">
+          <div className="divide-y divide-neutral-700">
             {recentUsage && recentUsage.length > 0 ? (
               recentUsage.map((usage) => (
-                <div key={usage.id} className="px-6 py-4 hover:bg-gray-700">
+                <div key={usage.id} className="px-6 py-4 hover:bg-neutral-700">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-white">
                         {usage.members?.full_name}
                       </p>
-                      <p className="text-sm text-gray-400">
+                      <p className="text-sm text-neutral-400">
                         {usage.location || 'Sin ubicación'}
                       </p>
                     </div>
@@ -178,7 +178,7 @@ export default async function DashboardPage() {
                       <p className="text-sm font-medium text-white">
                         +{usage.points_earned} pts
                       </p>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-neutral-400">
                         {new Date(usage.usage_date).toLocaleDateString('es-ES')}
                       </p>
                     </div>
@@ -186,7 +186,7 @@ export default async function DashboardPage() {
                 </div>
               ))
             ) : (
-              <div className="px-6 py-8 text-center text-gray-400">
+              <div className="px-6 py-8 text-center text-neutral-400">
                 No hay uso de tarjetas registrado aún
               </div>
             )}
