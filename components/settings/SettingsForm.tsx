@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Save, Loader2, DollarSign, Users, Calendar, Award } from 'lucide-react'
+import { Save, Loader2, DollarSign, Users, Calendar, Award, Webhook, Lock, Unlock } from 'lucide-react'
 
 interface SettingsFormProps {
   initialConfig: {
@@ -16,6 +16,7 @@ interface SettingsFormProps {
       Gold: { min_spent: number; min_visits: number }
       Platinum: { min_spent: number; min_visits: number }
     }
+    ghl_webhook_url?: string
   }
 }
 
@@ -33,6 +34,8 @@ export default function SettingsForm({ initialConfig }: SettingsFormProps) {
     Platinum: { min_spent: 5000, min_visits: 100 },
   })
 
+  const [ghlWebhook, setGhlWebhook] = useState(initialConfig.ghl_webhook_url || '')
+  const [webhookUnlocked, setWebhookUnlocked] = useState(false)
   const [saving, setSaving] = useState(false)
 
   const handleSave = async () => {
@@ -44,6 +47,7 @@ export default function SettingsForm({ initialConfig }: SettingsFormProps) {
         body: JSON.stringify({
           points_rules: pointsRules,
           tier_thresholds: tierThresholds,
+          ghl_webhook_url: ghlWebhook,
         }),
       })
 
@@ -167,6 +171,67 @@ export default function SettingsForm({ initialConfig }: SettingsFormProps) {
           <p className="text-sm text-blue-300">
             ℹ️ El tier se calcula automáticamente cuando un miembro cumple CUALQUIERA de los dos requisitos (gasto O visitas)
           </p>
+        </div>
+      </div>
+
+      {/* GoHighLevel Webhook */}
+      <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-6">
+        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <Webhook className="w-6 h-6 text-orange-500" />
+          Integración GoHighLevel
+        </h2>
+        <p className="text-sm text-neutral-400 mb-6">
+          Configura el webhook para enviar tarjetas digitales a través de GoHighLevel
+        </p>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-neutral-300 mb-2">
+              URL del Webhook de GHL
+            </label>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <input
+                  type={webhookUnlocked ? "text" : "password"}
+                  value={ghlWebhook}
+                  onChange={(e) => setGhlWebhook(e.target.value)}
+                  disabled={!webhookUnlocked}
+                  placeholder="https://services.leadconnectorhq.com/hooks/..."
+                  className="w-full px-4 py-3 bg-neutral-700 text-white border border-neutral-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setWebhookUnlocked(!webhookUnlocked)}
+                className={`px-4 py-3 rounded-lg transition flex items-center gap-2 ${
+                  webhookUnlocked
+                    ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                    : 'bg-neutral-700 hover:bg-neutral-600 text-neutral-300'
+                }`}
+              >
+                {webhookUnlocked ? (
+                  <>
+                    <Unlock className="w-5 h-5" />
+                    Desbloquear
+                  </>
+                ) : (
+                  <>
+                    <Lock className="w-5 h-5" />
+                    Bloquear
+                  </>
+                )}
+              </button>
+            </div>
+            <p className="text-xs text-neutral-500 mt-2">
+              Esta URL se usará para enviar notificaciones cuando los miembros soliciten su tarjeta digital
+            </p>
+          </div>
+
+          <div className="p-4 bg-yellow-900/20 border border-yellow-700/50 rounded-lg">
+            <p className="text-sm text-yellow-300">
+              ⚠️ <strong>Información Sensible:</strong> El webhook está protegido. Haz click en "Desbloquear" para editarlo.
+            </p>
+          </div>
         </div>
       </div>
 

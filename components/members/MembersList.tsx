@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Search, Mail, Phone, Calendar, Award, Smartphone, CheckCircle2, XCircle } from 'lucide-react'
 import type { Database } from '@/lib/types/database'
-import MemberDetailModal from './MemberDetailModal'
+import MemberDetailModal from './MemberDetailModalNew'
 
 type Member = Database['public']['Tables']['members']['Row'] & {
   total_visits?: number
