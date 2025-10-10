@@ -6,7 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       members: {
@@ -17,7 +17,7 @@ export interface Database {
           full_name: string
           phone: string | null
           membership_type: string
-          status: 'active' | 'inactive' | 'suspended'
+          status: 'active' | 'inactive'
           member_number: string
           joined_date: string
           expiry_date: string | null
@@ -32,7 +32,7 @@ export interface Database {
           full_name: string
           phone?: string | null
           membership_type?: string
-          status?: 'active' | 'inactive' | 'suspended'
+          status?: 'active' | 'inactive'
           member_number: string
           joined_date?: string
           expiry_date?: string | null
@@ -47,7 +47,7 @@ export interface Database {
           full_name?: string
           phone?: string | null
           membership_type?: string
-          status?: 'active' | 'inactive' | 'suspended'
+          status?: 'active' | 'inactive'
           member_number?: string
           joined_date?: string
           expiry_date?: string | null
@@ -149,6 +149,10 @@ export interface Database {
           location: string | null
           notes: string | null
           points_earned: number
+          amount_spent: number
+          event_type: 'purchase' | 'event' | 'visit'
+          branch_location: string | null
+          served_by: string | null
           created_at: string
         }
         Insert: {
@@ -158,6 +162,10 @@ export interface Database {
           location?: string | null
           notes?: string | null
           points_earned?: number
+          amount_spent?: number
+          event_type?: 'purchase' | 'event' | 'visit'
+          branch_location?: string | null
+          served_by?: string | null
           created_at?: string
         }
         Update: {
@@ -167,6 +175,10 @@ export interface Database {
           location?: string | null
           notes?: string | null
           points_earned?: number
+          amount_spent?: number
+          event_type?: 'purchase' | 'event' | 'visit'
+          branch_location?: string | null
+          served_by?: string | null
           created_at?: string
         }
       }
@@ -230,6 +242,192 @@ export interface Database {
           last_updated?: string
           created_at?: string
         }
+      }
+      user_roles: {
+        Row: {
+          user_id: string
+          role: 'admin' | 'branch' | 'readonly'
+          branch_name: string | null
+          permissions: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          user_id: string
+          role?: 'admin' | 'branch' | 'readonly'
+          branch_name?: string | null
+          permissions?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          user_id?: string
+          role?: 'admin' | 'branch' | 'readonly'
+          branch_name?: string | null
+          permissions?: Json
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      special_invitations: {
+        Row: {
+          id: string
+          member_id: string
+          event_name: string
+          event_date: string
+          description: string | null
+          status: 'sent' | 'accepted' | 'declined' | 'attended'
+          invitation_data: Json
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          member_id: string
+          event_name: string
+          event_date: string
+          description?: string | null
+          status?: 'sent' | 'accepted' | 'declined' | 'attended'
+          invitation_data?: Json
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          member_id?: string
+          event_name?: string
+          event_date?: string
+          description?: string | null
+          status?: 'sent' | 'accepted' | 'declined' | 'attended'
+          invitation_data?: Json
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      member_segments: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          filters: Json
+          member_count: number
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          filters: Json
+          member_count?: number
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          filters?: Json
+          member_count?: number
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      member_assigned_promotions: {
+        Row: {
+          id: string
+          member_id: string
+          promotion_id: string
+          assigned_by: string | null
+          auto_apply: boolean
+          status: 'pending' | 'used' | 'expired'
+          assigned_at: string
+          used_at: string | null
+        }
+        Insert: {
+          id?: string
+          member_id: string
+          promotion_id: string
+          assigned_by?: string | null
+          auto_apply?: boolean
+          status?: 'pending' | 'used' | 'expired'
+          assigned_at?: string
+          used_at?: string | null
+        }
+        Update: {
+          id?: string
+          member_id?: string
+          promotion_id?: string
+          assigned_by?: string | null
+          auto_apply?: boolean
+          status?: 'pending' | 'used' | 'expired'
+          assigned_at?: string
+          used_at?: string | null
+        }
+      }
+      tier_history: {
+        Row: {
+          id: string
+          member_id: string
+          old_tier: string
+          new_tier: string
+          reason: string | null
+          changed_at: string
+        }
+        Insert: {
+          id?: string
+          member_id: string
+          old_tier: string
+          new_tier: string
+          reason?: string | null
+          changed_at?: string
+        }
+        Update: {
+          id?: string
+          member_id?: string
+          old_tier?: string
+          new_tier?: string
+          reason?: string | null
+          changed_at?: string
+        }
+      }
+    }
+    Views: {
+      member_stats: {
+        Row: {
+          id: string
+          full_name: string
+          email: string
+          phone: string | null
+          membership_type: string
+          status: 'active' | 'inactive'
+          member_number: string
+          joined_date: string
+          points: number
+          total_visits: number
+          total_purchases: number
+          total_events: number
+          lifetime_spent: number
+          visits_last_30_days: number
+          spent_last_30_days: number
+          visits_last_90_days: number
+          spent_last_90_days: number
+          last_visit: string | null
+          average_purchase: number
+          promotions_used: number
+        }
+      }
+    }
+    Functions: {
+      calculate_member_tier: {
+        Args: { p_member_id: string }
+        Returns: string
       }
     }
   }
