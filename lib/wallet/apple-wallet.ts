@@ -70,8 +70,13 @@ export async function generateApplePass(member: Member, authToken?: string): Pro
           
           // Add web service URL for automatic updates (if authToken provided)
           if (authToken) {
-            passTemplate.webServiceURL = `${getWebServiceURL()}/api/v1`;
+            const wsUrl = `${getWebServiceURL()}/api/v1`;
+            passTemplate.webServiceURL = wsUrl;
             passTemplate.authenticationToken = authToken;
+            console.log('🔗 [Wallet] webServiceURL:', wsUrl);
+            console.log('🔑 [Wallet] authToken:', authToken.substring(0, 10) + '...');
+          } else {
+            console.log('⚠️ [Wallet] No authToken provided - pass will NOT support push notifications');
           }
           
           fs.writeFileSync(destPath, JSON.stringify(passTemplate, null, 2));
