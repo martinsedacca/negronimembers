@@ -68,17 +68,7 @@ export async function generateApplePass(member: Member, authToken?: string): Pro
           delete passTemplate.logoText;
           passTemplate.barcode.message = member.member_number;
           
-          // Add web service URL for automatic updates (if authToken provided)
-          if (authToken) {
-            const wsUrl = `${getWebServiceURL()}/api/v1`;
-            passTemplate.webServiceURL = wsUrl;
-            passTemplate.authenticationToken = authToken;
-            console.log('🔗 [Wallet] webServiceURL:', wsUrl);
-            console.log('🔑 [Wallet] authToken:', authToken.substring(0, 10) + '...');
-          } else {
-            console.log('⚠️ [Wallet] No authToken provided - pass will NOT support push notifications');
-          }
-          
+          // Note: webServiceURL and authenticationToken are set via PKPass props, not in template
           fs.writeFileSync(destPath, JSON.stringify(passTemplate, null, 2));
         } else {
           // Copy other files as-is
@@ -86,15 +76,25 @@ export async function generateApplePass(member: Member, authToken?: string): Pro
         }
       }
 
-      // Create pass from the temp template (without .pass extension in the path)
+      // Build props for PKPass including webServiceURL if authToken is provided
+      const passProps: Record<string, any> = {};
+      
+      if (authToken) {
+        const wsUrl = `${getWebServiceURL()}/api/v1`;
+        passProps.webServiceURL = wsUrl;
+        passProps.authenticationToken = authToken;
+        console.log('🔗 [Wallet] Creating pass with webServiceURL:', wsUrl);
+      }
+
+      // Create pass from the temp template with props
       const pass = await PKPass.from({
-        model: tempDir.replace('.pass', ''),
+        model: tempDir,
         certificates: {
           wwdr,
           signerCert,
           signerKey,
         },
-      });
+      }, passProps);
 
       // Set pass type
       pass.type = 'storeCard';
