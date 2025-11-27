@@ -1,10 +1,19 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { X, Save, Loader2, Search, MapPin } from 'lucide-react'
 import type { Database } from '@/lib/types/database'
 
+// Extend Window interface for Google Maps
+declare global {
+  interface Window {
+    google: any
+  }
+}
+
 type Branch = Database['public']['Tables']['branches']['Row']
+
+const GOOGLE_MAPS_API_KEY = 'AIzaSyA_vtm2whFJ9CmMvicXhsCep7YGuPTlEgY'
 
 interface BranchFormModalProps {
   branch?: Branch
@@ -25,103 +34,105 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
     is_active: branch?.is_active ?? true,
   })
 
-  // Reverse geocode to get city from coordinates (address should be entered manually for accuracy)
-  const reverseGeocode = async (lat: string, lng: string) => {
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
-        { headers: { 'Accept-Language': 'en' } }
-      )
-      const data = await response.json()
-      if (data && data.address) {
-        const addr = data.address
-        const city = addr.city || addr.town || addr.village || addr.municipality || ''
-        const state = addr.state || ''
-        
-        // Only fill city (address should be copied from Google Maps for accuracy)
-        setFormData(prev => ({
-          ...prev,
-          city: city ? `${city}${state ? ', ' + state : ''}` : prev.city
-        }))
-      }
-    } catch (error) {
-      console.error('Reverse geocode error:', error)
-    }
-  }
-
-  // Parse Google Maps URL to extract coordinates
-  const parseGoogleMapsUrl = async (url: string) => {
-    // Pattern: @25.7616,-80.1918 or /place/.../@25.7616,-80.1918
-    const match = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/)
-    if (match) {
-      setFormData(prev => ({
-        ...prev,
-        latitude: match[1],
-        longitude: match[2]
-      }))
-      // Get address from coordinates
-      await reverseGeocode(match[1], match[2])
-      return true
-    }
-    // Pattern: q=25.7616,-80.1918
-    const match2 = url.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/)
-    if (match2) {
-      setFormData(prev => ({
-        ...prev,
-        latitude: match2[1],
-        longitude: match2[2]
-      }))
-      // Get address from coordinates
-      await reverseGeocode(match2[1], match2[2])
-      return true
-    }
-    return false
-  }
   const [saving, setSaving] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [searching, setSearching] = useState(false)
+  const autocompleteService = useRef<any>(null)
+  const placesService = useRef<any>(null)
+  const mapRef = useRef<HTMLDivElement>(null)
 
-  // Search for address using Nominatim (OpenStreetMap)
+  // Load Google Maps script
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !window.google) {
+      const script = document.createElement('script')
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`
+      script.async = true
+      script.onload = initServices
+      document.head.appendChild(script)
+    } else if (window.google) {
+      initServices()
+    }
+  }, [])
+
+  const initServices = () => {
+    if (window.google) {
+      autocompleteService.current = new window.google.maps.places.AutocompleteService()
+      // Create a dummy div for PlacesService
+      const dummyDiv = document.createElement('div')
+      placesService.current = new window.google.maps.places.PlacesService(dummyDiv)
+    }
+  }
+
+  // Search using Google Places Autocomplete
   const searchAddress = async (query: string) => {
-    if (query.length < 3) {
+    if (query.length < 2 || !autocompleteService.current) {
       setSearchResults([])
       return
     }
     
     setSearching(true)
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`,
-        { headers: { 'Accept-Language': 'en' } }
+      autocompleteService.current.getPlacePredictions(
+        { input: query, types: ['establishment', 'geocode'] },
+        (predictions: any[], status: string) => {
+          if (status === 'OK' && predictions) {
+            setSearchResults(predictions)
+          } else {
+            setSearchResults([])
+          }
+          setSearching(false)
+        }
       )
-      const data = await response.json()
-      setSearchResults(data)
     } catch (error) {
       console.error('Search error:', error)
-    } finally {
       setSearching(false)
     }
+  }
+
+  // Get place details when selecting a result
+  const selectSearchResult = (prediction: any) => {
+    if (!placesService.current) return
+    
+    placesService.current.getDetails(
+      { placeId: prediction.place_id, fields: ['geometry', 'formatted_address', 'address_components', 'name'] },
+      (place: any, status: string) => {
+        if (status === 'OK' && place) {
+          // Extract city from address components
+          let city = ''
+          let state = ''
+          if (place.address_components) {
+            for (const component of place.address_components) {
+              if (component.types.includes('locality')) {
+                city = component.long_name
+              }
+              if (component.types.includes('administrative_area_level_1')) {
+                state = component.short_name
+              }
+            }
+          }
+          
+          setFormData(prev => ({
+            ...prev,
+            latitude: place.geometry.location.lat().toString(),
+            longitude: place.geometry.location.lng().toString(),
+            address: place.formatted_address || '',
+            city: city ? `${city}${state ? ', ' + state : ''}` : prev.city
+          }))
+        }
+        setSearchResults([])
+        setSearchQuery('')
+      }
+    )
   }
 
   // Debounce search
   useEffect(() => {
     const timer = setTimeout(() => {
       if (searchQuery) searchAddress(searchQuery)
-    }, 500)
+    }, 300)
     return () => clearTimeout(timer)
   }, [searchQuery])
-
-  const selectSearchResult = (result: any) => {
-    setFormData(prev => ({
-      ...prev,
-      latitude: result.lat,
-      longitude: result.lon,
-      address: result.display_name.split(',').slice(0, 3).join(', ')
-    }))
-    setSearchResults([])
-    setSearchQuery('')
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -268,16 +279,8 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
                 <input
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => {
-                    const value = e.target.value
-                    setSearchQuery(value)
-                    // Also check if it's a Google Maps URL
-                    if (value.includes('google.com/maps') || value.includes('goo.gl/maps')) {
-                      parseGoogleMapsUrl(value)
-                      setSearchQuery('')
-                    }
-                  }}
-                  placeholder="Search address or paste Google Maps link..."
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search for a place or address..."
                   className="w-full pl-10 pr-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
                 />
                 {searching && (
@@ -290,13 +293,17 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
                 <div className="absolute z-50 w-full mt-1 bg-neutral-800 border border-neutral-600 rounded-lg shadow-xl max-h-60 overflow-y-auto">
                   {searchResults.map((result, index) => (
                     <button
-                      key={index}
+                      key={result.place_id || index}
                       type="button"
                       onClick={() => selectSearchResult(result)}
                       className="w-full px-4 py-3 text-left hover:bg-neutral-700 border-b border-neutral-700 last:border-0 transition"
                     >
-                      <p className="text-sm text-white truncate">{result.display_name.split(',').slice(0, 2).join(',')}</p>
-                      <p className="text-xs text-neutral-500 truncate">{result.display_name}</p>
+                      <p className="text-sm text-white truncate">
+                        {result.structured_formatting?.main_text || result.description}
+                      </p>
+                      <p className="text-xs text-neutral-500 truncate">
+                        {result.structured_formatting?.secondary_text || ''}
+                      </p>
                     </button>
                   ))}
                 </div>
