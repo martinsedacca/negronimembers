@@ -242,7 +242,15 @@ export default function TransactionForm({ memberData, onComplete, onCancel }: Tr
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium text-white">{promo.title}</div>
                       <div className="text-xs text-neutral-400 mt-0.5">
-                        {promo.discount_value}{promo.discount_type === 'percentage' ? '%' : '$'} OFF
+                        {promo.discount_value ? (
+                          <>
+                            {promo.discount_type === 'percentage' ? `${promo.discount_value}% OFF` : `$${promo.discount_value} OFF`}
+                          </>
+                        ) : promo.description ? (
+                          <span className="line-clamp-1">{promo.description}</span>
+                        ) : (
+                          <span>Beneficio disponible</span>
+                        )}
                         {promo.usage_type && promo.usage_type !== 'general' && (
                           <span className="ml-2 px-2 py-0.5 bg-neutral-800 rounded text-[10px] uppercase">
                             {promo.usage_type}
