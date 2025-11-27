@@ -22,9 +22,9 @@ function MemberLayoutContent({ children }: { children: React.ReactNode }) {
   ]
 
   return (
-    <div className="h-screen bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950 flex flex-col overflow-hidden">
+    <div className="h-[100dvh] bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950 flex flex-col overflow-hidden">
       {/* Content */}
-      <main className="flex-1 overflow-y-auto overflow-x-hidden pb-20">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden pb-28 overscroll-contain">
         {children}
       </main>
 

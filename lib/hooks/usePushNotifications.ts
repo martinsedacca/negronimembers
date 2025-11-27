@@ -8,7 +8,18 @@ export function usePushNotifications() {
 
   useEffect(() => {
     // Check if push notifications are supported
-    const supported = 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window
+    const hasNotification = 'Notification' in window
+    const hasServiceWorker = 'serviceWorker' in navigator
+    const hasPushManager = 'PushManager' in window
+    const supported = hasNotification && hasServiceWorker && hasPushManager
+    
+    console.log('🔔 [usePushNotifications] Support check:', {
+      hasNotification,
+      hasServiceWorker,
+      hasPushManager,
+      supported
+    })
+    
     setIsSupported(supported)
 
     if (supported) {

@@ -15,17 +15,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Store the subscription
+    // Store the subscription - table has p256dh and auth as separate columns
     const { data, error } = await supabase
       .from('push_subscriptions')
       .upsert({
         member_id: member_id || null,
         endpoint: subscription.endpoint,
-        keys: subscription.keys,
-        user_agent,
-        device_name,
+        p256dh: subscription.keys?.p256dh,
+        auth: subscription.keys?.auth,
         is_active: true,
-        last_used_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       }, {
         onConflict: 'endpoint',
       })

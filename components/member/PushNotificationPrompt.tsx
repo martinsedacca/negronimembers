@@ -14,11 +14,18 @@ export function PushNotificationPrompt({ memberId }: PushNotificationPromptProps
   const [showPrompt, setShowPrompt] = useState(false)
 
   useEffect(() => {
+    console.log('🔔 [PushPrompt] Checking conditions:', {
+      isSupported,
+      permission,
+      isSubscribed,
+    })
+
     // Check if user has already dismissed the prompt
     const dismissedUntil = localStorage.getItem('push_prompt_dismissed')
     if (dismissedUntil) {
       const dismissedDate = new Date(dismissedUntil)
       if (dismissedDate > new Date()) {
+        console.log('🔔 [PushPrompt] Dismissed until:', dismissedDate)
         setDismissed(true)
         return
       }
@@ -29,8 +36,22 @@ export function PushNotificationPrompt({ memberId }: PushNotificationPromptProps
     // - Permission not yet granted
     // - Not already subscribed
     const timer = setTimeout(() => {
-      if (isSupported && permission === 'default' && !isSubscribed) {
+      console.log('🔔 [PushPrompt] Timer fired, checking:', {
+        isSupported,
+        permission,
+        isSubscribed,
+        shouldShow: isSupported && permission === 'default' && !isSubscribed
+      })
+      // Show if supported AND not subscribed AND (permission is default OR granted but not registered)
+      if (isSupported && !isSubscribed && permission !== 'denied') {
+        console.log('🔔 [PushPrompt] ✅ Showing prompt!')
         setShowPrompt(true)
+      } else {
+        console.log('🔔 [PushPrompt] ❌ Not showing prompt because:', {
+          notSupported: !isSupported,
+          permissionDenied: permission === 'denied',
+          alreadySubscribed: isSubscribed
+        })
       }
     }, 3000) // Show after 3 seconds
 
@@ -38,7 +59,9 @@ export function PushNotificationPrompt({ memberId }: PushNotificationPromptProps
   }, [isSupported, permission, isSubscribed])
 
   const handleSubscribe = async () => {
+    console.log('🔔 [PushPrompt] Subscribing with memberId:', memberId)
     const result = await subscribe(memberId)
+    console.log('🔔 [PushPrompt] Subscribe result:', result)
     if (result.success) {
       setShowPrompt(false)
     }
@@ -58,7 +81,7 @@ export function PushNotificationPrompt({ memberId }: PushNotificationPromptProps
   }
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50 animate-slide-up">
+    <div className="fixed bottom-24 left-4 right-4 md:left-auto md:right-4 md:w-96 z-[60] animate-slide-up">
       <div className="bg-neutral-800 border border-neutral-700 rounded-2xl p-4 shadow-2xl">
         <button 
           onClick={handleDismiss}
