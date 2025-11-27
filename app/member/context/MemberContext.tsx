@@ -267,6 +267,32 @@ export function MemberProvider({ children }: { children: ReactNode }) {
     }
   }, [supabase, fetchAllData])
 
+  // Listen for auth state changes from Supabase
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('🔐 [MemberContext] Auth state changed:', event, !!session)
+      
+      if (event === 'SIGNED_IN' && session) {
+        // User just signed in, refresh data
+        refreshData()
+      } else if (event === 'SIGNED_OUT') {
+        // User signed out, clear state
+        setIsAuthenticated(false)
+        setMember(null)
+        setTransactions([])
+        setPromotions([])
+        setMemberCodes([])
+        setMembershipTypes([])
+        clearStoredData()
+        setLoading(false)
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [supabase, refreshData])
+
   // Use refs to avoid re-running effects when these change
   const isAuthenticatedRef = useRef(isAuthenticated)
   const syncingRef = useRef(syncing)
