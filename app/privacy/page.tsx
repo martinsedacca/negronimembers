@@ -80,8 +80,8 @@ export default function PrivacyPage() {
             <h2 className="text-xl font-semibold text-white mt-8 mb-4">6. Contact Us</h2>
             <p className="text-neutral-300">
               If you have any questions about this Privacy Policy, please contact us at:{' '}
-              <a href="mailto:privacy@negroni.com" className="text-orange-500 hover:underline">
-                privacy@negroni.com
+              <a href="mailto:mkt@negronius.com" className="text-orange-500 hover:underline">
+                mkt@negronius.com
               </a>
             </p>
           </section>

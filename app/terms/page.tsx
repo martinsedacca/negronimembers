@@ -92,8 +92,8 @@ export default function TermsPage() {
             <h2 className="text-xl font-semibold text-white mt-8 mb-4">8. Contact</h2>
             <p className="text-neutral-300">
               For questions about these Terms & Conditions, please contact us at:{' '}
-              <a href="mailto:legal@negroni.com" className="text-orange-500 hover:underline">
-                legal@negroni.com
+              <a href="mailto:mkt@negronius.com" className="text-orange-500 hover:underline">
+                mkt@negronius.com
               </a>
             </p>
           </section>

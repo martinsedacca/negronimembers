@@ -1,17 +1,45 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { Sparkles, Crown, Tag, Gift, Percent, Star } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Sparkles, Tag, Gift, Percent, Star, HelpCircle, X, ChevronLeft, ChevronRight, Check, Lock } from 'lucide-react'
 import Link from 'next/link'
+
+interface MembershipType {
+  id: string
+  name: string
+  description: string
+  points_required: number
+  visits_required: number
+  benefits: Record<string, any>
+}
 
 interface BenefitsClientProps {
   member: any
   benefits: any[]
   hasCodes: boolean
+  membershipTypes: MembershipType[]
 }
 
-export default function BenefitsClient({ member, benefits, hasCodes }: BenefitsClientProps) {
-  const isGold = member.membership_type === 'Gold'
+export default function BenefitsClient({ member, benefits, hasCodes, membershipTypes }: BenefitsClientProps) {
+  const [activeTab, setActiveTab] = useState(0)
+  const [showTutorial, setShowTutorial] = useState(false)
+  const [tutorialStep, setTutorialStep] = useState(0)
+
+  // Sort membership types by requirements
+  const sortedTypes = useMemo(() => {
+    return [...membershipTypes].sort((a, b) => {
+      const aReq = Math.max(a.points_required || 0, a.visits_required || 0)
+      const bReq = Math.max(b.points_required || 0, b.visits_required || 0)
+      return aReq - bReq
+    })
+  }, [membershipTypes])
+
+  // Find current member level index
+  const currentLevelIndex = useMemo(() => {
+    const idx = sortedTypes.findIndex(t => t.name === member.membership_type)
+    return idx >= 0 ? idx : 0
+  }, [sortedTypes, member.membership_type])
 
   const getDiscountIcon = (type: string) => {
     switch (type) {
@@ -39,6 +67,36 @@ export default function BenefitsClient({ member, benefits, hasCodes }: BenefitsC
     }
   }
 
+  // Get benefits for a specific level from membership type benefits object
+  const getLevelBenefits = (level: MembershipType) => {
+    if (!level.benefits) return []
+    // Convert benefits object to array
+    return Object.entries(level.benefits).map(([key, value]) => ({
+      id: key,
+      title: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      value: value
+    }))
+  }
+
+  // Tutorial content
+  const tutorialSteps = [
+    {
+      title: '¡Bienvenido al programa!',
+      description: 'Gana puntos con cada visita y desbloquea beneficios exclusivos.',
+      icon: '🎉'
+    },
+    {
+      title: 'Sube de nivel',
+      description: 'A medida que acumulas puntos o visitas, subes de nivel automáticamente.',
+      icon: '⬆️'
+    },
+    {
+      title: 'Más beneficios',
+      description: 'Cada nivel tiene beneficios mejores. ¡Llega al máximo nivel para disfrutar de todo!',
+      icon: '🎁'
+    }
+  ]
+
   return (
     <div className="min-h-screen pb-6">
       {/* Header */}
@@ -46,149 +104,332 @@ export default function BenefitsClient({ member, benefits, hasCodes }: BenefitsC
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
+          className="flex items-start justify-between"
         >
           <div>
-            <h1 className="text-2xl font-bold text-white mb-2">Your Benefits</h1>
+            <h1 className="text-2xl font-bold text-white mb-2">Benefits</h1>
             <p className="text-neutral-400">
-              Enjoy your {member.membership_type} perks
-              {hasCodes && ' + special code benefits'}
+              Explore benefits by level
             </p>
           </div>
+          <button
+            onClick={() => setShowTutorial(true)}
+            className="flex items-center gap-2 text-sm text-orange-500 hover:text-orange-400 transition"
+          >
+            <HelpCircle className="w-5 h-5" />
+            <span className="hidden sm:inline">¿Cómo funciona?</span>
+          </button>
         </motion.div>
       </div>
 
-      {/* Membership Badge */}
-      <div className="px-6 mb-6">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1 }}
-          className={`p-6 rounded-2xl border ${
-            isGold 
-              ? 'bg-gradient-to-br from-yellow-900/20 to-yellow-800/20 border-yellow-500/30'
-              : 'bg-gradient-to-br from-orange-900/20 to-orange-800/20 border-orange-500/30'
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div
-                className={`w-16 h-16 rounded-xl flex items-center justify-center text-3xl ${
-                  isGold 
-                    ? 'bg-yellow-500/20 border-2 border-yellow-500'
-                    : 'bg-orange-500/20 border-2 border-orange-500'
-                }`}
-              >
-                {isGold ? '👑' : '🎯'}
+      {/* Level Tabs */}
+      {sortedTypes.length > 0 && (
+        <div className="px-6 mb-6">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-neutral-800 rounded-xl p-1 flex"
+          >
+            {sortedTypes.map((type, index) => {
+              const isActive = activeTab === index
+              const isCurrent = index === currentLevelIndex
+              const isLocked = index > currentLevelIndex
+              
+              return (
+                <button
+                  key={type.id}
+                  onClick={() => setActiveTab(index)}
+                  className={`flex-1 relative py-3 px-2 rounded-lg text-sm font-medium transition-all ${
+                    isActive
+                      ? 'bg-orange-500 text-white'
+                      : 'text-neutral-400 hover:text-white'
+                  }`}
+                >
+                  <span className="flex items-center justify-center gap-1">
+                    {isLocked && <Lock className="w-3 h-3" />}
+                    {type.name}
+                  </span>
+                  {isCurrent && !isActive && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full" />
+                  )}
+                </button>
+              )
+            })}
+          </motion.div>
+        </div>
+      )}
+
+      {/* Level Info */}
+      {sortedTypes[activeTab] && (
+        <div className="px-6 mb-6">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className={`p-5 rounded-2xl border ${
+              activeTab === currentLevelIndex
+                ? 'bg-gradient-to-br from-orange-900/30 to-orange-800/20 border-orange-500/50'
+                : activeTab > currentLevelIndex
+                ? 'bg-neutral-800/50 border-neutral-700'
+                : 'bg-gradient-to-br from-green-900/20 to-green-800/10 border-green-500/30'
+            }`}
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${
+                activeTab === currentLevelIndex
+                  ? 'bg-orange-500/20 border-2 border-orange-500'
+                  : activeTab > currentLevelIndex
+                  ? 'bg-neutral-700 border-2 border-neutral-600'
+                  : 'bg-green-500/20 border-2 border-green-500'
+              }`}>
+                {activeTab === currentLevelIndex ? '⭐' : activeTab > currentLevelIndex ? '🔒' : '✅'}
               </div>
               <div>
-                <p className="text-sm text-neutral-400">Your Membership</p>
-                <h2 className="text-2xl font-bold text-white">{member.membership_type}</h2>
-                <p className="text-xs text-neutral-500 mt-1">
-                  {member.points} points
-                </p>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xl font-bold text-white">{sortedTypes[activeTab].name}</h3>
+                  {activeTab === currentLevelIndex && (
+                    <span className="text-xs px-2 py-0.5 bg-orange-500 text-white rounded-full">Tu nivel</span>
+                  )}
+                  {activeTab < currentLevelIndex && (
+                    <span className="text-xs px-2 py-0.5 bg-green-500 text-white rounded-full">Completado</span>
+                  )}
+                </div>
+                <p className="text-sm text-neutral-400">{sortedTypes[activeTab].description}</p>
               </div>
             </div>
-            {isGold && (
-              <Crown className="w-8 h-8 text-yellow-500" />
+
+            {/* Requirements */}
+            {activeTab > currentLevelIndex && (
+              <div className="mt-3 p-3 bg-neutral-900/50 rounded-lg">
+                <p className="text-xs text-neutral-500 mb-2">Para desbloquear necesitas:</p>
+                <div className="flex gap-4 text-sm">
+                  {sortedTypes[activeTab].points_required > 0 && (
+                    <span className="text-orange-400">
+                      {sortedTypes[activeTab].points_required} puntos
+                    </span>
+                  )}
+                  {sortedTypes[activeTab].points_required > 0 && sortedTypes[activeTab].visits_required > 0 && (
+                    <span className="text-neutral-500">o</span>
+                  )}
+                  {sortedTypes[activeTab].visits_required > 0 && (
+                    <span className="text-green-400">
+                      {sortedTypes[activeTab].visits_required} visitas
+                    </span>
+                  )}
+                </div>
+              </div>
             )}
-          </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Level Benefits */}
+      <div className="px-6 mb-6">
+        <motion.div
+          key={`benefits-${activeTab}`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1 }}
+        >
+          <h4 className="font-semibold text-white mb-3 flex items-center gap-2">
+            <Gift className="w-4 h-4 text-orange-500" />
+            Beneficios de {sortedTypes[activeTab]?.name || 'este nivel'}
+          </h4>
+
+          {sortedTypes[activeTab] && getLevelBenefits(sortedTypes[activeTab]).length > 0 ? (
+            <div className="space-y-2">
+              {getLevelBenefits(sortedTypes[activeTab]).map((benefit, index) => (
+                <motion.div
+                  key={benefit.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.05 * index }}
+                  className={`flex items-center gap-3 p-3 rounded-xl ${
+                    activeTab <= currentLevelIndex
+                      ? 'bg-neutral-800 border border-neutral-700'
+                      : 'bg-neutral-800/50 border border-neutral-700/50 opacity-60'
+                  }`}
+                >
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                    activeTab <= currentLevelIndex
+                      ? 'bg-orange-500/20 text-orange-500'
+                      : 'bg-neutral-700 text-neutral-500'
+                  }`}>
+                    {activeTab <= currentLevelIndex ? <Check className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-white text-sm font-medium">{benefit.title}</p>
+                    {typeof benefit.value === 'string' && (
+                      <p className="text-xs text-neutral-400">{benefit.value}</p>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 bg-neutral-800/50 rounded-xl border border-neutral-700">
+              <Sparkles className="w-10 h-10 text-neutral-600 mx-auto mb-2" />
+              <p className="text-neutral-400 text-sm">No hay beneficios configurados para este nivel</p>
+            </div>
+          )}
         </motion.div>
       </div>
 
-      {/* Benefits List */}
-      <div className="px-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Sparkles className="w-5 h-5 text-orange-500" />
-          <h3 className="font-bold text-white text-lg">Available Benefits</h3>
-          <span className="text-sm text-neutral-400">({benefits.length})</span>
-        </div>
-
-        {benefits.length > 0 ? (
+      {/* Active Promotions */}
+      {benefits.length > 0 && (
+        <div className="px-6 mb-6">
+          <h4 className="font-semibold text-white mb-3 flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-orange-500" />
+            Promociones activas
+            <span className="text-sm text-neutral-400 font-normal">({benefits.length})</span>
+          </h4>
+          
           <div className="space-y-3">
-            {benefits.map((benefit, index) => (
+            {benefits.slice(0, 3).map((benefit, index) => (
               <motion.div
                 key={benefit.id}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 + index * 0.05 }}
+                transition={{ delay: 0.1 + index * 0.05 }}
                 className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-4 border border-neutral-700"
               >
                 <div className="flex items-start gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500/20 to-brand-500/20 border border-orange-500/30 flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 rounded-lg bg-orange-500/20 border border-orange-500/30 flex items-center justify-center flex-shrink-0">
                     {getDiscountIcon(benefit.discount_type)}
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-start justify-between gap-2 mb-1">
-                      <h4 className="font-semibold text-white">{benefit.title}</h4>
-                      <span className="text-xs px-2 py-1 rounded-full bg-orange-500/20 text-orange-400 font-semibold whitespace-nowrap">
+                    <div className="flex items-start justify-between gap-2">
+                      <h4 className="font-semibold text-white text-sm">{benefit.title}</h4>
+                      <span className="text-xs px-2 py-1 rounded-full bg-orange-500/20 text-orange-400 font-semibold">
                         {getDiscountText(benefit.discount_type, benefit.discount_value)}
                       </span>
                     </div>
                     {benefit.description && (
-                      <p className="text-sm text-neutral-400 mb-2">{benefit.description}</p>
-                    )}
-                    <div className="flex items-center gap-2 text-xs text-neutral-500">
-                      <span>Valid until {new Date(benefit.end_date).toLocaleDateString()}</span>
-                      {benefit.max_usage_count && (
-                        <>
-                          <span>•</span>
-                          <span>Limited to {benefit.max_usage_count} uses</span>
-                        </>
-                      )}
-                    </div>
-                    {benefit.terms_conditions && (
-                      <p className="text-xs text-neutral-500 italic mt-2 border-t border-neutral-700 pt-2">
-                        {benefit.terms_conditions}
-                      </p>
+                      <p className="text-xs text-neutral-400 mt-1">{benefit.description}</p>
                     )}
                   </div>
                 </div>
               </motion.div>
             ))}
           </div>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-12 bg-neutral-800 border border-neutral-700 rounded-xl"
-          >
-            <Sparkles className="w-16 h-16 text-neutral-600 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-white mb-2">No benefits available</h3>
-            <p className="text-neutral-400 text-sm mb-4">
-              Check back later for new promotions!
-            </p>
-          </motion.div>
-        )}
+        </div>
+      )}
 
-        {/* Redeem Code CTA */}
-        {!hasCodes && (
+      {/* Redeem Code CTA */}
+      {!hasCodes && (
+        <div className="px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="mt-6"
+            transition={{ delay: 0.3 }}
+            className="p-4 bg-purple-900/20 border border-purple-500/30 rounded-xl"
           >
-            <div className="p-4 bg-purple-900/20 border border-purple-500/30 rounded-xl">
-              <div className="flex items-start gap-3 mb-3">
-                <Tag className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="font-semibold text-white mb-1">Have a special code?</h4>
-                  <p className="text-sm text-neutral-300">
-                    Redeem it to unlock exclusive benefits
+            <div className="flex items-center gap-3 mb-3">
+              <Tag className="w-5 h-5 text-purple-500" />
+              <div>
+                <h4 className="font-semibold text-white text-sm">¿Tienes un código especial?</h4>
+                <p className="text-xs text-neutral-400">Canjéalo para obtener beneficios exclusivos</p>
+              </div>
+            </div>
+            <Link
+              href="/member/codes"
+              className="block w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition text-center text-sm"
+            >
+              Canjear Código
+            </Link>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Tutorial Modal */}
+      <AnimatePresence>
+        {showTutorial && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-6"
+            onClick={() => setShowTutorial(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-sm bg-neutral-900 border border-neutral-700 rounded-2xl overflow-hidden"
+            >
+              {/* Close button */}
+              <button
+                onClick={() => setShowTutorial(false)}
+                className="absolute top-4 right-4 text-neutral-400 hover:text-white"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              {/* Content */}
+              <div className="p-8 text-center">
+                <motion.div
+                  key={tutorialStep}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="mb-6"
+                >
+                  <span className="text-6xl block mb-4">{tutorialSteps[tutorialStep].icon}</span>
+                  <h3 className="text-xl font-bold text-white mb-2">
+                    {tutorialSteps[tutorialStep].title}
+                  </h3>
+                  <p className="text-neutral-400">
+                    {tutorialSteps[tutorialStep].description}
                   </p>
+                </motion.div>
+
+                {/* Dots */}
+                <div className="flex justify-center gap-2 mb-6">
+                  {tutorialSteps.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setTutorialStep(index)}
+                      className={`w-2 h-2 rounded-full transition ${
+                        index === tutorialStep ? 'bg-orange-500 w-6' : 'bg-neutral-600'
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                {/* Navigation */}
+                <div className="flex gap-3">
+                  {tutorialStep > 0 && (
+                    <button
+                      onClick={() => setTutorialStep(tutorialStep - 1)}
+                      className="flex-1 py-3 bg-neutral-800 text-white rounded-xl font-semibold hover:bg-neutral-700 transition flex items-center justify-center gap-2"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Anterior
+                    </button>
+                  )}
+                  {tutorialStep < tutorialSteps.length - 1 ? (
+                    <button
+                      onClick={() => setTutorialStep(tutorialStep + 1)}
+                      className="flex-1 py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition flex items-center justify-center gap-2"
+                    >
+                      Siguiente
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setShowTutorial(false)}
+                      className="flex-1 py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition"
+                    >
+                      ¡Entendido!
+                    </button>
+                  )}
                 </div>
               </div>
-              <Link
-                href="/member/codes"
-                className="block w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition text-center"
-              >
-                Redeem Code
-              </Link>
-            </div>
+            </motion.div>
           </motion.div>
         )}
-
-      </div>
+      </AnimatePresence>
     </div>
   )
 }

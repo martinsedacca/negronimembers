@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { motion } from 'framer-motion'
-import { Download, Sparkles, Award, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
+import { Download, Sparkles, Award, Loader2, CheckCircle, AlertCircle, ScanLine } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import Link from 'next/link'
 
 interface PassClientProps {
   member: any
@@ -184,6 +185,26 @@ export default function PassClient({ member }: PassClientProps) {
               <p>to earn points and redeem benefits</p>
             </div>
           </div>
+        </motion.div>
+      </div>
+
+      {/* Scanner Button */}
+      <div className="px-6 mb-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+        >
+          <Link
+            href="/member/scanner"
+            className="w-full py-4 rounded-2xl font-semibold transition flex items-center justify-center gap-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700"
+          >
+            <ScanLine className="w-5 h-5" />
+            Escanear QR
+          </Link>
+          <p className="text-xs text-neutral-500 text-center mt-2">
+            Escanea códigos QR de menús y promociones
+          </p>
         </motion.div>
       </div>
 
