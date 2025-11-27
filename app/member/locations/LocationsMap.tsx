@@ -24,68 +24,67 @@ interface LocationsMapProps {
 
 // Custom marker icon with distance label
 const createIcon = (isSelected: boolean, distance?: number) => {
-  const size = isSelected ? 48 : 40
-  const distanceLabel = distance !== undefined ? `${distance.toFixed(1)} mi` : ''
+  const distanceText = distance !== undefined ? `${distance.toFixed(1)} mi` : ''
   
   return L.divIcon({
-    className: 'custom-marker',
+    className: '',
     html: `
-      <div style="
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        transform: translateY(-50%);
-      ">
+      <div class="marker-container" style="position:relative;width:50px;height:60px;">
         <div style="
-          width: ${size}px;
-          height: ${size}px;
-          background: ${isSelected ? '#f97316' : '#1a1a1a'};
-          border: 3px solid ${isSelected ? '#fff' : '#f97316'};
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+          position:absolute;
+          left:50%;
+          bottom:0;
+          transform:translateX(-50%);
+          width:${isSelected ? '36px' : '30px'};
+          height:${isSelected ? '36px' : '30px'};
+          background:${isSelected ? '#f97316' : '#262626'};
+          border:2px solid ${isSelected ? '#fff' : '#f97316'};
+          border-radius:50%;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          box-shadow:0 2px 8px rgba(0,0,0,0.4);
         ">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="${isSelected ? '#fff' : '#f97316'}">
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-          </svg>
+          <span style="font-size:16px;">📍</span>
         </div>
-        ${distanceLabel ? `
+        ${distanceText ? `
           <div style="
-            margin-top: 4px;
-            padding: 2px 8px;
-            background: ${isSelected ? '#f97316' : 'rgba(26,26,26,0.9)'};
-            color: ${isSelected ? '#fff' : '#f97316'};
-            font-size: 11px;
-            font-weight: 600;
-            border-radius: 10px;
-            white-space: nowrap;
-            border: 1px solid ${isSelected ? '#fff' : '#f97316'};
-          ">${distanceLabel}</div>
+            position:absolute;
+            left:50%;
+            bottom:${isSelected ? '40px' : '34px'};
+            transform:translateX(-50%);
+            padding:2px 6px;
+            background:${isSelected ? '#f97316' : '#262626'};
+            color:#fff;
+            font-size:10px;
+            font-weight:bold;
+            border-radius:8px;
+            white-space:nowrap;
+            box-shadow:0 1px 4px rgba(0,0,0,0.3);
+          ">${distanceText}</div>
         ` : ''}
       </div>
     `,
-    iconSize: [size, size + (distanceLabel ? 24 : 0)],
-    iconAnchor: [size / 2, size],
+    iconSize: [50, 60],
+    iconAnchor: [25, 30],
   })
 }
 
-// User location icon
+// User location icon (blue dot)
 const userLocationIcon = L.divIcon({
-  className: 'user-marker',
+  className: '',
   html: `
     <div style="
-      width: 20px;
-      height: 20px;
-      background: #3b82f6;
-      border: 3px solid #fff;
-      border-radius: 50%;
-      box-shadow: 0 0 0 8px rgba(59,130,246,0.3), 0 2px 8px rgba(0,0,0,0.3);
+      width:16px;
+      height:16px;
+      background:#3b82f6;
+      border:3px solid #fff;
+      border-radius:50%;
+      box-shadow:0 0 0 6px rgba(59,130,246,0.3);
     "></div>
   `,
-  iconSize: [20, 20],
-  iconAnchor: [10, 10],
+  iconSize: [16, 16],
+  iconAnchor: [8, 8],
 })
 
 // Component to handle map updates

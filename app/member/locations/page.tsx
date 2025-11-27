@@ -95,10 +95,7 @@ export default function LocationsPage() {
     )
   }
 
-  // Auto-request location on mount
-  useEffect(() => {
-    requestLocation()
-  }, [])
+  // Don't auto-request - mobile browsers block it without user interaction
 
   // Calculate distances and sort
   const locationsWithDistance = useMemo(() => {
@@ -160,25 +157,30 @@ export default function LocationsPage() {
       <div className="bg-gradient-to-b from-neutral-800 to-neutral-900 px-4 pt-6 pb-4">
         <h1 className="text-2xl font-bold text-white">Find Us</h1>
         
-        {/* Location Status */}
-        <div className="mt-2 flex items-center gap-2">
-          {userLocation ? (
-            <span className="text-xs text-green-400 flex items-center gap-1">
-              <Locate className="w-3 h-3" /> Location enabled
-            </span>
-          ) : locationLoading ? (
-            <span className="text-xs text-neutral-400 flex items-center gap-1">
-              <Loader2 className="w-3 h-3 animate-spin" /> Getting location...
-            </span>
-          ) : (
-            <button
-              onClick={requestLocation}
-              className="text-xs text-orange-400 flex items-center gap-1 hover:text-orange-300"
-            >
-              <Locate className="w-3 h-3" /> Enable location
-            </button>
-          )}
-        </div>
+        {/* Location Button */}
+        {!userLocation && !locationLoading && (
+          <button
+            onClick={requestLocation}
+            className="mt-3 w-full flex items-center justify-center gap-2 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition font-medium"
+          >
+            <Locate className="w-5 h-5" />
+            Use My Location
+          </button>
+        )}
+        
+        {locationLoading && (
+          <div className="mt-3 flex items-center justify-center gap-2 py-3 text-neutral-400">
+            <Loader2 className="w-5 h-5 animate-spin" />
+            Getting your location...
+          </div>
+        )}
+        
+        {userLocation && (
+          <div className="mt-2 flex items-center gap-2 text-green-400 text-sm">
+            <Locate className="w-4 h-4" />
+            Location enabled - showing distances
+          </div>
+        )}
 
         {/* Search */}
         <div className="mt-4 relative">
