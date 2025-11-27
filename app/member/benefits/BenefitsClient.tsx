@@ -20,9 +20,10 @@ interface BenefitsClientProps {
   benefits: any[]
   hasCodes: boolean
   membershipTypes: MembershipType[]
+  transactionCount: number
 }
 
-export default function BenefitsClient({ member, benefits, hasCodes, membershipTypes }: BenefitsClientProps) {
+export default function BenefitsClient({ member, benefits, hasCodes, membershipTypes, transactionCount }: BenefitsClientProps) {
   const [activeTab, setActiveTab] = useState(0)
   const [showTutorial, setShowTutorial] = useState(false)
   const [tutorialStep, setTutorialStep] = useState(0)
@@ -36,11 +37,39 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
     })
   }, [membershipTypes])
 
-  // Find current member level index
-  const currentLevelIndex = useMemo(() => {
+  // Find current member level index and calculate progress
+  const { currentLevelIndex, nextLevel, progress, toNext } = useMemo(() => {
     const idx = sortedTypes.findIndex(t => t.name === member.membership_type)
-    return idx >= 0 ? idx : 0
-  }, [sortedTypes, member.membership_type])
+    const currentIdx = idx >= 0 ? idx : 0
+    const next = sortedTypes[currentIdx + 1] || null
+    
+    let prog = 100
+    let remaining = 0
+    
+    if (next) {
+      const current = sortedTypes[currentIdx]
+      if (next.visits_required > 0) {
+        const visitsInLevel = transactionCount - (current?.visits_required || 0)
+        const visitsNeeded = next.visits_required - (current?.visits_required || 0)
+        prog = visitsNeeded > 0 ? Math.min(100, Math.round((visitsInLevel / visitsNeeded) * 100)) : 100
+        remaining = Math.max(0, next.visits_required - transactionCount)
+      } else if (next.points_required > 0) {
+        const pointsInLevel = (member.points || 0) - (current?.points_required || 0)
+        const pointsNeeded = next.points_required - (current?.points_required || 0)
+        prog = pointsNeeded > 0 ? Math.min(100, Math.round((pointsInLevel / pointsNeeded) * 100)) : 100
+        remaining = Math.max(0, next.points_required - (member.points || 0))
+      }
+    }
+    
+    return { currentLevelIndex: currentIdx, nextLevel: next, progress: prog, toNext: remaining }
+  }, [sortedTypes, member.membership_type, member.points, transactionCount])
+
+  // SVG circle properties
+  const circleSize = 120
+  const strokeWidth = 8
+  const radius = (circleSize - strokeWidth) / 2
+  const circumference = 2 * Math.PI * radius
+  const progressOffset = circumference - (progress / 100) * circumference
 
   const getDiscountIcon = (type: string) => {
     switch (type) {
@@ -112,22 +141,60 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
 
       {/* Content */}
       <div className="relative z-10">
-        {/* Header */}
-        <div className="px-6 pt-8 pb-4">
+        {/* Header with Progress Circle */}
+        <div className="px-6 pt-6 pb-4">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-start justify-between"
+            className="flex flex-col items-center text-center"
           >
-            <div>
-              <h1 className="text-2xl font-bold text-white">Benefits</h1>
-              <p className="text-neutral-400 text-sm">Explore benefits by level</p>
+            {/* Progress Circle */}
+            <div className="relative mb-4">
+              <svg width={circleSize} height={circleSize} className="transform -rotate-90">
+                <circle
+                  cx={circleSize / 2}
+                  cy={circleSize / 2}
+                  r={radius}
+                  stroke="rgb(64, 64, 64)"
+                  strokeWidth={strokeWidth}
+                  fill="none"
+                />
+                <motion.circle
+                  cx={circleSize / 2}
+                  cy={circleSize / 2}
+                  r={radius}
+                  stroke="#E85A23"
+                  strokeWidth={strokeWidth}
+                  fill="none"
+                  strokeLinecap="round"
+                  initial={{ strokeDashoffset: circumference }}
+                  animate={{ strokeDashoffset: !nextLevel ? 0 : progressOffset }}
+                  transition={{ duration: 1.5, ease: "easeOut" }}
+                  style={{ strokeDasharray: circumference }}
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-2xl font-bold text-white">{member.membership_type}</span>
+                <span className="text-xs text-neutral-400">{member.points} pts</span>
+              </div>
             </div>
+            
+            {/* Progress text */}
+            {nextLevel ? (
+              <p className="text-neutral-400 text-sm">
+                <span className="text-orange-500 font-semibold">{toNext}</span> {nextLevel.visits_required > 0 ? 'visits' : 'points'} to <span className="text-white font-medium">{nextLevel.name}</span>
+              </p>
+            ) : (
+              <p className="text-orange-500 text-sm font-medium">Top level reached! 🎉</p>
+            )}
+            
+            {/* Help button */}
             <button
               onClick={() => setShowTutorial(true)}
-              className="flex items-center gap-2 text-sm text-orange-500 hover:text-orange-400 transition"
+              className="mt-3 flex items-center gap-1 text-xs text-neutral-500 hover:text-neutral-300 transition"
             >
-              <HelpCircle className="w-5 h-5" />
+              <HelpCircle className="w-4 h-4" />
+              How it works
             </button>
           </motion.div>
         </div>

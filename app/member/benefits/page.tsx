@@ -7,7 +7,7 @@ import { Loader2 } from 'lucide-react'
 
 export default function BenefitsPage() {
   const { member, loading } = useRequireAuth()
-  const { promotions, memberCodes, membershipTypes } = useMember()
+  const { promotions, memberCodes, membershipTypes, transactions } = useMember()
 
   // Filter promotions based on applicability and date validity
   const applicableBenefits = useMemo(() => {
@@ -48,6 +48,7 @@ export default function BenefitsPage() {
       benefits={applicableBenefits}
       hasCodes={memberCodes.length > 0}
       membershipTypes={membershipTypes}
+      transactionCount={transactions.length}
     />
   )
 }
