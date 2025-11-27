@@ -102,24 +102,16 @@ export default function ProgressClient({ member, transactionCount, memberCodes, 
 
   return (
     <div className="min-h-screen pb-6">
-      {/* Hero Header with Image */}
-      <div className="relative h-40 overflow-hidden">
-        <img 
-          src="/images/brand/bar-golden.jpg" 
-          alt="Negroni Bar" 
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/70 to-neutral-950" />
-        <div className="relative h-full flex flex-col justify-end px-6 pb-4">
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-            <h1 className="text-2xl font-bold text-white">Your Progress</h1>
-            <p className="text-neutral-300 text-sm">Track your membership journey</p>
-          </motion.div>
-        </div>
+      {/* Header */}
+      <div className="px-6 pt-8 pb-4">
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
+          <h1 className="text-2xl font-bold text-white">Your Progress</h1>
+          <p className="text-neutral-400 text-sm">Track your membership journey</p>
+        </motion.div>
       </div>
 
       {/* Progress Circle */}
-      <div className="px-6 -mt-4 mb-6 relative z-10">
+      <div className="px-6 mb-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}

@@ -106,25 +106,29 @@ export default function PassClient({ member }: PassClientProps) {
   }
 
   return (
-    <div className="min-h-screen pb-6">
-      {/* Hero Header with Image */}
-      <div className="relative h-48 overflow-hidden">
+    <div className="min-h-screen pb-6 relative">
+      {/* Background Image */}
+      <div className="fixed inset-0 z-0">
         <img 
           src="/images/brand/lounge-red.jpg" 
-          alt="Negroni" 
-          className="absolute inset-0 w-full h-full object-cover"
+          alt="" 
+          className="absolute inset-0 w-full h-full object-cover opacity-15"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-neutral-950" />
-        <div className="relative h-full flex flex-col justify-end px-6 pb-6">
+        <div className="absolute inset-0 bg-gradient-to-b from-neutral-950/70 via-neutral-950/90 to-neutral-950" />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10">
+        {/* Header */}
+        <div className="px-6 pt-8 pb-4">
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-            <p className="text-orange-400 text-sm font-medium mb-1">Welcome back,</p>
+            <p className="text-orange-500 text-sm font-medium mb-1">Welcome back,</p>
             <h1 className="text-2xl font-bold text-white">{member.first_name}</h1>
           </motion.div>
         </div>
-      </div>
 
-      {/* QR Card */}
-      <div className="px-6 -mt-6 mb-6 relative z-10">
+        {/* QR Card */}
+        <div className="px-6 mb-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -309,6 +313,7 @@ export default function PassClient({ member }: PassClientProps) {
             </div>
           </div>
         </motion.div>
+      </div>
       </div>
     </div>
   )

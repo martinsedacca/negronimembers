@@ -96,45 +96,48 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
   ]
 
   return (
-    <div className="min-h-screen pb-6">
-      {/* Hero Header with Image */}
-      <div className="relative h-40 overflow-hidden">
+    <div className="min-h-screen pb-6 relative">
+      {/* Background Image */}
+      <div className="fixed inset-0 z-0">
         <img 
-          src="/images/brand/neon-recipe.jpg" 
-          alt="Negroni" 
-          className="absolute inset-0 w-full h-full object-cover"
+          src="/images/brand/lounge-red.jpg" 
+          alt="" 
+          className="absolute inset-0 w-full h-full object-cover opacity-20"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/70 to-neutral-950" />
-        <div className="relative h-full flex flex-col justify-end px-6 pb-4">
+        <div className="absolute inset-0 bg-gradient-to-b from-neutral-950/80 via-neutral-950/95 to-neutral-950" />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10">
+        {/* Header */}
+        <div className="px-6 pt-8 pb-4">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-end justify-between"
+            className="flex items-start justify-between"
           >
             <div>
               <h1 className="text-2xl font-bold text-white">Benefits</h1>
-              <p className="text-neutral-300 text-sm">Explore benefits by level</p>
+              <p className="text-neutral-400 text-sm">Explore benefits by level</p>
             </div>
             <button
               onClick={() => setShowTutorial(true)}
-              className="flex items-center gap-2 text-sm text-orange-400 hover:text-orange-300 transition bg-black/30 backdrop-blur px-3 py-1.5 rounded-full"
+              className="flex items-center gap-2 text-sm text-orange-500 hover:text-orange-400 transition"
             >
-              <HelpCircle className="w-4 h-4" />
-              <span>How it works</span>
+              <HelpCircle className="w-5 h-5" />
             </button>
           </motion.div>
         </div>
-      </div>
 
-      {/* Level Tabs */}
-      {sortedTypes.length > 0 && (
-        <div className="px-6 -mt-4 mb-6 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-neutral-800/90 backdrop-blur rounded-xl p-1 flex shadow-lg"
-          >
+        {/* Level Tabs */}
+        {sortedTypes.length > 0 && (
+          <div className="px-6 mb-6">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-neutral-800/80 backdrop-blur-sm rounded-xl p-1 flex"
+            >
             {sortedTypes.map((type, index) => {
               const isActive = activeTab === index
               const isCurrent = index === currentLevelIndex
@@ -324,6 +327,7 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
           </motion.div>
         </div>
       )}
+      </div>
 
       {/* Tutorial Modal */}
       <AnimatePresence>
