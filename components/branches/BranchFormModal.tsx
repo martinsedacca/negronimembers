@@ -20,8 +20,35 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
     phone: branch?.phone || '',
     email: branch?.email || '',
     manager_name: branch?.manager_name || '',
+    latitude: branch?.latitude?.toString() || '',
+    longitude: branch?.longitude?.toString() || '',
     is_active: branch?.is_active ?? true,
   })
+
+  // Parse Google Maps URL to extract coordinates
+  const parseGoogleMapsUrl = (url: string) => {
+    // Pattern: @25.7616,-80.1918 or /place/.../@25.7616,-80.1918
+    const match = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/)
+    if (match) {
+      setFormData(prev => ({
+        ...prev,
+        latitude: match[1],
+        longitude: match[2]
+      }))
+      return true
+    }
+    // Pattern: q=25.7616,-80.1918
+    const match2 = url.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/)
+    if (match2) {
+      setFormData(prev => ({
+        ...prev,
+        latitude: match2[1],
+        longitude: match2[2]
+      }))
+      return true
+    }
+    return false
+  }
   const [saving, setSaving] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -153,6 +180,61 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
               className="w-full px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               placeholder="Manager name"
             />
+          </div>
+
+          {/* Map Coordinates */}
+          <div className="border border-neutral-600 rounded-lg p-4 space-y-3">
+            <label className="block text-sm font-medium text-neutral-300">
+              📍 Map Location
+            </label>
+            <div>
+              <input
+                type="text"
+                placeholder="Paste Google Maps link here..."
+                onChange={(e) => {
+                  const url = e.target.value
+                  if (url.includes('google.com/maps') || url.includes('goo.gl/maps')) {
+                    parseGoogleMapsUrl(url)
+                  }
+                }}
+                className="w-full px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+              />
+              <p className="text-xs text-neutral-500 mt-1">
+                Paste a Google Maps URL to auto-fill coordinates
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-neutral-400 mb-1">Latitude</label>
+                <input
+                  type="text"
+                  value={formData.latitude}
+                  onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
+                  className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                  placeholder="25.7617"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-neutral-400 mb-1">Longitude</label>
+                <input
+                  type="text"
+                  value={formData.longitude}
+                  onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
+                  className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                  placeholder="-80.1918"
+                />
+              </div>
+            </div>
+            {formData.latitude && formData.longitude && (
+              <a
+                href={`https://www.google.com/maps?q=${formData.latitude},${formData.longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1"
+              >
+                Preview on Google Maps →
+              </a>
+            )}
           </div>
 
           <div className="flex items-center justify-between">

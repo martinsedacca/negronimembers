@@ -47,6 +47,8 @@ export async function POST(request: NextRequest) {
         phone: body.phone || null,
         email: body.email || null,
         manager_name: body.manager_name || null,
+        latitude: body.latitude ? parseFloat(body.latitude) : null,
+        longitude: body.longitude ? parseFloat(body.longitude) : null,
         is_active: body.is_active ?? true,
       })
       .select()

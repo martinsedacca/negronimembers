@@ -410,6 +410,8 @@ export type Database = {
           phone: string | null
           email: string | null
           manager_name: string | null
+          latitude: number | null
+          longitude: number | null
           is_active: boolean
           opening_hours: Json
           created_at: string
@@ -423,6 +425,8 @@ export type Database = {
           phone?: string | null
           email?: string | null
           manager_name?: string | null
+          latitude?: number | null
+          longitude?: number | null
           is_active?: boolean
           opening_hours?: Json
           created_at?: string
@@ -436,6 +440,8 @@ export type Database = {
           phone?: string | null
           email?: string | null
           manager_name?: string | null
+          latitude?: number | null
+          longitude?: number | null
           is_active?: boolean
           opening_hours?: Json
           created_at?: string
