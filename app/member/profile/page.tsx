@@ -109,10 +109,24 @@ export default function ProfilePage() {
 
     try {
       if (editingField === 'email') {
-        const { error: otpError } = await supabase.auth.signInWithOtp({
+        // For email, update directly - Supabase will send confirmation email
+        const { error: updateError } = await supabase.auth.updateUser({
           email: newValue,
         })
-        if (otpError) throw otpError
+        if (updateError) throw updateError
+
+        // Also update in members table
+        await supabase
+          .from('members')
+          .update({ email: newValue })
+          .eq('id', member.id)
+
+        updateMember({ email: newValue })
+        setSuccess('A confirmation link has been sent to your new email. Please check your inbox.')
+        setTimeout(() => {
+          cancelEditing()
+        }, 3000)
+        return
       } else if (editingField === 'phone') {
         const { error: otpError } = await supabase.auth.signInWithOtp({
           phone: newValue,
@@ -359,10 +373,16 @@ export default function ProfilePage() {
                       className="w-full px-4 py-4 bg-neutral-800 text-white border border-neutral-700 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                       autoFocus
                     />
-                    {(editingField === 'email' || editingField === 'phone') && (
+                    {editingField === 'email' && (
                       <p className="text-xs text-neutral-500 mt-2 flex items-center gap-1">
                         <Shield className="w-3 h-3" />
-                        A verification code will be sent to confirm this change
+                        A confirmation link will be sent to your new email
+                      </p>
+                    )}
+                    {editingField === 'phone' && (
+                      <p className="text-xs text-neutral-500 mt-2 flex items-center gap-1">
+                        <Shield className="w-3 h-3" />
+                        A verification code will be sent via SMS
                       </p>
                     )}
                   </div>
@@ -376,10 +396,11 @@ export default function ProfilePage() {
                     {loading ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        {editingField === 'name' ? 'Saving...' : 'Sending code...'}
+                        {editingField === 'name' ? 'Saving...' : editingField === 'email' ? 'Updating...' : 'Sending code...'}
                       </>
                     ) : (
-                      editingField === 'name' ? 'Save Changes' : 'Send Verification Code'
+                      editingField === 'name' ? 'Save Changes' : 
+                      editingField === 'email' ? 'Update Email' : 'Send Verification Code'
                     )}
                   </button>
                 </>
