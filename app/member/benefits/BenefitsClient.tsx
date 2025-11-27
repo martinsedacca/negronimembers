@@ -38,41 +38,51 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
   }, [membershipTypes])
 
   // Find current member level index and calculate progress
-  const { currentLevelIndex, nextLevel, progress, toNext, metric } = useMemo(() => {
+  const { currentLevelIndex, nextLevel, progress, visitsToNext, pointsToNext } = useMemo(() => {
     const idx = sortedTypes.findIndex(t => t.name === member.membership_type)
     const currentIdx = idx >= 0 ? idx : 0
     const next = sortedTypes[currentIdx + 1] || null
     
     let prog = 100
-    let remaining = 0
-    let metricType = 'visits'
+    let visitsRemaining = 0
+    let pointsRemaining = 0
+    let visitsProgress = 0
+    let pointsProgress = 0
     
     if (next) {
       const current = sortedTypes[currentIdx]
       const currentVisits = transactionCount
       const currentPoints = member.points || 0
       
-      // Use visits if next level has visits requirement, otherwise use points
+      // Calculate visits progress
       if (next.visits_required > 0) {
         const baseVisits = current?.visits_required || 0
         const targetVisits = next.visits_required
-        const progressVisits = currentVisits - baseVisits
         const neededVisits = targetVisits - baseVisits
-        prog = neededVisits > 0 ? Math.min(100, Math.max(0, Math.round((progressVisits / neededVisits) * 100))) : 100
-        remaining = Math.max(0, targetVisits - currentVisits)
-        metricType = 'visits'
-      } else if (next.points_required > 0) {
+        visitsProgress = neededVisits > 0 ? Math.min(100, Math.max(0, Math.round(((currentVisits - baseVisits) / neededVisits) * 100))) : 100
+        visitsRemaining = Math.max(0, targetVisits - currentVisits)
+      }
+      
+      // Calculate points progress
+      if (next.points_required > 0) {
         const basePoints = current?.points_required || 0
         const targetPoints = next.points_required
-        const progressPoints = currentPoints - basePoints
         const neededPoints = targetPoints - basePoints
-        prog = neededPoints > 0 ? Math.min(100, Math.max(0, Math.round((progressPoints / neededPoints) * 100))) : 100
-        remaining = Math.max(0, targetPoints - currentPoints)
-        metricType = 'points'
+        pointsProgress = neededPoints > 0 ? Math.min(100, Math.max(0, Math.round(((currentPoints - basePoints) / neededPoints) * 100))) : 100
+        pointsRemaining = Math.max(0, targetPoints - currentPoints)
       }
+      
+      // Use the better progress (whichever is higher)
+      prog = Math.max(visitsProgress, pointsProgress)
     }
     
-    return { currentLevelIndex: currentIdx, nextLevel: next, progress: prog, toNext: remaining, metric: metricType }
+    return { 
+      currentLevelIndex: currentIdx, 
+      nextLevel: next, 
+      progress: prog, 
+      visitsToNext: visitsRemaining,
+      pointsToNext: pointsRemaining
+    }
   }, [sortedTypes, member.membership_type, member.points, transactionCount])
 
   // SVG circle properties
@@ -192,9 +202,21 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
             
             {/* Progress text */}
             {nextLevel ? (
-              <p className="text-neutral-400 text-sm">
-                <span className="text-orange-500 font-semibold">{toNext}</span> {metric} to <span className="text-white font-medium">{nextLevel.name}</span>
-              </p>
+              <div className="text-center">
+                <p className="text-neutral-400 text-sm mb-1">
+                  {visitsToNext > 0 && pointsToNext > 0 ? (
+                    <>
+                      <span className="text-orange-500 font-semibold">{visitsToNext}</span> visits or{' '}
+                      <span className="text-orange-500 font-semibold">{pointsToNext}</span> pts
+                    </>
+                  ) : visitsToNext > 0 ? (
+                    <><span className="text-orange-500 font-semibold">{visitsToNext}</span> visits</>
+                  ) : (
+                    <><span className="text-orange-500 font-semibold">{pointsToNext}</span> points</>
+                  )}
+                </p>
+                <p className="text-neutral-500 text-xs">to reach <span className="text-white">{nextLevel.name}</span></p>
+              </div>
             ) : (
               <p className="text-orange-500 text-sm font-medium">Top level reached! 🎉</p>
             )}
