@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { CreditCard, TrendingUp, Gift, Clock } from 'lucide-react'
+import { CreditCard, TrendingUp, Gift, Clock, User } from 'lucide-react'
 import { MemberProvider } from './context/MemberContext'
 
 export default function MemberLayout({
@@ -21,6 +21,7 @@ export default function MemberLayout({
     { href: '/member/progress', icon: TrendingUp, label: 'Progress' },
     { href: '/member/benefits', icon: Gift, label: 'Benefits' },
     { href: '/member/history', icon: Clock, label: 'History' },
+    { href: '/member/profile', icon: User, label: 'Profile' },
   ]
 
   return (
