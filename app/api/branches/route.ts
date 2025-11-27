@@ -35,20 +35,33 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
     const body = await request.json()
+    
+    console.log('Creating branch with body:', body)
 
     const { data, error } = await supabase
       .from('branches')
-      .insert(body)
+      .insert({
+        name: body.name,
+        address: body.address || null,
+        city: body.city || null,
+        phone: body.phone || null,
+        email: body.email || null,
+        manager_name: body.manager_name || null,
+        is_active: body.is_active ?? true,
+      })
       .select()
       .single()
 
-    if (error) throw error
+    if (error) {
+      console.error('Supabase error:', error)
+      throw error
+    }
 
     return NextResponse.json(data)
   } catch (error: any) {
     console.error('Create branch error:', error)
     return NextResponse.json(
-      { error: 'Error al crear sucursal', details: error.message },
+      { error: error.message || 'Error creating location', details: error.details || error.hint },
       { status: 500 }
     )
   }
