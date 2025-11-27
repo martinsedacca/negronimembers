@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, Tag, Gift, Percent, Star, HelpCircle, X, ChevronLeft, ChevronRight, Lock } from 'lucide-react'
+import { Sparkles, Tag, Gift, Percent, Star, HelpCircle, X, ChevronLeft, ChevronRight, Lock, MapPin } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -15,15 +15,21 @@ interface MembershipType {
   benefits: Record<string, any>
 }
 
+interface Branch {
+  id: string
+  name: string
+}
+
 interface BenefitsClientProps {
   member: any
   benefits: any[]
   hasCodes: boolean
   membershipTypes: MembershipType[]
   transactionCount: number
+  branches: Branch[]
 }
 
-export default function BenefitsClient({ member, benefits, hasCodes, membershipTypes, transactionCount }: BenefitsClientProps) {
+export default function BenefitsClient({ member, benefits, hasCodes, membershipTypes, transactionCount, branches }: BenefitsClientProps) {
   const [activeTab, setActiveTab] = useState(0)
   const [showTutorial, setShowTutorial] = useState(false)
   const [tutorialStep, setTutorialStep] = useState(0)
@@ -91,6 +97,20 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
   const radius = (circleSize - strokeWidth) / 2
   const circumference = 2 * Math.PI * radius
   const progressOffset = circumference - (progress / 100) * circumference
+
+  // Get location names for a benefit
+  const getLocationText = (applicableBranches: string[] | null): string => {
+    if (!applicableBranches || applicableBranches.length === 0) {
+      return 'All locations'
+    }
+    const names = applicableBranches
+      .map(id => branches.find(b => b.id === id)?.name)
+      .filter(Boolean)
+    if (names.length === 0) return 'All locations'
+    if (names.length === 1) return `Only at ${names[0]}`
+    if (names.length === branches.length) return 'All locations'
+    return names.join(', ')
+  }
 
   const getDiscountIcon = (type: string) => {
     switch (type) {
@@ -169,6 +189,9 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col items-center text-center"
           >
+            {/* Title */}
+            <p className="text-neutral-500 text-xs uppercase tracking-widest mb-3">Your Status</p>
+            
             {/* Progress Circle */}
             <div className="relative mb-4">
               <svg width={circleSize} height={circleSize} className="transform -rotate-90">
@@ -391,6 +414,11 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
                       {benefit.description && (
                         <p className="text-xs text-neutral-400 mt-1">{benefit.description}</p>
                       )}
+                      {/* Location info */}
+                      <div className="flex items-center gap-1 mt-2 text-xs text-neutral-500">
+                        <MapPin className="w-3 h-3" />
+                        <span>{getLocationText(benefit.applicable_branches)}</span>
+                      </div>
                     </div>
                   </div>
                 </motion.div>

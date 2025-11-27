@@ -1,13 +1,27 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useEffect, useState } from 'react'
 import { useRequireAuth, useMember } from '../context/MemberContext'
 import BenefitsClient from './BenefitsClient'
 import { Loader2 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 export default function BenefitsPage() {
   const { member, loading } = useRequireAuth()
   const { promotions, memberCodes, membershipTypes, transactions } = useMember()
+  const [branches, setBranches] = useState<{id: string, name: string}[]>([])
+  const supabase = createClient()
+
+  useEffect(() => {
+    async function fetchBranches() {
+      const { data } = await supabase
+        .from('branches')
+        .select('id, name')
+        .eq('is_active', true)
+      if (data) setBranches(data)
+    }
+    fetchBranches()
+  }, [])
 
   // Filter promotions based on applicability and date validity
   const applicableBenefits = useMemo(() => {
@@ -49,6 +63,7 @@ export default function BenefitsPage() {
       hasCodes={memberCodes.length > 0}
       membershipTypes={membershipTypes}
       transactionCount={transactions.length}
+      branches={branches}
     />
   )
 }

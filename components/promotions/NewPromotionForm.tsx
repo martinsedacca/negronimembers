@@ -39,17 +39,29 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
   const [isAllMembers, setIsAllMembers] = useState(true)
   const [selectedTiers, setSelectedTiers] = useState<string[]>([])
   const [selectedCodes, setSelectedCodes] = useState<string[]>([])
+  const [branches, setBranches] = useState<any[]>([])
+  const [isAllLocations, setIsAllLocations] = useState(true)
+  const [selectedBranches, setSelectedBranches] = useState<string[]>([])
 
   useEffect(() => {
-    async function fetchCodes() {
-      const { data } = await supabase
+    async function fetchData() {
+      // Fetch codes
+      const { data: codesData } = await supabase
         .from('codes')
         .select('id, code, description')
         .eq('is_active', true)
         .order('code')
-      if (data) setCodes(data)
+      if (codesData) setCodes(codesData)
+      
+      // Fetch branches/locations
+      const { data: branchesData } = await supabase
+        .from('branches')
+        .select('id, name')
+        .eq('is_active', true)
+        .order('name')
+      if (branchesData) setBranches(branchesData)
     }
-    fetchCodes()
+    fetchData()
   }, [])
 
   const toggleTier = (tier: string) => {
@@ -61,6 +73,12 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
   const toggleCode = (codeId: string) => {
     setSelectedCodes(prev => 
       prev.includes(codeId) ? prev.filter(c => c !== codeId) : [...prev, codeId]
+    )
+  }
+
+  const toggleBranch = (branchId: string) => {
+    setSelectedBranches(prev => 
+      prev.includes(branchId) ? prev.filter(b => b !== branchId) : [...prev, branchId]
     )
   }
 
@@ -88,6 +106,9 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
         }
       }
 
+      // Build applicable_branches array
+      const applicable_branches = isAllLocations ? null : selectedBranches.length > 0 ? selectedBranches : null
+
       const { error: insertError } = await supabase.from('promotions').insert({
         title: formData.title,
         description: formData.description || null,
@@ -98,6 +119,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
         min_usage_count: parseInt(formData.min_usage_count) || 0,
         max_usage_count: formData.max_usage_count ? parseInt(formData.max_usage_count) : null,
         applicable_to,
+        applicable_branches,
         is_active: formData.is_active,
         terms_conditions: formData.terms_conditions || null,
       })
@@ -269,6 +291,52 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
           onToggleTier={toggleTier}
           onToggleCode={toggleCode}
         />
+
+        {/* LOCATIONS SECTION */}
+        <div className="border border-neutral-700 rounded-lg p-4">
+          <h3 className="text-sm font-medium text-white mb-3">Available at Locations</h3>
+          
+          <div className="space-y-3">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isAllLocations}
+                onChange={() => {
+                  setIsAllLocations(true)
+                  setSelectedBranches([])
+                }}
+                className="h-4 w-4 text-orange-500 focus:ring-orange-500 border-neutral-600 rounded"
+              />
+              <span className="text-neutral-300">All locations</span>
+            </label>
+            
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={!isAllLocations}
+                onChange={() => setIsAllLocations(false)}
+                className="h-4 w-4 text-orange-500 focus:ring-orange-500 border-neutral-600 rounded"
+              />
+              <span className="text-neutral-300">Specific locations only</span>
+            </label>
+            
+            {!isAllLocations && branches.length > 0 && (
+              <div className="ml-7 mt-2 space-y-2">
+                {branches.map((branch) => (
+                  <label key={branch.id} className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedBranches.includes(branch.id)}
+                      onChange={() => toggleBranch(branch.id)}
+                      className="h-4 w-4 text-orange-500 focus:ring-orange-500 border-neutral-600 rounded"
+                    />
+                    <span className="text-neutral-400">{branch.name}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Terms & Conditions */}
         <div>
