@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
     // your project has type errors.
     ignoreBuildErrors: true,
   },
+  // Include wallet template files in serverless functions
+  outputFileTracingIncludes: {
+    '/api/wallet/apple/[memberId]': ['./wallet-templates/**/*'],
+    '/api/v1/passes/[passTypeIdentifier]/[serialNumber]': ['./wallet-templates/**/*'],
+  },
 };
 
 export default nextConfig;

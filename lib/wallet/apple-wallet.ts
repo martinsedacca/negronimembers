@@ -15,12 +15,29 @@ const getWebServiceURL = (): string => {
   return process.env.NEXT_PUBLIC_APP_URL || 'https://your-domain.com';
 };
 
+// Read certificates from env vars (production) or files (development)
+const getCertificates = (): { wwdr: Buffer; signerCert: Buffer; signerKey: Buffer } => {
+  // Check if certificates are in environment variables (base64 encoded)
+  if (process.env.APPLE_WWDR_CERT && process.env.APPLE_SIGNER_CERT && process.env.APPLE_SIGNER_KEY) {
+    return {
+      wwdr: Buffer.from(process.env.APPLE_WWDR_CERT, 'base64'),
+      signerCert: Buffer.from(process.env.APPLE_SIGNER_CERT, 'base64'),
+      signerKey: Buffer.from(process.env.APPLE_SIGNER_KEY, 'base64'),
+    };
+  }
+  
+  // Fall back to file system (development)
+  return {
+    wwdr: fs.readFileSync(path.resolve(process.cwd(), 'certificates/wwdr.pem')),
+    signerCert: fs.readFileSync(path.resolve(process.cwd(), 'certificates/signerCert.pem')),
+    signerKey: fs.readFileSync(path.resolve(process.cwd(), 'certificates/signerKey.pem')),
+  };
+};
+
 export async function generateApplePass(member: Member, authToken?: string): Promise<Buffer> {
   try {
-    // Read certificates as buffers
-    const wwdr = fs.readFileSync(path.resolve(process.cwd(), 'certificates/wwdr.pem'));
-    const signerCert = fs.readFileSync(path.resolve(process.cwd(), 'certificates/signerCert.pem'));
-    const signerKey = fs.readFileSync(path.resolve(process.cwd(), 'certificates/signerKey.pem'));
+    // Read certificates
+    const { wwdr, signerCert, signerKey } = getCertificates();
 
     // Create a temporary directory for this pass - MUST end with .pass
     const os = require('os');
