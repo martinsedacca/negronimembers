@@ -78,12 +78,6 @@ export default function DashboardNav({ user }: DashboardNavProps) {
       ]
     },
     {
-      title: 'LOCATIONS',
-      items: [
-        { name: 'Locations', href: '/dashboard/branches', icon: Building2 },
-      ]
-    },
-    {
       title: 'ANALYTICS',
       items: [
         { name: 'Overview', href: '/dashboard/analytics', icon: BarChart3 },
@@ -93,6 +87,7 @@ export default function DashboardNav({ user }: DashboardNavProps) {
       title: 'ADMINISTRATION',
       items: [
         { name: 'Users', href: '/dashboard/users', icon: Users },
+        { name: 'Locations', href: '/dashboard/branches', icon: Building2 },
       ]
     },
     {

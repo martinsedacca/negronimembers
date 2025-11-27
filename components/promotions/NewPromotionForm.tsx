@@ -120,7 +120,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
         discount_type: formData.discount_type,
         discount_value: formData.discount_type === 'perk' ? null : parseFloat(formData.discount_value),
         start_date: formData.start_date ? new Date(formData.start_date).toISOString() : new Date().toISOString(),
-        end_date: formData.end_date ? new Date(formData.end_date).toISOString() : null,
+        end_date: formData.end_date ? new Date(formData.end_date).toISOString() : new Date('2099-12-31').toISOString(),
         min_usage_count: parseInt(formData.min_usage_count) || 0,
         max_usage_count: formData.max_usage_count ? parseInt(formData.max_usage_count) : null,
         applicable_to,

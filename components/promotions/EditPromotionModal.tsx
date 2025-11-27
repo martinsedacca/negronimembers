@@ -25,6 +25,9 @@ export default function EditPromotionModal({
 }: EditPromotionModalProps) {
   const supabase = createClient()
   const [codes, setCodes] = useState<any[]>([])
+  const [branches, setBranches] = useState<any[]>([])
+  const [isAllLocations, setIsAllLocations] = useState(true)
+  const [selectedBranches, setSelectedBranches] = useState<string[]>([])
   const [formData, setFormData] = useState({
     title: promotion.title,
     description: promotion.description || '',
@@ -81,16 +84,34 @@ export default function EditPromotionModal({
   }, [promotion])
 
   useEffect(() => {
-    async function fetchCodes() {
-      const { data } = await supabase
+    async function fetchData() {
+      // Fetch codes
+      const { data: codesData } = await supabase
         .from('codes')
         .select('id, code, description')
         .eq('is_active', true)
         .order('code')
-      if (data) setCodes(data)
+      if (codesData) setCodes(codesData)
+      
+      // Fetch branches
+      const { data: branchesData } = await supabase
+        .from('branches')
+        .select('id, name')
+        .order('name')
+      if (branchesData) setBranches(branchesData)
     }
-    fetchCodes()
-  }, [])
+    fetchData()
+    
+    // Initialize locations from promotion
+    const applicableBranches = promotion.applicable_branches
+    if (!applicableBranches || applicableBranches.length === 0) {
+      setIsAllLocations(true)
+      setSelectedBranches([])
+    } else {
+      setIsAllLocations(false)
+      setSelectedBranches(applicableBranches)
+    }
+  }, [supabase, promotion])
 
   const toggleTier = (tier: string) => {
     setSelectedTiers(prev => 
@@ -101,6 +122,12 @@ export default function EditPromotionModal({
   const toggleCode = (codeId: string) => {
     setSelectedCodes(prev => 
       prev.includes(codeId) ? prev.filter(c => c !== codeId) : [...prev, codeId]
+    )
+  }
+
+  const toggleBranch = (branchId: string) => {
+    setSelectedBranches(prev => 
+      prev.includes(branchId) ? prev.filter(b => b !== branchId) : [...prev, branchId]
     )
   }
 
@@ -124,6 +151,9 @@ export default function EditPromotionModal({
         }
       }
 
+      // Build applicable_branches array
+      const applicable_branches = isAllLocations ? null : selectedBranches.length > 0 ? selectedBranches : null
+
       const response = await fetch(`/api/promotions/${promotion.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -133,10 +163,11 @@ export default function EditPromotionModal({
           discount_type: formData.discount_type,
           discount_value: formData.discount_type === 'perk' ? null : parseFloat(formData.discount_value),
           start_date: new Date(formData.start_date).toISOString(),
-          end_date: formData.end_date ? new Date(formData.end_date).toISOString() : null,
+          end_date: formData.end_date ? new Date(formData.end_date).toISOString() : new Date('2099-12-31').toISOString(),
           min_usage_count: parseInt(formData.min_usage_count),
           max_usage_count: formData.max_usage_count ? parseInt(formData.max_usage_count) : null,
           applicable_to,
+          applicable_branches,
           is_active: formData.is_active,
           terms_conditions: formData.terms_conditions || null,
         }),
@@ -314,6 +345,58 @@ export default function EditPromotionModal({
             onToggleTier={toggleTier}
             onToggleCode={toggleCode}
           />
+
+          {/* LOCATIONS SECTION */}
+          <div className="border border-neutral-700 rounded-lg p-4">
+            <h3 className="text-sm font-medium text-white mb-3">Available at Locations</h3>
+            
+            {branches.length === 0 ? (
+              <p className="text-neutral-500 text-sm">No locations found. The benefit will be available at all locations.</p>
+            ) : (
+              <div className="space-y-3">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="locations"
+                    checked={isAllLocations}
+                    onChange={() => {
+                      setIsAllLocations(true)
+                      setSelectedBranches([])
+                    }}
+                    className="h-4 w-4 text-orange-500 focus:ring-orange-500 border-neutral-600"
+                  />
+                  <span className="text-neutral-300">All locations</span>
+                </label>
+                
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="locations"
+                    checked={!isAllLocations}
+                    onChange={() => setIsAllLocations(false)}
+                    className="h-4 w-4 text-orange-500 focus:ring-orange-500 border-neutral-600"
+                  />
+                  <span className="text-neutral-300">Specific locations only</span>
+                </label>
+                
+                {!isAllLocations && (
+                  <div className="ml-7 mt-2 space-y-2 p-3 bg-neutral-900/50 rounded-lg">
+                    {branches.map((branch) => (
+                      <label key={branch.id} className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedBranches.includes(branch.id)}
+                          onChange={() => toggleBranch(branch.id)}
+                          className="h-4 w-4 text-orange-500 focus:ring-orange-500 border-neutral-600 rounded"
+                        />
+                        <span className="text-neutral-300">{branch.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Active Toggle */}
           <div className="flex items-center justify-between">
