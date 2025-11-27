@@ -1,0 +1,93 @@
+# ============================================
+# TEMPLATE DE VARIABLES DE ENTORNO PARA PRODUCCIÓN
+# ============================================
+# Copia este archivo como .env.local y completa los valores
+# ============================================
+
+# ============================================
+# SUPABASE CLOUD - PRODUCCIÓN
+# ============================================
+# Obtén estos valores de: Supabase Dashboard → Settings → API
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxxxxxxxxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZi...
+
+# ============================================
+# APPLICATION URL
+# ============================================
+# Para desarrollo local: http://localhost:3000
+# Para producción: https://tu-app.vercel.app
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# ============================================
+# APPLE WALLET CONFIGURATION
+# ============================================
+# Obtén estos valores de Apple Developer Console
+APPLE_PASS_TYPE_ID=pass.com.onetimeleads.negroni
+APPLE_TEAM_ID=G736PJ3Z4Z
+APPLE_PASS_KEY_PASSPHRASE=Negroni1.2
+
+# ============================================
+# APPLE WALLET PUSH NOTIFICATIONS
+# ============================================
+# Private key para push notifications de Apple Wallet
+APPLE_WALLET_PUSH_KEY=-----BEGIN PRIVATE KEY-----
+MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQg...
+-----END PRIVATE KEY-----
+
+APPLE_WALLET_KEY_ID=P645UUK6Y8
+APPLE_WALLET_PASS_TYPE_ID=pass.com.onetimeleads.negroni
+
+# ============================================
+# WEB PUSH NOTIFICATIONS (VAPID)
+# ============================================
+# Genera con: npx web-push generate-vapid-keys
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=BGQPVvozvwEDyONt0dKzKEKyiDcnfRm47yWGm3y1BSJKfb5G6WvZGCix9pJwEqjjSY3ecISIQT6shZSAC2U35Kc
+VAPID_PRIVATE_KEY=TZexl-EuW9v1uc_6QkeTViWvl_ykuQzsndl7XWiixQc
+VAPID_SUBJECT=mailto:admin@negroni.com
+
+# ============================================
+# EMAIL SERVICE (RESEND)
+# ============================================
+# Obtén tu API key de: https://resend.com/api-keys
+RESEND_API_KEY=re_123456789_YourRealAPIKeyHere
+EMAIL_FROM=Negroni <noreply@negroni.com>
+
+# ============================================
+# GOHIGHLEVEL INTEGRATION (OPCIONAL)
+# ============================================
+# Si tienes integración con GHL
+GHL_API_KEY=your_ghl_api_key_here
+GHL_LOCATION_ID=your_ghl_location_id_here
+GHL_WEBHOOK_SECRET=your_webhook_secret_here
+
+# ============================================
+# ANALYTICS (OPCIONAL)
+# ============================================
+# Para Vercel Analytics
+NEXT_PUBLIC_VERCEL_ANALYTICS=true
+
+# Para Google Analytics
+NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX
+
+# ============================================
+# FEATURE FLAGS (OPCIONAL)
+# ============================================
+NEXT_PUBLIC_ENABLE_WALLET=true
+NEXT_PUBLIC_ENABLE_PUSH_NOTIFICATIONS=true
+NEXT_PUBLIC_ENABLE_EVENTS=true
+NEXT_PUBLIC_ENABLE_CODES=true
+
+# ============================================
+# NOTAS IMPORTANTES
+# ============================================
+# 
+# 1. NUNCA compartas este archivo con las claves reales
+# 2. Para producción en Vercel, agrega estas variables en:
+#    Vercel Dashboard → Settings → Environment Variables
+# 3. Las variables que empiezan con NEXT_PUBLIC_ son públicas
+#    (se exponen en el navegador)
+# 4. Las demás variables solo están disponibles en el servidor
+# 5. Para Apple Wallet, necesitas certificados de Apple Developer
+# 6. Para Web Push, genera tus propias VAPID keys
+#
+# ============================================

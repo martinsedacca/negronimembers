@@ -20,10 +20,10 @@ export default async function SettingsPage() {
         <div>
           <h1 className="text-3xl font-bold text-white flex items-center gap-3">
             <Settings className="w-8 h-8 text-orange-500" />
-            Configuración del Sistema
+            System Settings
           </h1>
           <p className="mt-2 text-neutral-400">
-            Configura reglas de puntos y umbrales de membresía
+            Configure points rules and GoHighLevel integration
           </p>
         </div>
       </div>

@@ -15,10 +15,28 @@ export default function DailyStats() {
   const fetchStats = async () => {
     try {
       const response = await fetch('/api/scanner/stats')
+      if (!response.ok) {
+        console.error('API error:', response.status)
+        // Set default stats on error
+        setStats({
+          total_sales: 0,
+          total_transactions: 0,
+          unique_customers: 0,
+          average_purchase: 0
+        })
+        return
+      }
       const data = await response.json()
       setStats(data)
     } catch (error) {
       console.error('Error fetching stats:', error)
+      // Set default stats on error
+      setStats({
+        total_sales: 0,
+        total_transactions: 0,
+        unique_customers: 0,
+        average_purchase: 0
+      })
     }
   }
 
@@ -27,25 +45,25 @@ export default function DailyStats() {
   const statsData = [
     {
       label: 'Ventas del Día',
-      value: `$${stats.total_sales.toFixed(2)}`,
+      value: `$${(stats.total_sales || 0).toFixed(2)}`,
       icon: DollarSign,
       color: 'bg-green-500',
     },
     {
       label: 'Transacciones',
-      value: stats.total_transactions,
+      value: stats.total_transactions || 0,
       icon: ShoppingCart,
       color: 'bg-blue-500',
     },
     {
       label: 'Clientes Únicos',
-      value: stats.unique_customers,
+      value: stats.unique_customers || 0,
       icon: Users,
       color: 'bg-purple-500',
     },
     {
       label: 'Ticket Promedio',
-      value: `$${stats.average_purchase.toFixed(2)}`,
+      value: `$${(stats.average_purchase || 0).toFixed(2)}`,
       icon: TrendingUp,
       color: 'bg-orange-500',
     },

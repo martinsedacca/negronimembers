@@ -1,18 +1,27 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
+    const { searchParams } = new URL(request.url)
+    const isActive = searchParams.get('is_active')
 
-    const { data: branches, error } = await supabase
+    let query = supabase
       .from('branches')
       .select('*')
       .order('name')
 
+    // Filtrar por is_active si se proporciona
+    if (isActive !== null) {
+      query = query.eq('is_active', isActive === 'true')
+    }
+
+    const { data: branches, error } = await query
+
     if (error) throw error
 
-    return NextResponse.json(branches)
+    return NextResponse.json({ branches: branches || [] })
   } catch (error: any) {
     console.error('Get branches error:', error)
     return NextResponse.json(

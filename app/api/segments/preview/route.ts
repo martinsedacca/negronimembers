@@ -57,6 +57,39 @@ export async function POST(request: NextRequest) {
       filteredMembers = filteredMembers.filter(m => (m.promotions_used || 0) === 0)
     }
 
+    // Filter by onboarding responses
+    if (filters.onboarding_responses && Object.keys(filters.onboarding_responses).length > 0) {
+      const memberIdsToCheck = filteredMembers.map(m => m.id)
+      
+      if (memberIdsToCheck.length > 0) {
+        // For each question filter, get members who answered with the selected options
+        const matchingMemberIds = new Set<string>()
+        
+        for (const [questionId, selectedOptions] of Object.entries(filters.onboarding_responses)) {
+          const options = selectedOptions as string[]
+          if (options && options.length > 0) {
+            const { data: responses } = await supabase
+              .from('member_onboarding_responses')
+              .select('member_id, response_value')
+              .eq('question_id', questionId)
+              .in('member_id', memberIdsToCheck)
+            
+            if (responses) {
+              const matchingIds = responses
+                .filter(r => options.includes(r.response_value))
+                .map(r => r.member_id)
+              
+              // Add matching member IDs to the set
+              matchingIds.forEach(id => matchingMemberIds.add(id))
+            }
+          }
+        }
+        
+        // Filter members to only include those who match at least one onboarding response filter
+        filteredMembers = filteredMembers.filter(m => matchingMemberIds.has(m.id))
+      }
+    }
+
     return NextResponse.json({ members: filteredMembers })
   } catch (error: any) {
     console.error('Segment preview error:', error)

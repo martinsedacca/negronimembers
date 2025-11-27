@@ -201,6 +201,14 @@ export async function POST(request: NextRequest) {
 
     const tier_changed = tierHistory && tierHistory.new_tier === updatedMember?.membership_type
 
+    // Notify wallet to update (points changed, possibly tier changed)
+    // Fire and forget - don't wait for wallet update
+    fetch(`${process.env.NEXT_PUBLIC_APP_URL || ''}/api/wallet/update-member`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ member_id }),
+    }).catch(err => console.error('⚠️ [Scanner Record] Wallet notification error:', err))
+
     // Sync member stats to GHL asynchronously (non-blocking)
     console.log('🔵 [Scanner Record] Triggering GHL sync for member:', member_id)
     

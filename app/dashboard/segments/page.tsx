@@ -23,10 +23,10 @@ export default async function SegmentsPage() {
         <div>
           <h1 className="text-3xl font-bold text-white flex items-center gap-3">
             <Filter className="w-8 h-8 text-orange-500" />
-            Segmentación de Miembros
+            Member Segmentation
           </h1>
           <p className="mt-2 text-neutral-400">
-            Filtra miembros por comportamiento, gasto y otros criterios
+            Filter members by behavior, spending and other criteria
           </p>
         </div>
       </div>

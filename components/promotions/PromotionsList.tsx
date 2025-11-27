@@ -28,7 +28,7 @@ export default function PromotionsList({ promotions, membershipTypes }: Promotio
       promo.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (promo.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
 
-    const isActive = promo.is_active && new Date(promo.start_date) <= now && new Date(promo.end_date) >= now
+    const isActive = promo.is_active && new Date(promo.start_date) <= now && (!promo.end_date || new Date(promo.end_date) >= now)
     const matchesStatus =
       statusFilter === 'all' ||
       (statusFilter === 'active' && isActive) ||
@@ -58,13 +58,15 @@ export default function PromotionsList({ promotions, membershipTypes }: Promotio
         return `$${promo.discount_value}`
       case 'points':
         return `${promo.discount_value} pts`
+      case 'perk':
+        return 'Special Perk'
       default:
         return promo.discount_value
     }
   }
 
   const isPromotionActive = (promo: Promotion) => {
-    return promo.is_active && new Date(promo.start_date) <= now && new Date(promo.end_date) >= now
+    return promo.is_active && new Date(promo.start_date) <= now && (!promo.end_date || new Date(promo.end_date) >= now)
   }
 
   return (
@@ -76,7 +78,7 @@ export default function PromotionsList({ promotions, membershipTypes }: Promotio
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
             <input
               type="text"
-              placeholder="Buscar promociones..."
+              placeholder="Search promotions..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 w-full px-4 py-2 bg-neutral-700 border border-neutral-600 text-white rounded-md focus:ring-orange-500 focus:border-brand-500 placeholder-neutral-400"
@@ -87,9 +89,9 @@ export default function PromotionsList({ promotions, membershipTypes }: Promotio
             onChange={(e) => setStatusFilter(e.target.value)}
             className="px-4 py-2 bg-neutral-700 border border-neutral-600 text-white rounded-md focus:ring-orange-500 focus:border-brand-500"
           >
-            <option value="all">Todas las promociones</option>
-            <option value="active">Activas</option>
-            <option value="inactive">Inactivas</option>
+            <option value="all">All promotions</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
           </select>
         </div>
       </div>
@@ -148,7 +150,9 @@ export default function PromotionsList({ promotions, membershipTypes }: Promotio
                     <div className="flex items-center text-xs text-neutral-400">
                       <Calendar className="w-4 h-4 mr-1" />
                       {format(new Date(promo.start_date), 'dd MMM', { locale: es })} -{' '}
-                      {format(new Date(promo.end_date), 'dd MMM yyyy', { locale: es })}
+                      {promo.end_date 
+                        ? format(new Date(promo.end_date), 'dd MMM yyyy', { locale: es })
+                        : 'Sin límite'}
                     </div>
 
                     {promo.min_usage_count > 0 && (
@@ -164,16 +168,16 @@ export default function PromotionsList({ promotions, membershipTypes }: Promotio
                     )}
                   </div>
 
-                  {promo.applicable_membership_types && promo.applicable_membership_types.length > 0 && (
+                  {promo.applicable_to && promo.applicable_to.length > 0 && !promo.applicable_to.includes('all') && (
                     <div className="border-t pt-3">
                       <p className="text-xs text-neutral-400 mb-2">Aplica a:</p>
                       <div className="flex flex-wrap gap-1">
-                        {promo.applicable_membership_types.map((type) => (
+                        {promo.applicable_to.map((type: string) => (
                           <span
                             key={type}
                             className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-brand-100 text-indigo-800"
                           >
-                            {type}
+                            {type.replace('tier:', '').replace('code:', '')}
                           </span>
                         ))}
                       </div>
@@ -186,7 +190,7 @@ export default function PromotionsList({ promotions, membershipTypes }: Promotio
                     className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 bg-neutral-700 text-white rounded-lg hover:bg-neutral-600 transition"
                   >
                     <Edit className="w-4 h-4" />
-                    Editar Promoción
+                    Edit Benefit
                   </button>
                 </div>
                 </GlowCard>
@@ -195,7 +199,7 @@ export default function PromotionsList({ promotions, membershipTypes }: Promotio
           </div>
         ) : (
           <div className="text-center py-12">
-            <p className="text-neutral-400">No se encontraron promociones</p>
+            <p className="text-neutral-400">No benefits found</p>
           </div>
         )}
       </div>
@@ -203,8 +207,8 @@ export default function PromotionsList({ promotions, membershipTypes }: Promotio
       {/* Summary */}
       <div className="px-6 py-4 bg-neutral-900/50 border-t border-neutral-700">
         <p className="text-sm text-neutral-300">
-          Mostrando <span className="font-medium">{filteredPromotions.length}</span> de{' '}
-          <span className="font-medium">{promotions.length}</span> promociones
+          Showing <span className="font-medium">{filteredPromotions.length}</span> of{' '}
+          <span className="font-medium">{promotions.length}</span> benefits
         </p>
       </div>
 

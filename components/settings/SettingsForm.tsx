@@ -10,12 +10,6 @@ interface SettingsFormProps {
       per_visit: number
       per_event_attended: number
     }
-    tier_thresholds?: {
-      Basic: { min_spent: number; min_visits: number }
-      Silver: { min_spent: number; min_visits: number }
-      Gold: { min_spent: number; min_visits: number }
-      Platinum: { min_spent: number; min_visits: number }
-    }
     ghl_webhook_url?: string
     ghl_api_token?: string
     ghl_location_id?: string
@@ -27,13 +21,6 @@ export default function SettingsForm({ initialConfig }: SettingsFormProps) {
     per_dollar_spent: 1,
     per_visit: 10,
     per_event_attended: 20,
-  })
-
-  const [tierThresholds, setTierThresholds] = useState(initialConfig.tier_thresholds || {
-    Basic: { min_spent: 0, min_visits: 0 },
-    Silver: { min_spent: 500, min_visits: 20 },
-    Gold: { min_spent: 2000, min_visits: 50 },
-    Platinum: { min_spent: 5000, min_visits: 100 },
   })
 
   const [ghlWebhook, setGhlWebhook] = useState(initialConfig.ghl_webhook_url || '')
@@ -51,7 +38,6 @@ export default function SettingsForm({ initialConfig }: SettingsFormProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           points_rules: pointsRules,
-          tier_thresholds: tierThresholds,
           ghl_webhook_url: ghlWebhook,
           ghl_api_token: ghlApiToken,
           ghl_location_id: ghlLocationId,
@@ -60,7 +46,7 @@ export default function SettingsForm({ initialConfig }: SettingsFormProps) {
 
       if (!response.ok) throw new Error('Error al guardar')
 
-      alert('Configuración guardada exitosamente!')
+      alert('Settings saved successfully!')
     } catch (error: any) {
       alert('Error: ' + error.message)
     } finally {
@@ -69,7 +55,7 @@ export default function SettingsForm({ initialConfig }: SettingsFormProps) {
   }
 
   const handleSyncAll = async () => {
-    if (!confirm('¿Sincronizar todos los miembros activos con GoHighLevel? Esto puede tomar varios minutos.')) {
+    if (!confirm('Sync all active members with GoHighLevel? This may take several minutes.')) {
       return
     }
 
@@ -99,14 +85,14 @@ export default function SettingsForm({ initialConfig }: SettingsFormProps) {
       <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-6">
         <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
           <Award className="w-6 h-6 text-orange-500" />
-          Reglas de Puntos
+          Points Rules
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label className="block text-sm font-medium text-neutral-300 mb-2 flex items-center gap-2">
               <DollarSign className="w-4 h-4 text-green-500" />
-              Puntos por Dólar Gastado
+              Points per Dollar Spent
             </label>
             <input
               type="number"
@@ -115,14 +101,14 @@ export default function SettingsForm({ initialConfig }: SettingsFormProps) {
               className="w-full px-4 py-3 bg-neutral-700 text-white border border-neutral-600 rounded-lg text-lg font-semibold"
             />
             <p className="text-xs text-neutral-500 mt-2">
-              Por cada $1 gastado, el cliente gana {pointsRules.per_dollar_spent} punto(s)
+              For every $1 spent, member earns {pointsRules.per_dollar_spent} point(s)
             </p>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-neutral-300 mb-2 flex items-center gap-2">
               <Users className="w-4 h-4 text-blue-500" />
-              Puntos por Visita
+              Points per Visit
             </label>
             <input
               type="number"
@@ -131,14 +117,14 @@ export default function SettingsForm({ initialConfig }: SettingsFormProps) {
               className="w-full px-4 py-3 bg-neutral-700 text-white border border-neutral-600 rounded-lg text-lg font-semibold"
             />
             <p className="text-xs text-neutral-500 mt-2">
-              Por cada visita sin compra, el cliente gana {pointsRules.per_visit} punto(s)
+              For each visit without purchase, member earns {pointsRules.per_visit} point(s)
             </p>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-neutral-300 mb-2 flex items-center gap-2">
               <Calendar className="w-4 h-4 text-purple-500" />
-              Puntos por Evento
+              Points per Event
             </label>
             <input
               type="number"
@@ -147,62 +133,9 @@ export default function SettingsForm({ initialConfig }: SettingsFormProps) {
               className="w-full px-4 py-3 bg-neutral-700 text-white border border-neutral-600 rounded-lg text-lg font-semibold"
             />
             <p className="text-xs text-neutral-500 mt-2">
-              Por asistir a un evento, el cliente gana {pointsRules.per_event_attended} punto(s)
+              For attending an event, member earns {pointsRules.per_event_attended} point(s)
             </p>
           </div>
-        </div>
-      </div>
-
-      {/* Tier Thresholds */}
-      <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-6">
-        <h2 className="text-xl font-bold text-white mb-6">Umbrales de Tier</h2>
-        <p className="text-sm text-neutral-400 mb-6">
-          Configura los requisitos mínimos para cada nivel de membresía
-        </p>
-
-        <div className="space-y-4">
-          {Object.entries(tierThresholds).map(([tier, thresholds]) => (
-            <div key={tier} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center p-4 bg-neutral-900/50 rounded-lg">
-              <div>
-                <span className="text-lg font-bold text-white">{tier}</span>
-              </div>
-              <div>
-                <label className="block text-xs text-neutral-400 mb-1">Gasto Mínimo Total</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500">$</span>
-                  <input
-                    type="number"
-                    value={thresholds.min_spent}
-                    onChange={(e) => setTierThresholds({
-                      ...tierThresholds,
-                      [tier]: { ...thresholds, min_spent: parseInt(e.target.value) || 0 }
-                    })}
-                    className="w-full pl-8 pr-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
-                    disabled={tier === 'Basic'}
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs text-neutral-400 mb-1">Visitas Mínimas</label>
-                <input
-                  type="number"
-                  value={thresholds.min_visits}
-                  onChange={(e) => setTierThresholds({
-                    ...tierThresholds,
-                    [tier]: { ...thresholds, min_visits: parseInt(e.target.value) || 0 }
-                  })}
-                  className="w-full px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
-                  disabled={tier === 'Basic'}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-4 p-4 bg-blue-900/20 border border-blue-700/50 rounded-lg">
-          <p className="text-sm text-blue-300">
-            ℹ️ El tier se calcula automáticamente cuando un miembro cumple CUALQUIERA de los dos requisitos (gasto O visitas)
-          </p>
         </div>
       </div>
 
@@ -210,10 +143,10 @@ export default function SettingsForm({ initialConfig }: SettingsFormProps) {
       <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-6">
         <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
           <Webhook className="w-6 h-6 text-orange-500" />
-          Integración GoHighLevel
+          GoHighLevel Integration
         </h2>
         <p className="text-sm text-neutral-400 mb-6">
-          Configura el webhook para enviar tarjetas digitales a través de GoHighLevel
+          Configure webhook to send digital cards through GoHighLevel
         </p>
 
         <div className="space-y-4">
@@ -255,13 +188,13 @@ export default function SettingsForm({ initialConfig }: SettingsFormProps) {
               </button>
             </div>
             <p className="text-xs text-neutral-500 mt-2">
-              Esta URL se usará para enviar notificaciones cuando los miembros soliciten su tarjeta digital
+              This URL will be used to send notifications when members request their digital card
             </p>
           </div>
 
           <div className="p-4 bg-yellow-900/20 border border-yellow-700/50 rounded-lg">
             <p className="text-sm text-yellow-300">
-              ⚠️ <strong>Información Sensible:</strong> El webhook está protegido. Haz click en "Desbloquear" para editarlo.
+              ⚠️ <strong>Sensitive Information:</strong> Webhook is protected. Click "Unlock" to edit it.
             </p>
           </div>
 
@@ -279,7 +212,7 @@ export default function SettingsForm({ initialConfig }: SettingsFormProps) {
               className="w-full px-4 py-3 bg-neutral-700 text-white border border-neutral-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <p className="text-xs text-neutral-500 mt-2">
-              Token privado para acceder a la API de GoHighLevel. Requiere permisos de View/Edit Contacts y Custom Fields.
+              Private token to access GoHighLevel API. Requires View/Edit Contacts and Custom Fields permissions.
             </p>
           </div>
 
@@ -296,7 +229,7 @@ export default function SettingsForm({ initialConfig }: SettingsFormProps) {
               className="w-full px-4 py-3 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
             />
             <p className="text-xs text-neutral-500 mt-2">
-              ID de la sub-cuenta de GHL donde se sincronizarán los contactos (default: Doral)
+              GHL sub-account ID where contacts will be synced (default: Doral)
             </p>
           </div>
 
@@ -308,10 +241,10 @@ export default function SettingsForm({ initialConfig }: SettingsFormProps) {
               className="w-full px-6 py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-neutral-700 disabled:cursor-not-allowed text-white rounded-lg font-medium transition flex items-center justify-center gap-2"
             >
               <RefreshCw className={`w-5 h-5 ${syncing ? 'animate-spin' : ''}`} />
-              {syncing ? 'Sincronizando...' : 'Sincronizar Todos los Miembros Activos'}
+              {syncing ? 'Syncing...' : 'Sync All Active Members'}
             </button>
             <p className="text-xs text-neutral-400 mt-2 text-center">
-              Sincroniza todos los miembros activos con GoHighLevel. Esto creará o actualizará contactos y custom fields.
+              Sync all active members with GoHighLevel. This will create or update contacts and custom fields.
             </p>
           </div>
         </div>
@@ -327,12 +260,12 @@ export default function SettingsForm({ initialConfig }: SettingsFormProps) {
           {saving ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              Guardando...
+              Saving...
             </>
           ) : (
             <>
               <Save className="w-5 h-5" />
-              Guardar Configuración
+              Save Settings
             </>
           )}
         </button>

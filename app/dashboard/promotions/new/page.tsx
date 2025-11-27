@@ -19,11 +19,11 @@ export default async function NewPromotionPage() {
           className="inline-flex items-center text-sm text-neutral-400 hover:text-brand-400 mb-4 transition"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Volver a promociones
+          Back to Benefits
         </Link>
-        <h1 className="text-3xl font-bold text-white">Nueva Promoción</h1>
+        <h1 className="text-3xl font-bold text-white">New Benefit</h1>
         <p className="mt-2 text-neutral-400">
-          Crea una nueva promoción para aplicar a las tarjetas de membresía
+          Create a new benefit for your members
         </p>
       </div>
 

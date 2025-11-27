@@ -21,7 +21,7 @@ export default function MemberInfo({ memberData, onReset }: MemberInfoProps) {
   return (
     <div className="bg-neutral-800 border border-neutral-700 rounded-xl overflow-hidden">
       <div className="p-6 border-b border-neutral-700 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-white">Información del Cliente</h2>
+        <h2 className="text-lg font-semibold text-white">Customer Information</h2>
         <button
           onClick={onReset}
           className="p-2 hover:bg-neutral-700 rounded-lg transition"
@@ -125,7 +125,7 @@ export default function MemberInfo({ memberData, onReset }: MemberInfoProps) {
         {/* Available Promotions */}
         {available_promotions.length > 0 && (
           <div>
-            <h4 className="text-sm font-medium text-white mb-2">Promociones Disponibles</h4>
+            <h4 className="text-sm font-medium text-white mb-2">Available Promotions</h4>
             <div className="space-y-2">
               {available_promotions.slice(0, 3).map((promo: any) => (
                 <div key={promo.promotion_id} className="text-xs bg-green-900/20 border border-green-700/50 rounded-lg p-2">

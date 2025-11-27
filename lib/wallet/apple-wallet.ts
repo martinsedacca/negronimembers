@@ -10,7 +10,12 @@ const getMembershipColor = (): string => {
   return 'rgb(0, 0, 0)'; // Negro para todos
 };
 
-export async function generateApplePass(member: Member): Promise<Buffer> {
+// Get the base URL for the web service (for pass updates)
+const getWebServiceURL = (): string => {
+  return process.env.NEXT_PUBLIC_APP_URL || 'https://your-domain.com';
+};
+
+export async function generateApplePass(member: Member, authToken?: string): Promise<Buffer> {
   try {
     // Read certificates as buffers
     const wwdr = fs.readFileSync(path.resolve(process.cwd(), 'certificates/wwdr.pem'));
@@ -45,6 +50,13 @@ export async function generateApplePass(member: Member): Promise<Buffer> {
           // Eliminar logoText para que solo muestre el logo
           delete passTemplate.logoText;
           passTemplate.barcode.message = member.member_number;
+          
+          // Add web service URL for automatic updates (if authToken provided)
+          if (authToken) {
+            passTemplate.webServiceURL = `${getWebServiceURL()}/api/v1`;
+            passTemplate.authenticationToken = authToken;
+          }
+          
           fs.writeFileSync(destPath, JSON.stringify(passTemplate, null, 2));
         } else {
           // Copy other files as-is
@@ -83,17 +95,24 @@ export async function generateApplePass(member: Member): Promise<Buffer> {
 
       // NO usar Primary field - dejar vacío para más espacio
 
-      // Secondary field - Member name (primera fila)
+      // Secondary fields - Member name and number (primera fila)
       pass.secondaryFields.push({
         key: 'member_name',
         label: "MEMBER'S NAME",
-        value: member.full_name,
+        value: member.full_name || 'Member',
+      });
+      
+      pass.secondaryFields.push({
+        key: 'member_number',
+        label: 'MEMBER #',
+        value: member.member_number,
+        textAlignment: 'PKTextAlignmentRight',
       });
 
-      // Auxiliary field - Membership tier (segunda fila, DEBAJO del nombre)
+      // Auxiliary field - Membership tier
       pass.auxiliaryFields.push({
         key: 'membership_tier',
-        label: 'MEMBERSHIP TIER',
+        label: 'TIER',
         value: member.membership_type.toUpperCase(),
       });
 
@@ -126,9 +145,9 @@ export async function generateApplePass(member: Member): Promise<Buffer> {
         value: 'Esta tarjeta es personal e intransferible. Válida solo para el titular. Para más información visita nuestro sitio web.',
       });
 
-      // Add barcode
+      // Add barcode - Use member ID for unique identification
       pass.setBarcodes({
-        message: member.member_number,
+        message: member.id,
         format: 'PKBarcodeFormatQR',
         messageEncoding: 'iso-8859-1',
       });

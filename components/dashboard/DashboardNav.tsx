@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -17,7 +17,13 @@ import {
   Calendar,
   Settings,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ClipboardList,
+  BarChart3,
+  Ticket,
+  ChevronDown,
+  ChevronUp,
+  Crown
 } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
 import PushNotificationButton from '@/components/ui/PushNotificationButton'
@@ -26,24 +32,84 @@ interface DashboardNavProps {
   user: User
 }
 
+interface NavSection {
+  title: string
+  items: NavItem[]
+}
+
+interface NavItem {
+  name: string
+  href: string
+  icon: any
+}
+
 export default function DashboardNav({ user }: DashboardNavProps) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [expandedSections, setExpandedSections] = useState<string[]>(['DAILY OPERATIONS', 'MEMBERS', 'BENEFITS & REWARDS'])
 
-  const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'Scanner', href: '/dashboard/scanner', icon: ScanLine },
-    { name: 'Miembros', href: '/dashboard/members', icon: Users },
-    { name: 'Segmentos', href: '/dashboard/segments', icon: Filter },
-    { name: 'Promociones', href: '/dashboard/promotions', icon: Tag },
-    { name: 'Eventos', href: '/dashboard/events', icon: Calendar },
-    { name: 'Sucursales', href: '/dashboard/branches', icon: Building2 },
-    { name: 'Configuración', href: '/dashboard/settings', icon: Settings },
-    { name: 'Tarjetas', href: '/dashboard/cards', icon: CreditCard },
+  const navigationSections: NavSection[] = [
+    {
+      title: 'DAILY OPERATIONS',
+      items: [
+        { name: 'Dashboard', href: '/dashboard', icon: Home },
+        { name: 'Scanner', href: '/dashboard/scanner', icon: ScanLine },
+        { name: 'Events', href: '/dashboard/events', icon: Calendar },
+      ]
+    },
+    {
+      title: 'MEMBERS',
+      items: [
+        { name: 'Members', href: '/dashboard/members', icon: Users },
+        { name: 'Segments', href: '/dashboard/segments', icon: Filter },
+        { name: 'Onboarding', href: '/dashboard/onboarding', icon: ClipboardList },
+      ]
+    },
+    {
+      title: 'BENEFITS & REWARDS',
+      items: [
+        { name: 'Membership Levels', href: '/dashboard/membership-types', icon: Crown },
+        { name: 'Benefits', href: '/dashboard/promotions', icon: Tag },
+        { name: 'Codes', href: '/dashboard/codes', icon: Ticket },
+        { name: 'Digital Cards', href: '/dashboard/cards', icon: CreditCard },
+      ]
+    },
+    {
+      title: 'LOCATIONS',
+      items: [
+        { name: 'Branches', href: '/dashboard/branches', icon: Building2 },
+      ]
+    },
+    {
+      title: 'ANALYTICS',
+      items: [
+        { name: 'Overview', href: '/dashboard/analytics', icon: BarChart3 },
+      ]
+    },
+    {
+      title: 'ADMINISTRATION',
+      items: [
+        { name: 'Users', href: '/dashboard/users', icon: Users },
+      ]
+    },
+    {
+      title: 'SETTINGS',
+      items: [
+        { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+      ]
+    }
   ]
+
+  const toggleSection = (title: string) => {
+    setExpandedSections(prev =>
+      prev.includes(title)
+        ? prev.filter(t => t !== title)
+        : [...prev, title]
+    )
+  }
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -136,34 +202,64 @@ export default function DashboardNav({ user }: DashboardNavProps) {
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-4">
           <div className="space-y-1 px-3">
-            {navigation.map((item) => {
-              const Icon = item.icon
-              const isActive = pathname === item.href
+            {navigationSections.map((section) => {
+              const isExpanded = expandedSections.includes(section.title)
+              
               return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`
-                    flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-all
-                    ${
-                      isActive
-                        ? 'bg-neutral-700 text-white border border-neutral-600'
-                        : 'text-neutral-300 hover:bg-neutral-700/50 hover:text-white'
-                    }
-                    ${
-                      sidebarCollapsed 
-                        ? 'justify-center' 
-                        : ''
-                    }
-                  `}
-                  title={sidebarCollapsed ? item.name : ''}
-                >
-                  <Icon className={`h-5 w-5 flex-shrink-0 ${
-                    sidebarCollapsed ? '' : 'mr-3'
-                  }`} />
-                  {!sidebarCollapsed && <span>{item.name}</span>}
-                </Link>
+                <div key={section.title} className="mb-2">
+                  {/* Section Header */}
+                  {!sidebarCollapsed && (
+                    <button
+                      onClick={() => toggleSection(section.title)}
+                      className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-neutral-500 uppercase tracking-wider hover:text-neutral-300 transition"
+                    >
+                      <span>{section.title}</span>
+                      {isExpanded ? (
+                        <ChevronUp className="h-3 w-3" />
+                      ) : (
+                        <ChevronDown className="h-3 w-3" />
+                      )}
+                    </button>
+                  )}
+                  
+                  {/* Section Items */}
+                  {(isExpanded || sidebarCollapsed) && (
+                    <div className="space-y-1">
+                      {section.items.map((item) => {
+                        const Icon = item.icon
+                        const isActive = pathname === item.href
+                        
+                        return (
+                          <Link
+                            key={item.name}
+                            href={item.href}
+                            prefetch={true}
+                            onClick={() => mobileMenuOpen && setMobileMenuOpen(false)}
+                            className={`
+                              flex items-center px-3 py-2 rounded-lg text-sm font-medium
+                              ${
+                                isActive
+                                  ? 'bg-orange-500 text-white shadow-lg'
+                                  : 'text-neutral-300 hover:bg-neutral-700/50 hover:text-white active:scale-[0.98]'
+                              }
+                              ${
+                                sidebarCollapsed 
+                                  ? 'justify-center' 
+                                  : ''
+                              }
+                            `}
+                            title={sidebarCollapsed ? item.name : ''}
+                          >
+                            <Icon className={`h-5 w-5 flex-shrink-0 ${
+                              sidebarCollapsed ? '' : 'mr-3'
+                            }`} />
+                            {!sidebarCollapsed && <span>{item.name}</span>}
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
               )
             })}
           </div>
@@ -190,14 +286,14 @@ export default function DashboardNav({ user }: DashboardNavProps) {
                 className="w-full flex items-center justify-center px-3 py-2 rounded-lg text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 transition"
               >
                 <LogOut className="h-4 w-4 mr-2" />
-                Salir
+                Logout
               </button>
             </>
           ) : (
             <button
               onClick={handleLogout}
               className="w-full flex items-center justify-center p-3 rounded-lg text-neutral-300 hover:bg-neutral-700 hover:text-white transition"
-              title="Salir"
+              title="Logout"
             >
               <LogOut className="h-5 w-5" />
             </button>

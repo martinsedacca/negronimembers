@@ -35,15 +35,37 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth')
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
+  // Public routes that don't require authentication
+  const publicRoutes = ['/login', '/auth', '/unauthorized']
+  const isPublicRoute = publicRoutes.some(route => request.nextUrl.pathname.startsWith(route))
+  
+  // Member routes have their own auth handling in the page components
+  const isMemberRoute = request.nextUrl.pathname.startsWith('/member')
+  
+  // Dashboard routes require system_users role
+  const isDashboardRoute = request.nextUrl.pathname.startsWith('/dashboard')
+  
+  if (!user && !isPublicRoute && !isMemberRoute) {
+    // no user, redirect to login (for dashboard routes)
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
+  }
+
+  // For dashboard routes, verify user is a system_user (admin/staff)
+  if (user && isDashboardRoute) {
+    const { data: systemUser } = await supabase
+      .from('system_users')
+      .select('id, role, is_active')
+      .eq('user_id', user.id)
+      .single()
+
+    if (!systemUser || !systemUser.is_active) {
+      // User is not an admin/staff, redirect to unauthorized
+      const url = request.nextUrl.clone()
+      url.pathname = '/unauthorized'
+      return NextResponse.redirect(url)
+    }
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're

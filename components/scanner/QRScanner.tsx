@@ -24,15 +24,22 @@ export default function QRScanner({
   const scannerRef = useRef<Html5QrcodeScanner | null>(null)
   const [manualNumber, setManualNumber] = useState('')
 
-  const verifyMember = async (memberNumber: string) => {
+  const verifyMember = async (scannedValue: string) => {
     setLoading(true)
     setError(null)
 
     try {
+      // Detect if scanned value is a UUID (member_id) or member_number
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(scannedValue)
+      
+      const payload = isUUID 
+        ? { member_id: scannedValue }
+        : { member_number: scannedValue }
+
       const response = await fetch('/api/scanner/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ member_number: memberNumber }),
+        body: JSON.stringify(payload),
       })
 
       const data = await response.json()
@@ -63,7 +70,7 @@ export default function QRScanner({
 
       scanner.render(
         (decodedText) => {
-          // QR contains member_number
+          // QR contains member_id (UUID) or member_number (legacy)
           verifyMember(decodedText)
           scanner.clear()
           scannerRef.current = null
@@ -123,7 +130,7 @@ export default function QRScanner({
           <form onSubmit={handleManualSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-neutral-300 mb-2">
-                Número de Miembro
+                Member Number
               </label>
               <input
                 type="text"
@@ -145,7 +152,7 @@ export default function QRScanner({
                   Verificando...
                 </>
               ) : (
-                'Buscar Miembro'
+                'Search Member'
               )}
             </button>
           </form>

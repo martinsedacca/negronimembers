@@ -26,6 +26,16 @@ interface SegmentFilters {
   
   // Promociones
   never_used_promotions?: boolean
+  
+  // Onboarding Responses
+  onboarding_responses?: Record<string, string[]> // question_id -> [response_values]
+}
+
+interface OnboardingQuestion {
+  id: string
+  question_text: string
+  question_type: string
+  options?: string[]
 }
 
 interface SegmentBuilderProps {
@@ -57,12 +67,21 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
   const [showWalletPushModal, setShowWalletPushModal] = useState(false)
   const [walletPushMessage, setWalletPushMessage] = useState('')
   const [sendingWalletPush, setSendingWalletPush] = useState(false)
+  
+  // Onboarding questions
+  const [onboardingQuestions, setOnboardingQuestions] = useState<OnboardingQuestion[]>([])
 
   useEffect(() => {
     // Fetch promotions
     fetch('/api/promotions')
       .then(res => res.json())
       .then(data => setPromotions(data.filter((p: Promotion) => p.is_active)))
+      .catch(console.error)
+    
+    // Fetch onboarding questions
+    fetch('/api/onboarding/questions')
+      .then(res => res.json())
+      .then(data => setOnboardingQuestions(data || []))
       .catch(console.error)
   }, [])
 
@@ -123,7 +142,7 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
 
   const exportToCSV = () => {
     const csv = [
-      ['Nombre', 'Email', 'Teléfono', 'Membresía', 'Visitas', 'Gasto Total'],
+      ['Name', 'Email', 'Phone', 'Membership', 'Visits', 'Total Spent'],
       ...matchingMembers.map(m => [
         m.full_name,
         m.email,
@@ -321,31 +340,31 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Filters Panel */}
         <div className="lg:col-span-1 bg-neutral-800 border border-neutral-700 rounded-xl p-6 space-y-4">
-          <h3 className="text-lg font-semibold text-white">Filtros</h3>
+          <h3 className="text-lg font-semibold text-white">Filters</h3>
 
           {/* Financial Filters */}
           <div>
             <label className="block text-sm font-medium text-neutral-300 mb-2">
-              Gasto Total Mínimo
+              Minimum Total Spent
             </label>
             <input
               type="number"
               value={filters.total_spent_min || ''}
               onChange={(e) => setFilters({ ...filters, total_spent_min: parseFloat(e.target.value) || undefined })}
-              placeholder="Ej: 500"
+              placeholder="e.g.: 500"
               className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-neutral-300 mb-2">
-              Gastó en los últimos 30 días (mínimo)
+              Spent in last 30 days (minimum)
             </label>
             <input
               type="number"
               value={filters.spent_last_30_days_min || ''}
               onChange={(e) => setFilters({ ...filters, spent_last_30_days_min: parseFloat(e.target.value) || undefined })}
-              placeholder="Ej: 100"
+              placeholder="e.g.: 100"
               className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
             />
           </div>
@@ -353,26 +372,26 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
           {/* Visit Filters */}
           <div>
             <label className="block text-sm font-medium text-neutral-300 mb-2">
-              Visitas Totales (mínimo)
+              Total Visits (minimum)
             </label>
             <input
               type="number"
               value={filters.total_visits_min || ''}
               onChange={(e) => setFilters({ ...filters, total_visits_min: parseInt(e.target.value) || undefined })}
-              placeholder="Ej: 5"
+              placeholder="e.g.: 5"
               className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-neutral-300 mb-2">
-              Visitas últimos 30 días (mínimo)
+              Visits last 30 days (minimum)
             </label>
             <input
               type="number"
               value={filters.visits_last_30_days_min || ''}
               onChange={(e) => setFilters({ ...filters, visits_last_30_days_min: parseInt(e.target.value) || undefined })}
-              placeholder="Ej: 2"
+              placeholder="e.g.: 2"
               className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
             />
           </div>
@@ -433,6 +452,98 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
             </div>
           </div>
 
+          {/* Onboarding Responses */}
+          {onboardingQuestions.length > 0 && (
+            <div className="pt-4 border-t border-neutral-700">
+              <h4 className="text-sm font-semibold text-white mb-3">Onboarding Responses</h4>
+              <div className="space-y-3">
+                {onboardingQuestions.map((question) => {
+                  // Select, Multi-select, Yes/No - Checkboxes
+                  if (question.question_type === 'select' || question.question_type === 'multi_select' || question.question_type === 'yes_no') {
+                    return (
+                      <div key={question.id}>
+                        <label className="block text-sm font-medium text-neutral-300 mb-2">
+                          {question.question_text}
+                        </label>
+                        <div className="space-y-2">
+                          {(question.options || []).map((option: string) => (
+                            <label key={option} className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                checked={
+                                  filters.onboarding_responses?.[question.id]?.includes(option) || false
+                                }
+                                onChange={(e) => {
+                                  const currentResponses = filters.onboarding_responses || {}
+                                  const currentOptions = currentResponses[question.id] || []
+                                  
+                                  setFilters({
+                                    ...filters,
+                                    onboarding_responses: {
+                                      ...currentResponses,
+                                      [question.id]: e.target.checked
+                                        ? [...currentOptions, option]
+                                        : currentOptions.filter(o => o !== option)
+                                    }
+                                  })
+                                }}
+                                className="rounded"
+                              />
+                              <span className="text-sm text-neutral-300">{option}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  }
+                  
+                  // Rating - Stars (1-5)
+                  if (question.question_type === 'rating') {
+                    return (
+                      <div key={question.id}>
+                        <label className="block text-sm font-medium text-neutral-300 mb-2">
+                          {question.question_text}
+                        </label>
+                        <div className="space-y-2">
+                          {[1, 2, 3, 4, 5].map((rating) => (
+                            <label key={rating} className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                checked={
+                                  filters.onboarding_responses?.[question.id]?.includes(rating.toString()) || false
+                                }
+                                onChange={(e) => {
+                                  const currentResponses = filters.onboarding_responses || {}
+                                  const currentOptions = currentResponses[question.id] || []
+                                  
+                                  setFilters({
+                                    ...filters,
+                                    onboarding_responses: {
+                                      ...currentResponses,
+                                      [question.id]: e.target.checked
+                                        ? [...currentOptions, rating.toString()]
+                                        : currentOptions.filter(o => o !== rating.toString())
+                                    }
+                                  })
+                                }}
+                                className="rounded"
+                              />
+                              <span className="text-sm text-neutral-300 flex items-center gap-1">
+                                {rating} {'⭐'.repeat(rating)}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  }
+                  
+                  return null
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Apply Button */}
           <button
             onClick={applyFilters}
@@ -440,7 +551,7 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
             className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition disabled:opacity-50"
           >
             <Play className="w-4 h-4" />
-            {loading ? 'Aplicando...' : 'Aplicar Filtros'}
+            {loading ? 'Applying...' : 'Apply Filters'}
           </button>
         </div>
 
@@ -453,9 +564,9 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
                 <Users className="w-6 h-6 text-orange-500" />
                 <div>
                   <h3 className="text-lg font-semibold text-white">
-                    {matchingMembers.length} Miembros
+                    {matchingMembers.length} Members
                   </h3>
-                  <p className="text-sm text-neutral-400">Coinciden con los filtros</p>
+                  <p className="text-sm text-neutral-400">Match the filters</p>
                 </div>
               </div>
 
@@ -502,14 +613,14 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
                   type="text"
                   value={segmentName}
                   onChange={(e) => setSegmentName(e.target.value)}
-                  placeholder="Nombre del segmento..."
+                  placeholder="Segment name..."
                   className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
                 />
                 <input
                   type="text"
                   value={segmentDescription}
                   onChange={(e) => setSegmentDescription(e.target.value)}
-                  placeholder="Descripción (opcional)..."
+                  placeholder="Description (optional)..."
                   className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
                 />
                 <button
@@ -518,7 +629,7 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
                   className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:opacity-50"
                 >
                   <Save className="w-4 h-4" />
-                  {saving ? 'Guardando...' : 'Guardar Segmento'}
+                  {saving ? 'Saving...' : 'Save Segment'}
                 </button>
               </div>
             )}
@@ -532,7 +643,7 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
                   <thead className="bg-neutral-900">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium text-neutral-400 uppercase">
-                        Nombre
+                        Name
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-neutral-400 uppercase">
                         Email
@@ -541,10 +652,10 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
                         Tier
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-neutral-400 uppercase">
-                        Visitas
+                        Visits
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-neutral-400 uppercase">
-                        Gasto
+                        Spent
                       </th>
                     </tr>
                   </thead>
@@ -640,7 +751,7 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
                   onClick={() => setShowAssignPromo(false)}
                   className="flex-1 px-4 py-2 bg-neutral-700 text-white rounded-lg hover:bg-neutral-600 transition"
                 >
-                  Cancelar
+                  Cancel
                 </button>
                 <button
                   onClick={assignPromotion}
@@ -686,7 +797,7 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
                   type="text"
                   value={pushTitle}
                   onChange={(e) => setPushTitle(e.target.value)}
-                  placeholder="Ej: Nueva promoción disponible"
+                  placeholder="e.g.: New promotion available"
                   className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
                   maxLength={50}
                 />
@@ -700,7 +811,7 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
                 <textarea
                   value={pushMessage}
                   onChange={(e) => setPushMessage(e.target.value)}
-                  placeholder="Ej: ¡Obtén 20% de descuento en tu próxima visita!"
+                  placeholder="e.g.: Get 20% off on your next visit!"
                   className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
                   rows={3}
                   maxLength={120}
@@ -716,7 +827,7 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
                   type="url"
                   value={pushUrl}
                   onChange={(e) => setPushUrl(e.target.value)}
-                  placeholder="https://ejemplo.com/promocion"
+                  placeholder="https://example.com/promotion"
                   className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
                 />
                 <p className="text-xs text-neutral-500 mt-1">
@@ -738,7 +849,7 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
                   onClick={() => setShowPushModal(false)}
                   className="flex-1 px-4 py-2 bg-neutral-700 text-white rounded-lg hover:bg-neutral-600 transition"
                 >
-                  Cancelar
+                  Cancel
                 </button>
                 <button
                   onClick={sendPushNotification}
@@ -792,7 +903,7 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
                 <textarea
                   value={walletPushMessage}
                   onChange={(e) => setWalletPushMessage(e.target.value)}
-                  placeholder="Ej: ¡Nueva promoción disponible! 20% OFF en tu próxima visita"
+                  placeholder="e.g.: New promotion available! 20% OFF on your next visit"
                   className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
                   rows={3}
                   maxLength={120}
@@ -814,7 +925,7 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
                   onClick={() => setShowWalletPushModal(false)}
                   className="flex-1 px-4 py-2 bg-neutral-700 text-white rounded-lg hover:bg-neutral-600 transition"
                 >
-                  Cancelar
+                  Cancel
                 </button>
                 <button
                   onClick={sendWalletPushNotification}

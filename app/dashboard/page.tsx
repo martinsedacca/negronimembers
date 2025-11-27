@@ -3,6 +3,9 @@ import { Users, CreditCard, Tag, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 import GlowCard from '@/components/ui/GlowCard'
 
+// Revalidar cada 30 segundos (dashboard más frecuente)
+export const revalidate = 30
+
 export default async function DashboardPage() {
   const supabase = await createClient()
 
@@ -35,28 +38,28 @@ export default async function DashboardPage() {
 
   const stats = [
     {
-      name: 'Total Miembros',
+      name: 'Total Members',
       value: totalMembers || 0,
       icon: Users,
       color: 'bg-brand-500',
       href: '/dashboard/members',
     },
     {
-      name: 'Miembros Activos',
+      name: 'Active Members',
       value: activeMembers || 0,
       icon: TrendingUp,
       color: 'bg-green-500',
       href: '/dashboard/members',
     },
     {
-      name: 'Promociones Activas',
+      name: 'Active Promotions',
       value: activePromotions || 0,
       icon: Tag,
       color: 'bg-brand-500',
       href: '/dashboard/promotions',
     },
     {
-      name: 'Total Promociones',
+      name: 'Total Promotions',
       value: totalPromotions || 0,
       icon: CreditCard,
       color: 'bg-orange-500',
@@ -110,7 +113,7 @@ export default async function DashboardPage() {
         {/* Recent Members */}
         <div className="bg-neutral-800 border border-neutral-700 shadow rounded-lg">
           <div className="px-6 py-5 border-b border-neutral-700">
-            <h3 className="text-lg font-medium text-white">Miembros Recientes</h3>
+            <h3 className="text-lg font-medium text-white">Recent Members</h3>
           </div>
           <div className="divide-y divide-neutral-700">
             {recentMembers && recentMembers.length > 0 ? (
@@ -161,7 +164,7 @@ export default async function DashboardPage() {
         {/* Recent Card Usage */}
         <div className="bg-neutral-800 border border-neutral-700 shadow rounded-lg">
           <div className="px-6 py-5 border-b border-neutral-700">
-            <h3 className="text-lg font-medium text-white">Uso Reciente de Tarjetas</h3>
+            <h3 className="text-lg font-medium text-white">Recent Card Usage</h3>
           </div>
           <div className="divide-y divide-neutral-700">
             {recentUsage && recentUsage.length > 0 ? (

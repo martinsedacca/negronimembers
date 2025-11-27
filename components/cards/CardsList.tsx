@@ -20,9 +20,9 @@ export default function CardsList({ members }: CardsListProps) {
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
 
   const filteredMembers = members.filter((member) =>
-    member.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.member_number.toLowerCase().includes(searchTerm.toLowerCase())
+    (member.full_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (member.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (member.member_number || '').toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   // Todas las tarjetas tienen fondo negro como la referencia
@@ -190,19 +190,19 @@ export default function CardsList({ members }: CardsListProps) {
                   </div>
                   {member.phone && (
                     <div className="flex items-center text-sm text-neutral-300">
-                      <span className="font-medium mr-2">Teléfono:</span>
+                      <span className="font-medium mr-2">Phone:</span>
                       <span>{member.phone}</span>
                     </div>
                   )}
                   <div className="flex items-center text-sm text-neutral-300">
                     <Calendar className="w-4 h-4 mr-2" />
-                    <span>Miembro desde {new Date(member.joined_date).toLocaleDateString('es-ES')}</span>
+                    <span>Member since {new Date(member.joined_date).toLocaleDateString('en-US')}</span>
                   </div>
                 </div>
 
                 {/* Wallet Status */}
                 <div className="pt-4 border-t border-neutral-700">
-                  <p className="text-xs text-neutral-400 mb-3">Estado de Tarjetas:</p>
+                  <p className="text-xs text-neutral-400 mb-3">Card Status:</p>
                   <div className="space-y-2">
                     {member.wallet_passes && member.wallet_passes.length > 0 ? (
                       member.wallet_passes.map((pass) => (
@@ -211,12 +211,12 @@ export default function CardsList({ members }: CardsListProps) {
                             {pass.pass_type === 'apple' ? '🍎 Apple Wallet' : '📱 Google Wallet'}
                           </span>
                           <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-medium">
-                            Generada
+                            Generated
                           </span>
                         </div>
                       ))
                     ) : (
-                      <p className="text-sm text-neutral-400 italic">No hay tarjetas generadas</p>
+                      <p className="text-sm text-neutral-400 italic">No cards generated</p>
                     )}
                   </div>
                 </div>

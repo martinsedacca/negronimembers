@@ -1,17 +1,36 @@
-# 🎫 Membership Cards - Sistema de Gestión de Tarjetas Digitales
+# ☕ Negroni Membership System - Digital Membership Platform
 
-Sistema completo para gestionar tarjetas de membresía digitales para Apple Wallet y Google Wallet, con dashboard administrativo, gestión de miembros, promociones y seguimiento de uso.
+Complete membership management system with Member & Gold tiers, digital wallet cards (Apple/Google Wallet), coupons, analytics, and administrative dashboard.
 
-## 🚀 Características
+## 🚀 Key Features
 
-- ✅ **Dashboard Administrativo** - Panel de control con estadísticas en tiempo real
-- ✅ **Gestión de Miembros** - CRUD completo de miembros con diferentes tipos de membresía
-- ✅ **Sistema de Promociones** - Crea y gestiona promociones basadas en uso
-- ✅ **Seguimiento de Uso** - Registra cada vez que un miembro usa su tarjeta
-- ✅ **Sistema de Puntos** - Acumulación automática de puntos por uso
-- ✅ **Apple Wallet** - Generación de passes para Apple Wallet (IMPLEMENTADO)
-- 🔄 **Google Wallet** - Generación de passes para Google Wallet (próximamente)
-- 🔐 **Autenticación** - Sistema completo con Supabase Auth
+### Core System
+- ✅ **Two-Tier Membership** - Member (free) & Gold (premium $199)
+- ✅ **Admin Dashboard** - Real-time stats, member management, analytics
+- ✅ **Member App** - Modern PWA with progress tracking and benefits
+- ✅ **Digital Wallet Cards** - Generate passes for Apple Wallet & Google Wallet
+- ✅ **Points System** - Automatic point accumulation on purchases
+- ✅ **Branch Management** - Multi-location support with individual analytics
+
+### New Features (2025)
+- ✅ **Coupons System** - Create branch-specific discount codes
+  - Percentage & fixed amount discounts
+  - Expiration dates & redemption limits
+  - One-time use per member validation
+- ✅ **Branch Analytics** - Comprehensive performance metrics
+  - Revenue & visits tracking
+  - Peak hours analysis
+  - Top spenders & member segmentation
+  - Period filters (7/30/90 days)
+- ✅ **Promotions** - Tier-based benefits and rewards
+- ✅ **Events System** - Create events and invite members
+- ✅ **Segmentation** - Filter members and send notifications
+
+### UI/UX
+- ✅ **100% English Interface** - All components, forms, and messages
+- ✅ **Modern Design** - Tailwind CSS with custom brand colors
+- ✅ **Responsive** - Mobile-first design
+- ✅ **Dark Theme** - Professional dark UI
 
 ## 📋 Requisitos Previos
 
@@ -60,52 +79,65 @@ npm run dev
 
 Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 
-## 📊 Estructura de la Base de Datos
+## 📊 Database Structure
 
-### Tablas Principales
+### Main Tables
 
-- **members** - Información de miembros y sus membresías
-- **membership_types** - Tipos de membresía (Basic, Silver, Gold, Platinum)
-- **promotions** - Promociones y descuentos
-- **card_usage** - Registro de uso de tarjetas
-- **applied_promotions** - Promociones aplicadas a miembros
-- **wallet_passes** - Datos de passes de Apple/Google Wallet
+- **members** - Member information with Member/Gold tiers
+- **membership_types** - Membership types (Member & Gold only)
+- **branches** - Branch locations with analytics
+- **transactions** - Purchase history and points
+- **coupons** - Discount codes with validation rules
+- **coupon_redemptions** - Redemption tracking
+- **promotions** - Tier-based benefits and rewards
+- **events** - Special events with member invitations
+- **wallet_passes** - Apple/Google Wallet pass data
 
-## 🎯 Uso del Sistema
+### Key Features
+- Row Level Security (RLS) enabled
+- Automatic timestamps
+- Foreign key constraints
+- Indexes for performance
 
-### Primer Inicio
+## 🎯 Using the System
 
-1. Accede a http://localhost:3000
-2. Haz clic en "Registrarse" para crear una cuenta de administrador
-3. Inicia sesión con tu cuenta
+### Getting Started
 
-### Gestión de Miembros
+1. Access http://localhost:3000
+2. Use the seed data or create a new admin account
+3. Explore the dashboard
 
-1. Ve a "Miembros" en el menú
-2. Haz clic en "Nuevo Miembro"
-3. Completa el formulario con los datos del miembro
-4. El sistema genera automáticamente un número de miembro único
+### Managing Members
 
-### Crear Promociones
+1. Navigate to "Members" in the dashboard
+2. Click "New Member" to add a member
+3. Fill in member details (name, email, phone, tier)
+4. System auto-generates unique member numbers
+5. Choose between Member (free) or Gold ($199)
 
-1. Ve a "Promociones" en el menú
-2. Haz clic en "Nueva Promoción"
+### Creating Coupons
+
+1. Go to "Coupons" in the menu
+2. Click "New Coupon"
 3. Define:
-   - Tipo de descuento (porcentaje, monto fijo, o puntos)
-   - Fechas de vigencia
-   - Requisitos de uso mínimo/máximo
-   - Tipos de membresía aplicables
+   - Unique coupon code (e.g., SUMMER2024)
+   - Description
+   - Discount type (percentage or fixed amount)
+   - Optional: specific branch
+   - Optional: expiration date
+   - Optional: maximum redemptions
+4. Members can redeem coupons from the member app
 
-### Tipos de Promociones
+### Branch Analytics
 
-- **Porcentaje** - Descuento del X% sobre el total
-- **Monto Fijo** - Descuento de $X
-- **Puntos** - Otorga X puntos adicionales
-
-Las promociones se aplican automáticamente según:
-- Tipo de membresía del usuario
-- Cantidad de veces que ha usado su tarjeta
-- Fechas de vigencia
+1. Go to "Branches"
+2. Click "Analytics" on any branch
+3. View:
+   - Revenue and transaction trends
+   - Peak hours analysis
+   - Top spending members
+   - Member tier breakdown
+4. Filter by period (7/30/90 days)
 
 ## 🔧 Comandos Útiles
 
@@ -170,24 +202,39 @@ NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key-de-produccion
 ```
 
-## 📱 Próximas Funcionalidades
+## 📱 Current Status & Roadmap
 
-- [ ] Generación de passes para Apple Wallet
-- [ ] Generación de passes para Google Wallet
-- [ ] API para actualizar passes en tiempo real
-- [ ] Notificaciones push a las tarjetas
-- [ ] Códigos QR para validación
-- [ ] Reportes y analytics avanzados
-- [ ] Exportación de datos
-- [ ] API pública para integraciones
+### ✅ Completed (90%)
+- ✅ Member/Gold tier system
+- ✅ Dashboard with 8 pages
+- ✅ Member app (3 pages)
+- ✅ Coupons system (create, edit, redeem)
+- ✅ Branch analytics with charts
+- ✅ Digital wallet cards UI
+- ✅ Events & invitations
+- ✅ Member segmentation
+- ✅ Points system
+- ✅ 100% English interface
 
-## 🏗️ Tecnologías Utilizadas
+### 🔄 Optional / Future
+- [ ] SMS Authentication (Twilio/SNS integration)
+- [ ] Membership types CRUD page
+- [ ] Real-time wallet pass updates API
+- [ ] Push notifications to wallet cards
+- [ ] QR scanner for validation
+- [ ] Data export (CSV/Excel)
+- [ ] Public API for integrations
+- [ ] Advanced reporting dashboards
 
-- **Frontend:** Next.js 15, React 19, TypeScript
-- **Styling:** Tailwind CSS 4
-- **Backend:** Supabase (PostgreSQL, Auth, Storage)
+## 🏗️ Technologies Used
+
+- **Frontend:** Next.js 15 (App Router), React 19, TypeScript
+- **Styling:** Tailwind CSS 4, Framer Motion
+- **Backend:** Supabase (PostgreSQL, Auth, Storage, Realtime)
 - **Icons:** Lucide React
 - **Dates:** date-fns
+- **QR Codes:** qrcode.react
+- **Deployment:** Vercel-ready
 
 ## 📝 Notas de Desarrollo
 

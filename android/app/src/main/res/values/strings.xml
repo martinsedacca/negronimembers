@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Negroni Membership</string>
+    <string name="title_activity_main">Negroni Membership</string>
+    <string name="package_name">com.negroni.membership</string>
+    <string name="custom_url_scheme">com.negroni.membership</string>
+</resources>

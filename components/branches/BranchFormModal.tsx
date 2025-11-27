@@ -63,7 +63,7 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
         {/* Header */}
         <div className="px-6 py-4 border-b border-neutral-700 flex items-center justify-between">
           <h2 className="text-xl font-bold text-white">
-            {branch ? 'Editar Sucursal' : 'Nueva Sucursal'}
+            {branch ? 'Edit Branch' : 'New Branch'}
           </h2>
           <button
             onClick={onClose}
@@ -77,7 +77,7 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-neutral-300 mb-2">
-              Nombre *
+              Name *
             </label>
             <input
               type="text"
@@ -91,7 +91,7 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
 
           <div>
             <label className="block text-sm font-medium text-neutral-300 mb-2">
-              Dirección
+              Address
             </label>
             <input
               type="text"
@@ -105,7 +105,7 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-neutral-300 mb-2">
-                Ciudad
+                City
               </label>
               <input
                 type="text"
@@ -117,7 +117,7 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
             </div>
             <div>
               <label className="block text-sm font-medium text-neutral-300 mb-2">
-                Teléfono
+                Phone
               </label>
               <input
                 type="tel"
@@ -144,20 +144,20 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
 
           <div>
             <label className="block text-sm font-medium text-neutral-300 mb-2">
-              Encargado
+              Manager
             </label>
             <input
               type="text"
               value={formData.manager_name}
               onChange={(e) => setFormData({ ...formData, manager_name: e.target.value })}
               className="w-full px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              placeholder="Nombre del encargado"
+              placeholder="Manager name"
             />
           </div>
 
           <div className="flex items-center justify-between">
             <label className="text-sm font-medium text-neutral-300">
-              Sucursal Activa
+              Active Branch
             </label>
             <button
               type="button"
@@ -181,7 +181,7 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
               onClick={onClose}
               className="flex-1 px-4 py-2 bg-neutral-700 text-neutral-200 rounded-lg hover:bg-neutral-600 transition"
             >
-              Cancelar
+              Cancel
             </button>
             <button
               type="submit"
@@ -191,12 +191,12 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
               {saving ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Guardando...
+                  Saving...
                 </>
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  Guardar
+                  Save
                 </>
               )}
             </button>

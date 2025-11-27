@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import DashboardNav from '@/components/dashboard/DashboardNav'
+import LoadingBar from '@/components/ui/LoadingBar'
 
 export default async function DashboardLayout({
   children,
@@ -16,6 +17,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-neutral-900">
+      <LoadingBar />
       <DashboardNav user={user} />
       {/* Main content area with sidebar offset */}
       <div className="lg:pl-64 transition-all duration-300">

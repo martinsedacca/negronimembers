@@ -24,9 +24,9 @@ export default async function PromotionsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Promociones</h1>
+          <h1 className="text-3xl font-bold text-white">Benefits</h1>
           <p className="mt-2 text-neutral-400">
-            Gestiona promociones y descuentos para miembros
+            Manage benefits and rewards for members
           </p>
         </div>
         <Link
@@ -34,7 +34,7 @@ export default async function PromotionsPage() {
           className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
         >
           <Plus className="w-5 h-5 mr-2" />
-          Nueva Promoción
+          New Benefit
         </Link>
       </div>
 

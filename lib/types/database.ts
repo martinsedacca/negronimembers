@@ -63,8 +63,7 @@ export type Database = {
           description: string | null
           benefits: Json | null
           price: number | null
-          duration_months: number | null
-          color: string
+          is_active: boolean
           created_at: string
           updated_at: string
         }
@@ -74,8 +73,7 @@ export type Database = {
           description?: string | null
           benefits?: Json | null
           price?: number | null
-          duration_months?: number | null
-          color?: string
+          is_active?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -85,8 +83,7 @@ export type Database = {
           description?: string | null
           benefits?: Json | null
           price?: number | null
-          duration_months?: number | null
-          color?: string
+          is_active?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -96,13 +93,14 @@ export type Database = {
           id: string
           title: string
           description: string | null
-          discount_type: 'percentage' | 'fixed' | 'points'
-          discount_value: number
+          discount_type: 'percentage' | 'fixed' | 'points' | 'perk'
+          discount_value: number | null
           start_date: string
           end_date: string
           min_usage_count: number
           max_usage_count: number | null
-          applicable_membership_types: string[] | null
+          applicable_to: string[] | null
+          applicable_branches: string[] | null
           is_active: boolean
           terms_conditions: string | null
           created_at: string
@@ -112,13 +110,14 @@ export type Database = {
           id?: string
           title: string
           description?: string | null
-          discount_type: 'percentage' | 'fixed' | 'points'
-          discount_value: number
+          discount_type: 'percentage' | 'fixed' | 'points' | 'perk'
+          discount_value?: number | null
           start_date: string
           end_date: string
           min_usage_count?: number
           max_usage_count?: number | null
-          applicable_membership_types?: string[] | null
+          applicable_to?: string[] | null
+          applicable_branches?: string[] | null
           is_active?: boolean
           terms_conditions?: string | null
           created_at?: string
@@ -128,13 +127,14 @@ export type Database = {
           id?: string
           title?: string
           description?: string | null
-          discount_type?: 'percentage' | 'fixed' | 'points'
-          discount_value?: number
+          discount_type?: 'percentage' | 'fixed' | 'points' | 'perk'
+          discount_value?: number | null
           start_date?: string
           end_date?: string
           min_usage_count?: number
           max_usage_count?: number | null
-          applicable_membership_types?: string[] | null
+          applicable_to?: string[] | null
+          applicable_branches?: string[] | null
           is_active?: boolean
           terms_conditions?: string | null
           created_at?: string

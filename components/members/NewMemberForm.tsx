@@ -112,7 +112,7 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <label htmlFor="full_name" className="block text-sm font-medium text-neutral-300">
-            Nombre Completo *
+            Full Name *
           </label>
           <input
             type="text"
@@ -140,7 +140,7 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
 
         <div>
           <label htmlFor="phone" className="block text-sm font-medium text-neutral-300">
-            Teléfono
+            Phone
           </label>
           <input
             type="tel"
@@ -153,7 +153,7 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
 
         <div>
           <label htmlFor="membership_type" className="block text-sm font-medium text-neutral-300">
-            Tipo de Membresía *
+            Membership Type *
           </label>
           <select
             id="membership_type"
@@ -172,7 +172,7 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
 
         <div>
           <label htmlFor="status" className="block text-sm font-medium text-neutral-300">
-            Estado *
+            Status *
           </label>
           <select
             id="status"
@@ -181,22 +181,22 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
             onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
             className="mt-1 block w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
           >
-            <option value="active">Activo</option>
-            <option value="inactive">Inactivo</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
           </select>
         </div>
       </div>
 
       <div className="bg-neutral-900/50 p-4 rounded-md border border-neutral-700">
-        <h4 className="text-sm font-medium text-white mb-2">Información de la Membresía</h4>
+        <h4 className="text-sm font-medium text-white mb-2">Membership Information</h4>
         {membershipTypes.find(t => t.name === formData.membership_type) && (
           <div className="text-sm text-neutral-400 space-y-1">
             <p>
-              <span className="font-medium">Duración:</span>{' '}
-              {membershipTypes.find(t => t.name === formData.membership_type)?.duration_months} meses
+              <span className="font-medium">Duration:</span>{' '}
+              {membershipTypes.find(t => t.name === formData.membership_type)?.duration_months} months
             </p>
             <p>
-              <span className="font-medium">Precio:</span> $
+              <span className="font-medium">Price:</span> $
               {membershipTypes.find(t => t.name === formData.membership_type)?.price}
             </p>
           </div>
@@ -209,7 +209,7 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
           onClick={() => router.back()}
           className="px-4 py-2 text-neutral-300 bg-neutral-700 hover:bg-neutral-600 border border-neutral-600 rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
         >
-          Cancelar
+          Cancel
         </button>
         <button
           type="submit"
@@ -217,7 +217,7 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
           className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-          {loading ? 'Creando...' : 'Crear Miembro'}
+          {loading ? 'Creating...' : 'Create Member'}
         </button>
       </div>
     </form>

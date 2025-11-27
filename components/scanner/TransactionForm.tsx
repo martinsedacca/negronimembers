@@ -116,17 +116,17 @@ export default function TransactionForm({ memberData, onComplete, onCancel }: Tr
       <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-8 text-center">
         <PartyPopper className="w-16 h-16 text-green-500 mx-auto mb-4" />
         <h3 className="text-2xl font-bold text-white mb-2">
-          {success.new_tier ? '🎉 ¡Subió de Tier!' : '✅ Registrado!'}
+          {success.new_tier ? '🎉 Tier Upgraded!' : '✅ Recorded!'}
         </h3>
         <p className="text-neutral-300 mb-4">{success.message}</p>
         <div className="bg-neutral-900/50 rounded-lg p-4 space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-neutral-400">Puntos ganados:</span>
+            <span className="text-neutral-400">Points earned:</span>
             <span className="text-white font-semibold">+{success.points_earned}</span>
           </div>
           {success.total_discount > 0 && (
             <div className="flex justify-between text-sm">
-              <span className="text-neutral-400">Descuento total:</span>
+              <span className="text-neutral-400">Total discount:</span>
               <span className="text-green-400 font-semibold">${success.total_discount}</span>
             </div>
           )}
@@ -171,7 +171,7 @@ export default function TransactionForm({ memberData, onComplete, onCancel }: Tr
         {formData.event_type === 'purchase' && (
           <div>
             <label className="block text-sm font-medium text-neutral-300 mb-2">
-              Monto Gastado *
+              Amount Spent *
             </label>
             <div className="relative">
               <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
@@ -190,7 +190,7 @@ export default function TransactionForm({ memberData, onComplete, onCancel }: Tr
 
         {/* Branch */}
         <div>
-          <label className="block text-sm font-medium text-neutral-300 mb-2">Sucursal</label>
+          <label className="block text-sm font-medium text-neutral-300 mb-2">Branch</label>
           <div className="relative">
             <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500 pointer-events-none z-10" />
             <select
@@ -198,7 +198,7 @@ export default function TransactionForm({ memberData, onComplete, onCancel }: Tr
               onChange={(e) => setFormData({ ...formData, branch_id: e.target.value })}
               className="w-full pl-10 pr-4 py-3 bg-neutral-700 border border-neutral-600 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none"
             >
-              <option value="">Selecciona una sucursal...</option>
+              <option value="">Select a branch...</option>
               {branches.map((branch) => (
                 <option key={branch.id} value={branch.id}>
                   {branch.name}
@@ -212,37 +212,54 @@ export default function TransactionForm({ memberData, onComplete, onCancel }: Tr
         {memberData.available_promotions.length > 0 && (
           <div>
             <label className="block text-sm font-medium text-neutral-300 mb-2">
-              Promociones a Aplicar
+              Apply Benefits
             </label>
-            <div className="space-y-2 max-h-40 overflow-y-auto">
-              {memberData.available_promotions.map((promo: any) => (
-                <label
-                  key={promo.promotion_id}
-                  className="flex items-start gap-3 p-3 bg-neutral-700 rounded-lg cursor-pointer hover:bg-neutral-600 transition"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedPromotions.includes(promo.promotion_id)}
-                    onChange={() => togglePromotion(promo.promotion_id)}
-                    className="mt-1"
-                  />
-                  <div className="flex-1">
-                    <div className="text-sm font-medium text-white">{promo.title}</div>
-                    <div className="text-xs text-neutral-400">{promo.discount_value}{promo.discount_type === 'percentage' ? '%' : '$'} OFF</div>
-                  </div>
-                </label>
-              ))}
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {memberData.available_promotions.map((promo: any) => {
+                const icon = promo.icon || '🎁'
+                const isSelected = selectedPromotions.includes(promo.promotion_id)
+                
+                return (
+                  <label
+                    key={promo.promotion_id}
+                    className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition ${
+                      isSelected 
+                        ? 'bg-orange-500/20 border-2 border-orange-500' 
+                        : 'bg-neutral-700 border-2 border-transparent hover:bg-neutral-600'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => togglePromotion(promo.promotion_id)}
+                      className="mt-1"
+                    />
+                    <div className="text-2xl leading-none">{icon}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-white">{promo.title}</div>
+                      <div className="text-xs text-neutral-400 mt-0.5">
+                        {promo.discount_value}{promo.discount_type === 'percentage' ? '%' : '$'} OFF
+                        {promo.usage_type && promo.usage_type !== 'general' && (
+                          <span className="ml-2 px-2 py-0.5 bg-neutral-800 rounded text-[10px] uppercase">
+                            {promo.usage_type}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </label>
+                )
+              })}
             </div>
           </div>
         )}
 
         {/* Notes */}
         <div>
-          <label className="block text-sm font-medium text-neutral-300 mb-2">Notas</label>
+          <label className="block text-sm font-medium text-neutral-300 mb-2">Notes</label>
           <textarea
             value={formData.notes}
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            placeholder="Notas opcionales..."
+            placeholder="Optional notes..."
             rows={2}
             className="w-full px-4 py-3 bg-neutral-700 border border-neutral-600 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder-neutral-400 resize-none"
           />
@@ -256,7 +273,7 @@ export default function TransactionForm({ memberData, onComplete, onCancel }: Tr
           onClick={onCancel}
           className="flex-1 py-3 bg-neutral-700 text-neutral-300 rounded-lg font-medium hover:bg-neutral-600 transition"
         >
-          Cancelar
+          Cancel
         </button>
         <button
           type="submit"
@@ -266,12 +283,12 @@ export default function TransactionForm({ memberData, onComplete, onCancel }: Tr
           {loading ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              Registrando...
+              Applying...
             </>
           ) : (
             <>
               <Save className="w-5 h-5" />
-              Registrar
+              Record
             </>
           )}
         </button>

@@ -43,8 +43,8 @@ export default function InviteMembersModal({ event, onClose, onSuccess }: Invite
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ member_ids: matchingMembers.map(m => m.id) }),
       })
-      if (!response.ok) throw new Error('Error al invitar')
-      alert(`${matchingMembers.length} miembros invitados exitosamente!`)
+      if (!response.ok) throw new Error('Error inviting members')
+      alert(`${matchingMembers.length} members invited successfully!`)
       onSuccess()
     } catch (error: any) {
       alert('Error: ' + error.message)
@@ -58,7 +58,7 @@ export default function InviteMembersModal({ event, onClose, onSuccess }: Invite
       <div className="bg-neutral-800 border border-neutral-700 rounded-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-bold text-white">Invitar Miembros</h2>
+            <h2 className="text-xl font-bold text-white">Invite Members</h2>
             <p className="text-sm text-neutral-400">{event.name}</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-neutral-700 rounded-lg">
@@ -68,27 +68,27 @@ export default function InviteMembersModal({ event, onClose, onSuccess }: Invite
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-neutral-300 mb-2">Estado de miembros</label>
+            <label className="block text-sm font-medium text-neutral-300 mb-2">Member status</label>
             <select
               onChange={(e) => setFilters({ ...filters, status: [e.target.value] })}
               className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
             >
-              <option value="active">Solo activos</option>
-              <option value="">Todos</option>
+              <option value="active">Active only</option>
+              <option value="">All</option>
             </select>
           </div>
 
           <button onClick={applyFilters} disabled={loading} className="w-full px-4 py-2 bg-orange-500 text-white rounded-lg disabled:opacity-50">
-            {loading ? 'Buscando...' : 'Buscar Miembros'}
+            {loading ? 'Searching...' : 'Search Members'}
           </button>
 
           {matchingMembers.length > 0 && (
             <>
               <div className="bg-neutral-900/50 p-4 rounded-lg">
-                <p className="text-white">Se invitará a <span className="font-bold">{matchingMembers.length}</span> miembros</p>
+                <p className="text-white"><span className="font-bold">{matchingMembers.length}</span> members will be invited</p>
               </div>
               <button onClick={inviteMembers} disabled={inviting} className="w-full px-4 py-2 bg-green-600 text-white rounded-lg disabled:opacity-50 flex items-center justify-center gap-2">
-                {inviting ? <><Loader2 className="w-4 h-4 animate-spin" />Invitando...</> : <><UserPlus className="w-4 h-4" />Enviar Invitaciones</>}
+                {inviting ? <><Loader2 className="w-4 h-4 animate-spin" />Inviting...</> : <><UserPlus className="w-4 h-4" />Send Invitations</>}
               </button>
             </>
           )}

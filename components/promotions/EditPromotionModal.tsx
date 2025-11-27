@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, Save, Loader2, Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Database } from '@/lib/types/database'
+import DatePicker from '@/components/ui/DatePicker'
+import ApplicabilitySection from './ApplicabilitySection'
 
 type Promotion = Database['public']['Tables']['promotions']['Row']
 type MembershipType = Database['public']['Tables']['membership_types']['Row']
@@ -21,49 +23,138 @@ export default function EditPromotionModal({
   onClose, 
   onUpdate 
 }: EditPromotionModalProps) {
+  const supabase = createClient()
+  const [codes, setCodes] = useState<any[]>([])
   const [formData, setFormData] = useState({
     title: promotion.title,
     description: promotion.description || '',
     discount_type: promotion.discount_type,
-    discount_value: promotion.discount_value.toString(),
+    discount_value: promotion.discount_value?.toString() || '',
     start_date: new Date(promotion.start_date).toISOString().slice(0, 16),
-    end_date: new Date(promotion.end_date).toISOString().slice(0, 16),
+    end_date: promotion.end_date ? new Date(promotion.end_date).toISOString().slice(0, 16) : '',
     min_usage_count: promotion.min_usage_count.toString(),
     max_usage_count: promotion.max_usage_count?.toString() || '',
-    applicable_membership_types: promotion.applicable_membership_types || [],
     is_active: promotion.is_active,
     terms_conditions: promotion.terms_conditions || '',
   })
+  const [isAllMembers, setIsAllMembers] = useState(true)
+  const [selectedTiers, setSelectedTiers] = useState<string[]>([])
+  const [selectedCodes, setSelectedCodes] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
+
+  // Initialize from promotion's applicable_to
+  useEffect(() => {
+    const applicable_to = promotion.applicable_to || ['all']
+    
+    if (applicable_to.includes('all')) {
+      setIsAllMembers(true)
+      setSelectedTiers([])
+      setSelectedCodes([])
+    } else {
+      setIsAllMembers(false)
+      
+      // Extract tiers
+      const tiers = applicable_to
+        .filter(item => item.startsWith('tier:'))
+        .map(item => item.replace('tier:', ''))
+      setSelectedTiers(tiers)
+      
+      // Extract codes - need to match by code name after fetching
+      const codeNames = applicable_to
+        .filter(item => item.startsWith('code:'))
+        .map(item => item.replace('code:', ''))
+      
+      // Will set selectedCodes after codes are fetched
+      if (codeNames.length > 0) {
+        supabase
+          .from('codes')
+          .select('id, code')
+          .in('code', codeNames)
+          .then(({ data }) => {
+            if (data) {
+              setSelectedCodes(data.map(c => c.id))
+            }
+          })
+      }
+    }
+  }, [promotion])
+
+  useEffect(() => {
+    async function fetchCodes() {
+      const { data } = await supabase
+        .from('codes')
+        .select('id, code, description')
+        .eq('is_active', true)
+        .order('code')
+      if (data) setCodes(data)
+    }
+    fetchCodes()
+  }, [])
+
+  const toggleTier = (tier: string) => {
+    setSelectedTiers(prev => 
+      prev.includes(tier) ? prev.filter(t => t !== tier) : [...prev, tier]
+    )
+  }
+
+  const toggleCode = (codeId: string) => {
+    setSelectedCodes(prev => 
+      prev.includes(codeId) ? prev.filter(c => c !== codeId) : [...prev, codeId]
+    )
+  }
 
   const handleSave = async () => {
     setSaving(true)
     try {
+      // Build applicable_to array
+      let applicable_to: string[] = ['all']
+      
+      if (!isAllMembers) {
+        applicable_to = [
+          ...selectedTiers.map(tier => `tier:${tier}`),
+          ...selectedCodes.map(codeId => {
+            const code = codes.find(c => c.id === codeId)
+            return `code:${code?.code}`
+          }).filter(Boolean)
+        ]
+        
+        if (applicable_to.length === 0) {
+          applicable_to = ['all']
+        }
+      }
+
       const response = await fetch(`/api/promotions/${promotion.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...formData,
-          discount_value: parseFloat(formData.discount_value),
+          title: formData.title,
+          description: formData.description || null,
+          discount_type: formData.discount_type,
+          discount_value: formData.discount_type === 'perk' ? null : parseFloat(formData.discount_value),
+          start_date: new Date(formData.start_date).toISOString(),
+          end_date: formData.end_date ? new Date(formData.end_date).toISOString() : null,
           min_usage_count: parseInt(formData.min_usage_count),
           max_usage_count: formData.max_usage_count ? parseInt(formData.max_usage_count) : null,
+          applicable_to,
+          is_active: formData.is_active,
+          terms_conditions: formData.terms_conditions || null,
         }),
       })
 
-      if (!response.ok) throw new Error('Error al guardar')
+      if (!response.ok) throw new Error('Error saving benefit')
 
       onUpdate()
       onClose()
     } catch (error: any) {
-      alert('Error al guardar: ' + error.message)
+      alert('Error saving: ' + error.message)
     } finally {
       setSaving(false)
     }
   }
 
   const handleDelete = async () => {
-    if (!confirm('¿Estás seguro de eliminar esta promoción?')) return
+    if (!confirm('Are you sure you want to delete this benefit?')) return
 
     setDeleting(true)
     try {
@@ -71,29 +162,14 @@ export default function EditPromotionModal({
         method: 'DELETE',
       })
 
-      if (!response.ok) throw new Error('Error al eliminar')
+      if (!response.ok) throw new Error('Error deleting benefit')
 
       onUpdate()
       onClose()
     } catch (error: any) {
-      alert('Error al eliminar: ' + error.message)
+      alert('Error deleting: ' + error.message)
     } finally {
       setDeleting(false)
-    }
-  }
-
-  const toggleMembershipType = (type: string) => {
-    const current = formData.applicable_membership_types
-    if (current.includes(type)) {
-      setFormData({
-        ...formData,
-        applicable_membership_types: current.filter(t => t !== type)
-      })
-    } else {
-      setFormData({
-        ...formData,
-        applicable_membership_types: [...current, type]
-      })
     }
   }
 
@@ -108,7 +184,7 @@ export default function EditPromotionModal({
       >
         {/* Header */}
         <div className="sticky top-0 bg-neutral-800 border-b border-neutral-700 px-6 py-4 flex items-center justify-between z-10">
-          <h2 className="text-2xl font-bold text-white">Editar Promoción</h2>
+          <h2 className="text-2xl font-bold text-white">Edit Benefit</h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-neutral-700 rounded-lg transition"
@@ -122,7 +198,7 @@ export default function EditPromotionModal({
           {/* Title */}
           <div>
             <label className="block text-sm font-medium text-neutral-300 mb-2">
-              Título
+              Title *
             </label>
             <input
               type="text"
@@ -135,7 +211,7 @@ export default function EditPromotionModal({
           {/* Description */}
           <div>
             <label className="block text-sm font-medium text-neutral-300 mb-2">
-              Descripción
+              Description
             </label>
             <textarea
               value={formData.description}
@@ -149,55 +225,54 @@ export default function EditPromotionModal({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-neutral-300 mb-2">
-                Tipo de Descuento
+                Discount Type *
               </label>
               <select
                 value={formData.discount_type}
                 onChange={(e) => setFormData({ ...formData, discount_type: e.target.value as any })}
                 className="w-full px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
-                <option value="percentage">Porcentaje</option>
-                <option value="fixed">Monto Fijo</option>
-                <option value="points">Puntos</option>
+                <option value="percentage">Percentage (%)</option>
+                <option value="fixed">Fixed Amount ($)</option>
+                <option value="points">Points</option>
+                <option value="perk">Perk (Non-monetary benefit)</option>
               </select>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-neutral-300 mb-2">
-                Valor
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.discount_value}
-                onChange={(e) => setFormData({ ...formData, discount_value: e.target.value })}
-                className="w-full px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              />
-            </div>
+            {formData.discount_type !== 'perk' && (
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  {formData.discount_type === 'percentage' ? 'Percentage' : formData.discount_type === 'points' ? 'Points' : 'Amount'} *
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.discount_value}
+                  onChange={(e) => setFormData({ ...formData, discount_value: e.target.value })}
+                  className="w-full px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                />
+              </div>
+            )}
           </div>
 
           {/* Dates */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-neutral-300 mb-2">
-                Fecha de Inicio
-              </label>
-              <input
-                type="datetime-local"
+              <DatePicker
+                label="Start Date"
                 value={formData.start_date}
-                onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                className="w-full px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                onChange={(value) => setFormData({ ...formData, start_date: value })}
+                required
+                type="datetime"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-300 mb-2">
-                Fecha de Fin
-              </label>
-              <input
-                type="datetime-local"
+              <DatePicker
+                label="End Date"
                 value={formData.end_date}
-                onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                className="w-full px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                onChange={(value) => setFormData({ ...formData, end_date: value })}
+                type="datetime"
               />
+              <p className="text-xs text-neutral-500 mt-1">Leave empty for no expiration</p>
             </div>
           </div>
 
@@ -205,7 +280,7 @@ export default function EditPromotionModal({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-neutral-300 mb-2">
-                Usos Mínimos
+                Minimum Usage Required
               </label>
               <input
                 type="number"
@@ -216,48 +291,34 @@ export default function EditPromotionModal({
             </div>
             <div>
               <label className="block text-sm font-medium text-neutral-300 mb-2">
-                Usos Máximos (opcional)
+                Maximum Usage Allowed (optional)
               </label>
               <input
                 type="number"
                 value={formData.max_usage_count}
                 onChange={(e) => setFormData({ ...formData, max_usage_count: e.target.value })}
-                placeholder="Sin límite"
+                placeholder="Unlimited"
                 className="w-full px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               />
             </div>
           </div>
 
-          {/* Membership Types */}
-          <div>
-            <label className="block text-sm font-medium text-neutral-300 mb-2">
-              Tipos de Membresía Aplicables
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {membershipTypes.map((type) => (
-                <button
-                  key={type.id}
-                  type="button"
-                  onClick={() => toggleMembershipType(type.name)}
-                  className={`px-3 py-1 rounded-full text-sm font-medium transition ${
-                    formData.applicable_membership_types.includes(type.name)
-                      ? 'bg-orange-500 text-white'
-                      : 'bg-neutral-700 text-neutral-300 hover:bg-neutral-600'
-                  }`}
-                >
-                  {type.name}
-                </button>
-              ))}
-            </div>
-            <p className="text-xs text-neutral-500 mt-2">
-              Si no seleccionas ninguno, aplica para todos
-            </p>
-          </div>
+          {/* APPLICABILITY SECTION */}
+          <ApplicabilitySection
+            membershipTypes={membershipTypes}
+            codes={codes}
+            selectedTiers={selectedTiers}
+            selectedCodes={selectedCodes}
+            isAllMembers={isAllMembers}
+            onToggleAll={setIsAllMembers}
+            onToggleTier={toggleTier}
+            onToggleCode={toggleCode}
+          />
 
           {/* Active Toggle */}
           <div className="flex items-center justify-between">
             <label className="text-sm font-medium text-neutral-300">
-              Promoción Activa
+              Benefit Active
             </label>
             <button
               type="button"
@@ -277,13 +338,13 @@ export default function EditPromotionModal({
           {/* Terms */}
           <div>
             <label className="block text-sm font-medium text-neutral-300 mb-2">
-              Términos y Condiciones
+              Terms & Conditions
             </label>
             <textarea
               value={formData.terms_conditions}
               onChange={(e) => setFormData({ ...formData, terms_conditions: e.target.value })}
               rows={3}
-              placeholder="Opcional..."
+              placeholder="Optional..."
               className="w-full px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
             />
           </div>
@@ -299,12 +360,12 @@ export default function EditPromotionModal({
             {deleting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Eliminando...
+                Deleting...
               </>
             ) : (
               <>
                 <Trash2 className="w-4 h-4" />
-                Eliminar
+                Delete
               </>
             )}
           </button>
@@ -313,7 +374,7 @@ export default function EditPromotionModal({
               onClick={onClose}
               className="px-4 py-2 bg-neutral-700 text-neutral-200 rounded-lg hover:bg-neutral-600 transition"
             >
-              Cancelar
+              Cancel
             </button>
             <button
               onClick={handleSave}
@@ -323,12 +384,12 @@ export default function EditPromotionModal({
               {saving ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Guardando...
+                  Saving...
                 </>
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  Guardar
+                  Save
                 </>
               )}
             </button>

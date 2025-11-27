@@ -38,6 +38,21 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
 
       if (error) throw error
 
+      // Notify wallet to update if relevant fields changed
+      if (
+        formData.membership_type !== member.membership_type ||
+        formData.full_name !== member.full_name ||
+        formData.points !== member.points ||
+        formData.status !== member.status
+      ) {
+        // Fire and forget - don't wait for wallet update
+        fetch('/api/wallet/update-member', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ member_id: member.id }),
+        }).catch(console.error)
+      }
+
       onUpdate()
       onClose()
     } catch (error: any) {
@@ -132,7 +147,7 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
         {/* Header */}
         <div className="sticky top-0 bg-neutral-800 border-b border-neutral-700 px-6 py-4 flex items-center justify-between z-10">
           <div>
-            <h2 className="text-2xl font-bold text-white">Detalles del Miembro</h2>
+            <h2 className="text-2xl font-bold text-white">Member Details</h2>
             <p className="text-sm text-neutral-400 mt-1">#{member.member_number}</p>
           </div>
           <button
@@ -145,12 +160,12 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
 
         {/* Content */}
         <div className="p-6 space-y-6">
-          <EditableField label="Nombre Completo" field="full_name" icon={Award} />
+          <EditableField label="Full Name" field="full_name" icon={Award} />
           <EditableField label="Email" field="email" icon={Mail} type="email" />
-          <EditableField label="Teléfono" field="phone" icon={Phone} type="tel" />
+          <EditableField label="Phone" field="phone" icon={Phone} type="tel" />
           
           <EditableField 
-            label="Tipo de Membresía" 
+            label="Membership Type" 
             field="membership_type" 
             icon={CreditCard}
             options={membershipTypes.map(t => ({ value: t.name, label: t.name }))}
@@ -160,7 +175,7 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
           <div>
             <div className="flex items-center gap-3 mb-3">
               <TrendingUp className="w-4 h-4 text-brand-400" />
-              <span className="text-xs text-neutral-500 uppercase tracking-wide">Estado</span>
+              <span className="text-xs text-neutral-500 uppercase tracking-wide">Status</span>
             </div>
             <button
               onClick={() => setFormData({ 
@@ -180,21 +195,21 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
             <span className={`ml-3 text-lg font-medium ${
               formData.status === 'active' ? 'text-green-400' : 'text-neutral-400'
             }`}>
-              {formData.status === 'active' ? 'Activo' : 'Inactivo'}
+              {formData.status === 'active' ? 'Active' : 'Inactive'}
             </span>
           </div>
 
-          <EditableField label="Puntos" field="points" icon={Award} type="number" />
+          <EditableField label="Points" field="points" icon={Award} type="number" />
 
           {/* Read-only info */}
           <div className="pt-4 border-t border-neutral-700 space-y-4">
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <Calendar className="w-4 h-4 text-brand-400" />
-                <span className="text-xs text-neutral-500 uppercase tracking-wide">Fecha de Registro</span>
+                <span className="text-xs text-neutral-500 uppercase tracking-wide">Registration Date</span>
               </div>
               <div className="text-lg text-neutral-300 px-3">
-                {new Date(member.joined_date).toLocaleDateString('es-ES', { 
+                {new Date(member.joined_date).toLocaleDateString('en-US', { 
                   year: 'numeric', 
                   month: 'long', 
                   day: 'numeric' 
@@ -206,10 +221,10 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
               <div>
                 <div className="flex items-center gap-3 mb-2">
                   <Calendar className="w-4 h-4 text-brand-400" />
-                  <span className="text-xs text-neutral-500 uppercase tracking-wide">Fecha de Expiración</span>
+                  <span className="text-xs text-neutral-500 uppercase tracking-wide">Expiry Date</span>
                 </div>
                 <div className="text-lg text-neutral-300 px-3">
-                  {new Date(member.expiry_date).toLocaleDateString('es-ES', { 
+                  {new Date(member.expiry_date).toLocaleDateString('en-US', { 
                     year: 'numeric', 
                     month: 'long', 
                     day: 'numeric' 
@@ -222,13 +237,13 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
 
         {/* Footer */}
         <div className="sticky bottom-0 bg-neutral-800 border-t border-neutral-700 px-6 py-4 flex items-center justify-between">
-          <p className="text-sm text-neutral-400">Click en cualquier campo para editar</p>
+          <p className="text-sm text-neutral-400">Click any field to edit</p>
           <div className="flex gap-3">
             <button
               onClick={onClose}
               className="px-4 py-2 bg-neutral-700 text-neutral-200 rounded-lg hover:bg-neutral-600 transition"
             >
-              Cancelar
+              Cancel
             </button>
             <button
               onClick={handleSave}
@@ -236,7 +251,7 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
               className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition disabled:opacity-50 flex items-center gap-2"
             >
               <Save className="w-4 h-4" />
-              {saving ? 'Guardando...' : 'Guardar Cambios'}
+              {saving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </div>

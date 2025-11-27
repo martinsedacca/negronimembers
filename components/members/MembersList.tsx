@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, Mail, Phone, Calendar, Award, Smartphone, CheckCircle2, XCircle } from 'lucide-react'
+import { Mail, Phone, Calendar, Award, Smartphone, CheckCircle2, XCircle } from 'lucide-react'
 import type { Database } from '@/lib/types/database'
 import MemberDetailModal from './MemberDetailModalNew'
+import SearchBar from '@/components/ui/SearchBar'
 
 type Member = Database['public']['Tables']['members']['Row'] & {
   total_visits?: number
@@ -35,10 +36,12 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
   const [refreshKey, setRefreshKey] = useState(0)
 
   const filteredMembers = members.filter((member) => {
+    const searchLower = searchTerm.toLowerCase()
     const matchesSearch =
-      member.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.member_number.toLowerCase().includes(searchTerm.toLowerCase())
+      (member.full_name || '').toLowerCase().includes(searchLower) ||
+      (member.email || '').toLowerCase().includes(searchLower) ||
+      (member.phone || '').toLowerCase().includes(searchLower) ||
+      (member.member_number || '').toLowerCase().includes(searchLower)
 
     const matchesStatus = statusFilter === 'all' || member.status === statusFilter
     const matchesType = typeFilter === 'all' || member.membership_type === typeFilter
@@ -56,30 +59,26 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
       {/* Filters */}
       <div className="p-6 border-b border-neutral-700">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Buscar miembros..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+          <SearchBar
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder="Search members..."
+          />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 bg-neutral-700 border border-neutral-600 text-white rounded-md focus:ring-orange-500 focus:border-orange-500"
+            className="px-4 py-3 bg-neutral-700 border border-neutral-600 text-white rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
           >
-            <option value="all">Todos los estados</option>
-            <option value="active">Activo</option>
-            <option value="inactive">Inactivo</option>
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
           </select>
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="px-4 py-2 bg-neutral-700 border border-neutral-600 text-white rounded-md focus:ring-orange-500 focus:border-brand-500"
+            className="px-4 py-3 bg-neutral-700 border border-neutral-600 text-white rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
           >
-            <option value="all">Todos los tipos</option>
+            <option value="all">All Types</option>
             {membershipTypes.map((type) => (
               <option key={type.id} value={type.name}>
                 {type.name}
@@ -96,31 +95,31 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
             <thead className="bg-neutral-900">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
-                  Miembro
+                  Member
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
-                  Contacto
+                  Contact
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
-                  Tipo
+                  Type
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
-                  Estado
+                  Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
-                  Puntos
+                  Points
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
-                  Visitas
+                  Visits
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
-                  Gasto Total
+                  Total Spent
                 </th>
                 <th className="px-6 py-3 text-center text-xs font-medium text-neutral-400 uppercase tracking-wider">
-                  Tarjeta
+                  Card
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
-                  Fecha de Ingreso
+                  Join Date
                 </th>
               </tr>
             </thead>
@@ -135,15 +134,15 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10 bg-brand-100 rounded-full flex items-center justify-center">
                         <span className="text-brand-500 font-medium text-sm">
-                          {member.full_name.charAt(0).toUpperCase()}
+                          {(member.full_name || member.phone || '?').charAt(0).toUpperCase()}
                         </span>
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-white">
-                          {member.full_name}
+                          {member.full_name || member.phone || 'No name'}
                         </div>
                         <div className="text-sm text-neutral-400">
-                          #{member.member_number}
+                          #{member.member_number || 'N/A'}
                         </div>
                       </div>
                     </div>

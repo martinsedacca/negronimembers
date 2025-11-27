@@ -4,21 +4,26 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
-    const { member_number } = await request.json()
+    const { member_id, member_number } = await request.json()
 
-    if (!member_number) {
+    // Accept either member_id (UUID from QR) or member_number (legacy)
+    if (!member_id && !member_number) {
       return NextResponse.json(
-        { error: 'member_number is required' },
+        { error: 'member_id or member_number is required' },
         { status: 400 }
       )
     }
 
-    // Get member info
-    const { data: member, error: memberError } = await supabase
-      .from('members')
-      .select('*')
-      .eq('member_number', member_number)
-      .single()
+    // Get member info - prefer member_id (UUID) if provided
+    let query = supabase.from('members').select('*')
+    
+    if (member_id) {
+      query = query.eq('id', member_id)
+    } else {
+      query = query.eq('member_number', member_number)
+    }
+    
+    const { data: member, error: memberError } = await query.single()
 
     if (memberError || !member) {
       return NextResponse.json(

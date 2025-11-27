@@ -1,11 +1,14 @@
 /**
- * Webhook endpoint for automatic GHL sync when members are created/updated
+ * Webhook endpoint for automatic sync when members are created/updated
+ * - Syncs to GHL (GoHighLevel)
+ * - Notifies Apple Wallet to update the pass
  * This is called by Supabase trigger via Edge Function
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { GHLSyncService } from '@/lib/services/ghl-sync'
+import { sendWalletPushNotification } from '@/lib/services/wallet-push'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,6 +46,46 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient()
 
+    // === WALLET PASS UPDATE ===
+    // Notify Apple Wallet to update the pass if member data changed
+    try {
+      // Get wallet pass for this member
+      const { data: walletPass } = await supabase
+        .from('wallet_passes')
+        .select('id')
+        .eq('member_id', payload.record.id)
+        .eq('voided', false)
+        .maybeSingle()
+
+      if (walletPass) {
+        // Update the pass timestamp
+        await supabase
+          .from('wallet_passes')
+          .update({ updated_at: new Date().toISOString() })
+          .eq('id', walletPass.id)
+
+        // Get push tokens for this pass
+        const { data: tokens } = await supabase
+          .from('wallet_push_tokens')
+          .select('push_token')
+          .eq('pass_id', walletPass.id)
+          .eq('is_active', true)
+
+        if (tokens && tokens.length > 0) {
+          console.log(`📲 [Webhook] Notifying ${tokens.length} devices about member update`)
+          
+          // Send silent push to all devices
+          for (const token of tokens) {
+            await sendWalletPushNotification(token.push_token)
+          }
+        }
+      }
+    } catch (walletError) {
+      console.error('⚠️ [Webhook] Wallet notification error (non-blocking):', walletError)
+      // Don't fail the webhook if wallet notification fails
+    }
+
+    // === GHL SYNC ===
     // Fetch GHL configuration
     const { data: config } = await supabase
       .from('system_config')

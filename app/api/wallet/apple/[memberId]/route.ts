@@ -1,6 +1,14 @@
 import { createClient } from '@/lib/supabase/server';
 import { generateApplePass } from '@/lib/wallet/apple-wallet';
 import { NextResponse } from 'next/server';
+import { randomBytes } from 'crypto';
+
+const PASS_TYPE_IDENTIFIER = process.env.APPLE_WALLET_PASS_TYPE_ID || 'pass.com.negroni.membership';
+
+// Generate a secure authentication token for the pass
+function generateAuthToken(): string {
+  return randomBytes(32).toString('hex');
+}
 
 export async function GET(
   request: Request,
@@ -26,33 +34,44 @@ export async function GET(
       return NextResponse.json({ error: 'Member not found' }, { status: 404 });
     }
 
-    // Generate the pass
-    const passBuffer = await generateApplePass(member);
+    // Check if pass already exists
+    const { data: existingPass } = await supabase
+      .from('wallet_passes')
+      .select('id, authentication_token')
+      .eq('member_id', member.id)
+      .maybeSingle();
+
+    // Use existing token or generate new one
+    const authToken = existingPass?.authentication_token || generateAuthToken();
+
+    // Generate the pass with the auth token
+    const passBuffer = await generateApplePass(member, authToken);
 
     // Save pass info to database
     const { error: passError } = await supabase
       .from('wallet_passes')
       .upsert({
         member_id: member.id,
-        pass_type: 'apple',
-        pass_id: `apple_${member.member_number}`,
+        pass_type_identifier: PASS_TYPE_IDENTIFIER,
         serial_number: member.member_number,
-        pass_data: {
-          generated_at: new Date().toISOString(),
-          membership_type: member.membership_type,
-          points: member.points,
-        },
-        last_updated: new Date().toISOString(),
+        authentication_token: authToken,
+        voided: false,
+        updated_at: new Date().toISOString(),
       }, {
-        onConflict: 'pass_id',
+        onConflict: 'serial_number',
       });
 
     if (passError) {
       console.error('Error saving pass to database:', passError);
     }
 
+    console.log('✅ [Wallet] Pass generated for member:', member.full_name);
+
+    // Convert Buffer to Uint8Array for NextResponse
+    const uint8Array = new Uint8Array(passBuffer);
+
     // Return the pass file
-    return new NextResponse(passBuffer, {
+    return new NextResponse(uint8Array, {
       headers: {
         'Content-Type': 'application/vnd.apple.pkpass',
         'Content-Disposition': `attachment; filename="membership-${member.member_number}.pkpass"`,

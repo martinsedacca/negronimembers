@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Save, Loader2 } from 'lucide-react'
+import { X, Save, Loader2, MapPin } from 'lucide-react'
 import type { Database } from '@/lib/types/database'
+import DatePicker from '@/components/ui/DatePicker'
 
 type Branch = Database['public']['Tables']['branches']['Row']
 
@@ -39,7 +40,7 @@ export default function EventFormModal({ branches, onClose, onSuccess }: EventFo
         }),
       })
 
-      if (!response.ok) throw new Error('Error al crear evento')
+      if (!response.ok) throw new Error('Error creating event')
 
       onSuccess()
     } catch (error: any) {
@@ -53,7 +54,7 @@ export default function EventFormModal({ branches, onClose, onSuccess }: EventFo
     <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className="bg-neutral-800 border border-neutral-700 rounded-xl max-w-lg w-full p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-white">Nuevo Evento</h2>
+          <h2 className="text-xl font-bold text-white">New Event</h2>
           <button onClick={onClose} className="p-2 hover:bg-neutral-700 rounded-lg">
             <X className="w-5 h-5 text-neutral-400" />
           </button>
@@ -65,36 +66,56 @@ export default function EventFormModal({ branches, onClose, onSuccess }: EventFo
             required
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            placeholder="Nombre del evento"
+            placeholder="Event name"
             className="w-full px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
           />
           <textarea
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            placeholder="Descripción"
+            placeholder="Description"
             rows={3}
             className="w-full px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg resize-none"
           />
-          <input
-            type="datetime-local"
-            required
+          <DatePicker
+            label="Event Date & Time"
             value={formData.event_date}
-            onChange={(e) => setFormData({ ...formData, event_date: e.target.value })}
-            className="w-full px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
+            onChange={(value) => setFormData({ ...formData, event_date: value })}
+            required
+            type="datetime"
           />
-          <input
-            type="text"
-            value={formData.location}
-            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-            placeholder="Ubicación"
-            className="w-full px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
-          />
+          <div>
+            <label className="block text-sm font-medium text-neutral-300 mb-2">
+              Location (Branch)
+            </label>
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
+              <select
+                value={formData.branch_id}
+                onChange={(e) => {
+                  const branch = branches.find(b => b.id === e.target.value)
+                  setFormData({ 
+                    ...formData, 
+                    branch_id: e.target.value,
+                    location: branch ? branch.name : ''
+                  })
+                }}
+                className="w-full pl-10 pr-4 py-3 bg-neutral-700 text-white border border-neutral-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              >
+                <option value="">All Locations</option>
+                {branches.map((branch) => (
+                  <option key={branch.id} value={branch.id}>
+                    {branch.name} - {branch.address}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose} className="flex-1 px-4 py-2 bg-neutral-700 text-white rounded-lg">
-              Cancelar
+              Cancel
             </button>
             <button type="submit" disabled={saving} className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg disabled:opacity-50 flex items-center justify-center gap-2">
-              {saving ? <><Loader2 className="w-4 h-4 animate-spin" />Creando...</> : <><Save className="w-4 h-4" />Crear</>}
+              {saving ? <><Loader2 className="w-4 h-4 animate-spin" />Creating...</> : <><Save className="w-4 h-4" />Create</>}
             </button>
           </div>
         </form>

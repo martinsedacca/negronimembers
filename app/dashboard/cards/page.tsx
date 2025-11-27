@@ -23,15 +23,15 @@ export default async function CardsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Tarjetas Digitales</h1>
+          <h1 className="text-3xl font-bold text-white">Digital Cards</h1>
           <p className="mt-2 text-neutral-400">
-            Gestiona y genera tarjetas para Apple Wallet y Google Wallet
+            Manage and generate cards for Apple Wallet and Google Wallet
           </p>
         </div>
         <div className="flex items-center gap-2 px-4 py-2 bg-brand-900/20 border border-brand-600 rounded-lg">
           <Wallet className="w-5 h-5 text-brand-400" />
           <span className="text-sm text-brand-300 font-medium">
-            {members?.length || 0} miembros activos
+            {members?.length || 0} active members
           </span>
         </div>
       </div>
@@ -44,58 +44,58 @@ export default async function CardsPage() {
           </div>
           <div className="flex-1">
             <h3 className="text-lg font-semibold text-white mb-2">
-              Generación de Tarjetas Digitales
+              Digital Card Generation
             </h3>
             <p className="text-neutral-300 mb-4">
-              Desde aquí podrás generar tarjetas digitales para Apple Wallet y Google Wallet 
-              para cada miembro activo. Las tarjetas incluirán:
+              From here you can generate digital cards for Apple Wallet and Google Wallet 
+              for each active member. Cards will include:
             </p>
             <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-neutral-400 mb-4">
               <li className="flex items-center">
                 <span className="w-2 h-2 bg-brand-400 rounded-full mr-2"></span>
-                Información del miembro
+                Member information
               </li>
               <li className="flex items-center">
                 <span className="w-2 h-2 bg-brand-400 rounded-full mr-2"></span>
-                Número de membresía único
+                Unique membership number
               </li>
               <li className="flex items-center">
                 <span className="w-2 h-2 bg-brand-400 rounded-full mr-2"></span>
-                Código QR para validación
+                QR code for validation
               </li>
               <li className="flex items-center">
                 <span className="w-2 h-2 bg-brand-400 rounded-full mr-2"></span>
-                Puntos acumulados
+                Accumulated points
               </li>
               <li className="flex items-center">
                 <span className="w-2 h-2 bg-brand-400 rounded-full mr-2"></span>
-                Tipo de membresía
+                Membership type
               </li>
               <li className="flex items-center">
                 <span className="w-2 h-2 bg-brand-400 rounded-full mr-2"></span>
-                Actualizaciones en tiempo real
+                Real-time updates
               </li>
             </ul>
             <div className="bg-neutral-800 rounded-lg p-4 border border-neutral-700">
               <p className="text-sm text-neutral-300 mb-2">
-                <span className="font-semibold">📱 Estado de Integración:</span>
+                <span className="font-semibold">📱 Integration Status:</span>
               </p>
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-neutral-400">Apple Wallet</span>
                   <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-medium">
-                    Pendiente
+                    Pending
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-neutral-400">Google Wallet</span>
                   <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-medium">
-                    Pendiente
+                    Pending
                   </span>
                 </div>
               </div>
               <p className="text-xs text-neutral-400 mt-3">
-                Para implementar la generación de tarjetas, consulta la guía en{' '}
+                To implement card generation, check the guide at{' '}
                 <code className="bg-neutral-700 px-1 py-0.5 rounded">WALLET_INTEGRATION.md</code>
               </p>
             </div>

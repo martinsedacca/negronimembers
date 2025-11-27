@@ -22,10 +22,10 @@ export default async function EventsPage() {
         <div>
           <h1 className="text-3xl font-bold text-white flex items-center gap-3">
             <Calendar className="w-8 h-8 text-orange-500" />
-            Eventos
+            Events
           </h1>
           <p className="mt-2 text-neutral-400">
-            Gestiona eventos e invitaciones a miembros
+            Manage events and member invitations
           </p>
         </div>
       </div>
