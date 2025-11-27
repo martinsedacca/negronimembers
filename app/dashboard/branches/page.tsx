@@ -22,9 +22,9 @@ export default async function BranchesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Branches</h1>
+          <h1 className="text-3xl font-bold text-white">Locations</h1>
           <p className="mt-2 text-neutral-400">
-            Manage branches and view their statistics
+            Manage locations and view their statistics
           </p>
         </div>
       </div>

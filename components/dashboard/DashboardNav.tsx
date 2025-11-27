@@ -80,7 +80,7 @@ export default function DashboardNav({ user }: DashboardNavProps) {
     {
       title: 'LOCATIONS',
       items: [
-        { name: 'Branches', href: '/dashboard/branches', icon: Building2 },
+        { name: 'Locations', href: '/dashboard/branches', icon: Building2 },
       ]
     },
     {

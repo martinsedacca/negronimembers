@@ -63,7 +63,7 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
         {/* Header */}
         <div className="px-6 py-4 border-b border-neutral-700 flex items-center justify-between">
           <h2 className="text-xl font-bold text-white">
-            {branch ? 'Edit Branch' : 'New Branch'}
+            {branch ? 'Edit Location' : 'New Location'}
           </h2>
           <button
             onClick={onClose}
@@ -157,7 +157,7 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
 
           <div className="flex items-center justify-between">
             <label className="text-sm font-medium text-neutral-300">
-              Active Branch
+              Active Location
             </label>
             <button
               type="button"

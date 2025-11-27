@@ -19,7 +19,7 @@ export default function BranchesList({ branches }: BranchesListProps) {
   const [showNewForm, setShowNewForm] = useState(false)
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Delete branch "${name}"?`)) return
+    if (!confirm(`Delete location "${name}"?`)) return
 
     try {
       const response = await fetch(`/api/branches/${id}`, {
@@ -39,13 +39,13 @@ export default function BranchesList({ branches }: BranchesListProps) {
 
   return (
     <div className="space-y-6">
-      {/* New Branch Button */}
+      {/* New Location Button */}
       <button
         onClick={() => setShowNewForm(true)}
         className="inline-flex items-center px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
       >
         <Plus className="w-5 h-5 mr-2" />
-        New Branch
+        New Location
       </button>
 
       {/* Branches Grid */}
@@ -140,14 +140,14 @@ export default function BranchesList({ branches }: BranchesListProps) {
       {branches.length === 0 && (
         <div className="text-center py-12 bg-neutral-800 border border-neutral-700 rounded-lg">
           <Building2 className="w-16 h-16 text-neutral-600 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-white mb-2">No branches yet</h3>
-          <p className="text-neutral-400 mb-4">Create your first branch to get started</p>
+          <h3 className="text-lg font-medium text-white mb-2">No locations yet</h3>
+          <p className="text-neutral-400 mb-4">Create your first location to get started</p>
           <button
             onClick={() => setShowNewForm(true)}
             className="inline-flex items-center px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
           >
             <Plus className="w-5 h-5 mr-2" />
-            New Branch
+            New Location
           </button>
         </div>
       )}
