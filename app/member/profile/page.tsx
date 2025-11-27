@@ -8,6 +8,7 @@ import {
   Bell, FileText, Trash2, ExternalLink
 } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useMember, useRequireAuth } from '../context/MemberContext'
 import { createClient } from '@/lib/supabase/client'
@@ -261,22 +262,36 @@ export default function ProfilePage() {
   )
 
   return (
-    <div className="min-h-screen pb-24">
-      {/* Header */}
-      <div className="px-6 pt-8 pb-6">
-        <button 
-          onClick={() => router.back()}
-          className="flex items-center gap-2 text-neutral-400 hover:text-white transition mb-4"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          Back
-        </button>
-        <h1 className="text-2xl font-bold text-white">Profile</h1>
-        <p className="text-neutral-400 text-sm mt-1">Manage your account</p>
+    <div className="min-h-screen pb-24 relative overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0">
+        <Image 
+          src="/images/brand/exterior-night.jpg" 
+          alt="" 
+          fill
+          className="object-cover opacity-40"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-neutral-950/30 via-neutral-950/70 to-neutral-950" />
       </div>
 
-      {/* Profile Fields */}
-      <div className="px-6 space-y-3">
+      {/* Content */}
+      <div className="relative z-10">
+        {/* Header */}
+        <div className="px-6 pt-8 pb-6">
+          <button 
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-neutral-400 hover:text-white transition mb-4"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back
+          </button>
+          <h1 className="text-2xl font-bold text-white">Profile</h1>
+          <p className="text-neutral-400 text-sm mt-1">Manage your account</p>
+        </div>
+
+        {/* Profile Fields */}
+        <div className="px-6 space-y-3">
         <ProfileField
           icon={User}
           label="Full Name"
@@ -396,6 +411,7 @@ export default function ProfilePage() {
           <Trash2 className="w-5 h-5" />
           Delete Account
         </button>
+      </div>
       </div>
 
       {/* Delete Account Modal */}

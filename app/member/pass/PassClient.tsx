@@ -126,7 +126,7 @@ export default function PassClient({ member }: PassClientProps) {
         <div className="px-6 pt-8 pb-4">
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
             <p className="text-orange-500 text-sm font-medium mb-1">Welcome back,</p>
-            <h1 className="text-2xl font-bold text-white">{member.first_name}</h1>
+            <h1 className="text-2xl font-bold text-white">{member.first_name || member.full_name?.split(' ')[0] || 'Member'}</h1>
           </motion.div>
         </div>
 

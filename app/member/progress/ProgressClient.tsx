@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Crown, Sparkles, Tag, TrendingUp, Award, Star } from 'lucide-react'
+import Image from 'next/image'
 
 interface MembershipType {
   id: string
@@ -101,17 +102,31 @@ export default function ProgressClient({ member, transactionCount, memberCodes, 
   const progressOffset = circumference - (mainProgress / 100) * circumference
 
   return (
-    <div className="min-h-screen pb-6">
-      {/* Header */}
-      <div className="px-6 pt-8 pb-4">
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-2xl font-bold text-white">Your Progress</h1>
-          <p className="text-neutral-400 text-sm">Track your membership journey</p>
-        </motion.div>
+    <div className="min-h-screen pb-6 relative overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0">
+        <Image 
+          src="/images/brand/bar-golden.jpg" 
+          alt="" 
+          fill
+          className="object-cover opacity-40"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-neutral-950/30 via-neutral-950/70 to-neutral-950" />
       </div>
 
-      {/* Progress Circle */}
-      <div className="px-6 mb-6">
+      {/* Content */}
+      <div className="relative z-10">
+        {/* Header */}
+        <div className="px-6 pt-8 pb-4">
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
+            <h1 className="text-2xl font-bold text-white">Your Progress</h1>
+            <p className="text-neutral-400 text-sm">Track your membership journey</p>
+          </motion.div>
+        </div>
+
+        {/* Progress Circle */}
+        <div className="px-6 mb-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -357,6 +372,7 @@ export default function ProgressClient({ member, transactionCount, memberCodes, 
             </div>
           </div>
         </motion.div>
+      </div>
 
       </div>
     </div>
