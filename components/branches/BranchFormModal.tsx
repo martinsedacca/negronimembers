@@ -13,7 +13,7 @@ declare global {
 
 type Branch = Database['public']['Tables']['branches']['Row']
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyA_vtm2whFJ9CmMvicXhsCep7YGuPTlEgY'
+const GOOGLE_MAPS_API_KEY = 'AIzaSyBHC1vXgdOFGW4_ULtrWgft5ksBSaI28_E'
 
 interface BranchFormModalProps {
   branch?: Branch
