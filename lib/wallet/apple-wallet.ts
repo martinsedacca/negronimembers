@@ -76,8 +76,12 @@ export async function generateApplePass(member: Member, authToken?: string): Pro
             console.log('🔗 [Wallet] Adding to pass.json - webServiceURL:', wsUrl);
           }
           
-          fs.writeFileSync(destPath, JSON.stringify(passTemplate, null, 2));
+          const passJsonContent = JSON.stringify(passTemplate, null, 2);
+          fs.writeFileSync(destPath, passJsonContent);
           console.log('📄 [Wallet] pass.json saved to:', destPath);
+          console.log('📄 [Wallet] pass.json content keys:', Object.keys(passTemplate));
+          console.log('📄 [Wallet] webServiceURL in saved file:', passTemplate.webServiceURL);
+          console.log('📄 [Wallet] authenticationToken in saved file:', passTemplate.authenticationToken ? 'YES' : 'NO');
         } else {
           // Copy other files as-is
           fs.copyFileSync(srcPath, destPath);
@@ -93,6 +97,12 @@ export async function generateApplePass(member: Member, authToken?: string): Pro
           signerKey,
         },
       });
+
+      // Log the pass props to verify webServiceURL was loaded
+      const passProps = pass.props;
+      console.log('🎫 [Wallet] PKPass props keys:', Object.keys(passProps));
+      console.log('🎫 [Wallet] PKPass webServiceURL:', passProps.webServiceURL);
+      console.log('🎫 [Wallet] PKPass authenticationToken:', passProps.authenticationToken ? 'YES' : 'NO');
 
       // Set pass type
       pass.type = 'storeCard';
