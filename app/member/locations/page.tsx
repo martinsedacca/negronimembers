@@ -74,7 +74,7 @@ export default function LocationsPage() {
     setLocationError(null)
     
     if (!navigator.geolocation) {
-      setLocationError('Geolocation is not supported')
+      setLocationError('Geolocation is not supported by your browser')
       setLocationLoading(false)
       return
     }
@@ -86,12 +86,25 @@ export default function LocationsPage() {
           lng: position.coords.longitude
         })
         setLocationLoading(false)
+        setLocationError(null)
       },
       (error) => {
-        setLocationError('Unable to get your location')
+        let errorMessage = 'Unable to get your location'
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'Location access denied. Please enable in browser settings.'
+            break
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'Location unavailable. Try again.'
+            break
+          case error.TIMEOUT:
+            errorMessage = 'Location request timed out. Try again.'
+            break
+        }
+        setLocationError(errorMessage)
         setLocationLoading(false)
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
     )
   }
 
@@ -179,6 +192,12 @@ export default function LocationsPage() {
           <div className="mt-2 flex items-center gap-2 text-green-400 text-sm">
             <Locate className="w-4 h-4" />
             Location enabled - showing distances
+          </div>
+        )}
+        
+        {locationError && (
+          <div className="mt-3 p-3 bg-red-500/20 border border-red-500/30 rounded-xl text-sm text-red-300">
+            {locationError}
           </div>
         )}
 

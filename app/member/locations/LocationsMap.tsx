@@ -1,9 +1,17 @@
 'use client'
 
 import { useEffect } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, useMap, CircleMarker } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+
+// Fix Leaflet default icon issue
+delete (L.Icon.Default.prototype as any)._getIconUrl
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+})
 
 interface Location {
   id: string
@@ -22,56 +30,28 @@ interface LocationsMapProps {
   onSelectLocation: (location: Location) => void
 }
 
-// Custom marker icon - simple and clean
-const createIcon = (isSelected: boolean, distance?: number) => {
-  const size = isSelected ? 32 : 28
-  const distanceText = distance !== undefined ? `${distance.toFixed(1)}mi` : ''
-  
-  return L.divIcon({
-    className: 'custom-leaflet-marker',
-    html: `<div style="
-      width: ${size}px;
-      height: ${size}px;
-      background: ${isSelected ? '#f97316' : '#1f1f1f'};
-      border: 2px solid ${isSelected ? '#fff' : '#f97316'};
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-    ">📍</div>
-    ${distanceText ? `<div style="
-      position: absolute;
-      top: -18px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #f97316;
-      color: white;
-      font-size: 9px;
-      font-weight: bold;
-      padding: 1px 5px;
-      border-radius: 6px;
-      white-space: nowrap;
-    ">${distanceText}</div>` : ''}`,
-    iconSize: [size, size],
-    iconAnchor: [size/2, size/2],
+// Create custom icon using standard Leaflet icon
+const createIcon = (isSelected: boolean) => {
+  return new L.Icon({
+    iconUrl: isSelected 
+      ? 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png'
+      : 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
   })
 }
 
-// User location icon (blue dot)
-const userLocationIcon = L.divIcon({
-  className: 'custom-leaflet-marker',
-  html: `<div style="
-    width: 14px;
-    height: 14px;
-    background: #3b82f6;
-    border: 2px solid white;
-    border-radius: 50%;
-    box-shadow: 0 0 0 4px rgba(59,130,246,0.3);
-  "></div>`,
-  iconSize: [14, 14],
-  iconAnchor: [7, 7],
+// User location icon (blue)
+const userIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
 })
 
 // Component to handle map updates
@@ -152,7 +132,7 @@ export default function LocationsMap({ locations, userLocation, selectedLocation
         {userLocation && (
           <Marker
             position={[userLocation.lat, userLocation.lng]}
-            icon={userLocationIcon}
+            icon={userIcon}
           >
             <Popup>
               <div className="text-neutral-900 font-medium">Your Location</div>
@@ -165,7 +145,7 @@ export default function LocationsMap({ locations, userLocation, selectedLocation
           <Marker
             key={location.id}
             position={[location.latitude!, location.longitude!]}
-            icon={createIcon(selectedLocation?.id === location.id, location.distance)}
+            icon={createIcon(selectedLocation?.id === location.id)}
             eventHandlers={{
               click: () => onSelectLocation(location)
             }}
