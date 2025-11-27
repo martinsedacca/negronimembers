@@ -4,14 +4,12 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { CreditCard, Gift, User, MapPin } from 'lucide-react'
-import { MemberProvider } from './context/MemberContext'
+import { MemberProvider, useMember } from './context/MemberContext'
+import { PushNotificationPrompt } from '@/components/member/PushNotificationPrompt'
 
-export default function MemberLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+function MemberLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const { member } = useMember()
 
   // No mostrar nav en auth y onboarding
   const showNav = !pathname.includes('/auth') && !pathname.includes('/onboarding')
@@ -24,16 +22,18 @@ export default function MemberLayout({
   ]
 
   return (
-    <MemberProvider>
-      <div className="h-screen bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950 flex flex-col overflow-hidden">
-        {/* Content */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden pb-20">
-          {children}
-        </main>
+    <div className="h-screen bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950 flex flex-col overflow-hidden">
+      {/* Content */}
+      <main className="flex-1 overflow-y-auto overflow-x-hidden pb-20">
+        {children}
+      </main>
 
-        {/* Bottom Navigation */}
-        {showNav && (
-          <motion.nav
+      {/* Push Notification Prompt */}
+      {showNav && <PushNotificationPrompt memberId={member?.id} />}
+
+      {/* Bottom Navigation */}
+      {showNav && (
+        <motion.nav
           initial={{ y: 100 }}
           animate={{ y: 0 }}
           className="fixed bottom-0 left-0 right-0 bg-neutral-900/95 backdrop-blur-lg border-t border-neutral-800 z-50"
@@ -79,9 +79,20 @@ export default function MemberLayout({
               })}
             </div>
           </div>
-          </motion.nav>
-        )}
-      </div>
+        </motion.nav>
+      )}
+    </div>
+  )
+}
+
+export default function MemberLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <MemberProvider>
+      <MemberLayoutContent>{children}</MemberLayoutContent>
     </MemberProvider>
   )
 }
