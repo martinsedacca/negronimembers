@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles, Tag, Gift, Percent, Star, HelpCircle, X, ChevronLeft, ChevronRight, Lock } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface MembershipType {
   id: string
@@ -99,10 +100,12 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
     <div className="min-h-screen pb-6 relative overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
-        <img 
+        <Image 
           src="/images/brand/lounge-red.jpg" 
           alt="" 
-          className="w-full h-full object-cover opacity-20"
+          fill
+          className="object-cover opacity-20"
+          priority
         />
         <div className="absolute inset-0 bg-gradient-to-b from-neutral-950/60 via-neutral-950/85 to-neutral-950" />
       </div>
