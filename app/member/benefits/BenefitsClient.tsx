@@ -38,30 +38,41 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
   }, [membershipTypes])
 
   // Find current member level index and calculate progress
-  const { currentLevelIndex, nextLevel, progress, toNext } = useMemo(() => {
+  const { currentLevelIndex, nextLevel, progress, toNext, metric } = useMemo(() => {
     const idx = sortedTypes.findIndex(t => t.name === member.membership_type)
     const currentIdx = idx >= 0 ? idx : 0
     const next = sortedTypes[currentIdx + 1] || null
     
     let prog = 100
     let remaining = 0
+    let metricType = 'visits'
     
     if (next) {
       const current = sortedTypes[currentIdx]
+      const currentVisits = transactionCount
+      const currentPoints = member.points || 0
+      
+      // Use visits if next level has visits requirement, otherwise use points
       if (next.visits_required > 0) {
-        const visitsInLevel = transactionCount - (current?.visits_required || 0)
-        const visitsNeeded = next.visits_required - (current?.visits_required || 0)
-        prog = visitsNeeded > 0 ? Math.min(100, Math.round((visitsInLevel / visitsNeeded) * 100)) : 100
-        remaining = Math.max(0, next.visits_required - transactionCount)
+        const baseVisits = current?.visits_required || 0
+        const targetVisits = next.visits_required
+        const progressVisits = currentVisits - baseVisits
+        const neededVisits = targetVisits - baseVisits
+        prog = neededVisits > 0 ? Math.min(100, Math.max(0, Math.round((progressVisits / neededVisits) * 100))) : 100
+        remaining = Math.max(0, targetVisits - currentVisits)
+        metricType = 'visits'
       } else if (next.points_required > 0) {
-        const pointsInLevel = (member.points || 0) - (current?.points_required || 0)
-        const pointsNeeded = next.points_required - (current?.points_required || 0)
-        prog = pointsNeeded > 0 ? Math.min(100, Math.round((pointsInLevel / pointsNeeded) * 100)) : 100
-        remaining = Math.max(0, next.points_required - (member.points || 0))
+        const basePoints = current?.points_required || 0
+        const targetPoints = next.points_required
+        const progressPoints = currentPoints - basePoints
+        const neededPoints = targetPoints - basePoints
+        prog = neededPoints > 0 ? Math.min(100, Math.max(0, Math.round((progressPoints / neededPoints) * 100))) : 100
+        remaining = Math.max(0, targetPoints - currentPoints)
+        metricType = 'points'
       }
     }
     
-    return { currentLevelIndex: currentIdx, nextLevel: next, progress: prog, toNext: remaining }
+    return { currentLevelIndex: currentIdx, nextLevel: next, progress: prog, toNext: remaining, metric: metricType }
   }, [sortedTypes, member.membership_type, member.points, transactionCount])
 
   // SVG circle properties
@@ -182,7 +193,7 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
             {/* Progress text */}
             {nextLevel ? (
               <p className="text-neutral-400 text-sm">
-                <span className="text-orange-500 font-semibold">{toNext}</span> {nextLevel.visits_required > 0 ? 'visits' : 'points'} to <span className="text-white font-medium">{nextLevel.name}</span>
+                <span className="text-orange-500 font-semibold">{toNext}</span> {metric} to <span className="text-white font-medium">{nextLevel.name}</span>
               </p>
             ) : (
               <p className="text-orange-500 text-sm font-medium">Top level reached! 🎉</p>
