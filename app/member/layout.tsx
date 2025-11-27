@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { CreditCard, TrendingUp, Gift, User } from 'lucide-react'
 import { MemberProvider } from './context/MemberContext'
@@ -40,6 +41,10 @@ export default function MemberLayout({
         >
           <div className="max-w-lg mx-auto px-4 py-3">
             <div className="flex items-center justify-around">
+              {/* Logo */}
+              <div className="flex items-center justify-center w-8">
+                <span className="text-brand-500 font-bold text-lg">N</span>
+              </div>
               {navItems.map((item) => {
                 const isActive = pathname === item.href
                 const Icon = item.icon
