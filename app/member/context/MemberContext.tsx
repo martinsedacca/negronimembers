@@ -141,7 +141,7 @@ export function MemberProvider({ children }: { children: ReactNode }) {
 
   // Fetch all member data from Supabase
   const fetchAllData = useCallback(async (userId: string, memberId: string) => {
-    const [memberRes, transactionsRes, promotionsRes, codesRes, membershipTypesRes] = await Promise.all([
+    const [memberRes, transactionsRes, promotionsRes, codesRes, membershipTypesRes, memberPromosRes] = await Promise.all([
       // Member data
       supabase
         .from('members')
@@ -157,7 +157,7 @@ export function MemberProvider({ children }: { children: ReactNode }) {
         .order('created_at', { ascending: false })
         .limit(50),
       
-      // Active promotions (end_date null = no expiration, or end_date >= now)
+      // Active promotions (general)
       supabase
         .from('promotions')
         .select('*')
@@ -174,15 +174,39 @@ export function MemberProvider({ children }: { children: ReactNode }) {
       supabase
         .from('membership_types')
         .select('*')
-        .eq('is_active', true)
+        .eq('is_active', true),
+      
+      // Assigned promotions to this member (from segments)
+      supabase
+        .from('member_promotions')
+        .select('promotion_id, promotions(*)')
+        .eq('member_id', memberId)
+        .is('redeemed_at', null)
     ])
+
+    // Combine general promotions with individually assigned ones
+    const generalPromotions = (promotionsRes.data || []) as Promotion[]
+    const membershipTypes = (membershipTypesRes.data || []) as MembershipType[]
+    
+    // Get assigned promotion details from member_promotions
+    const assignedPromos = (memberPromosRes.data || [])
+      .map((mp: any) => mp.promotions)
+      .filter((p: any) => p && p.is_active)
+    
+    // Merge and deduplicate promotions
+    const allPromotions = [...generalPromotions]
+    for (const promo of assignedPromos) {
+      if (promo && !allPromotions.find(p => p.id === promo.id)) {
+        allPromotions.push(promo)
+      }
+    }
 
     return {
       member: memberRes.data as Member | null,
       transactions: (transactionsRes.data || []) as Transaction[],
-      promotions: (promotionsRes.data || []) as Promotion[],
+      promotions: allPromotions,
       memberCodes: (codesRes.data || []).map((mc: any) => mc.codes?.code).filter(Boolean) as string[],
-      membershipTypes: (membershipTypesRes.data || []) as MembershipType[]
+      membershipTypes: membershipTypes
     }
   }, [supabase])
 

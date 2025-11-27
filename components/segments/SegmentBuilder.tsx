@@ -9,26 +9,31 @@ type MembershipType = Database['public']['Tables']['membership_types']['Row']
 type Promotion = Database['public']['Tables']['promotions']['Row']
 
 interface SegmentFilters {
-  // Financieros
-  total_spent_min?: number
-  total_spent_max?: number
-  spent_last_30_days_min?: number
+  // Points
+  points_min?: number
+  points_max?: number
   
-  // Frecuencia
+  // Visits
   total_visits_min?: number
+  total_visits_max?: number
   visits_last_30_days_min?: number
   last_visit_before?: string
   last_visit_after?: string
   
-  // Membresía
+  // Financial
+  total_spent_min?: number
+  total_spent_max?: number
+  spent_last_30_days_min?: number
+  
+  // Membership
   membership_types?: string[]
   status?: string[]
   
-  // Promociones
+  // Promotions
   never_used_promotions?: boolean
   
   // Onboarding Responses
-  onboarding_responses?: Record<string, string[]> // question_id -> [response_values]
+  onboarding_responses?: Record<string, string[]>
 }
 
 interface OnboardingQuestion {
@@ -342,58 +347,85 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
         <div className="lg:col-span-1 bg-neutral-800 border border-neutral-700 rounded-xl p-6 space-y-4">
           <h3 className="text-lg font-semibold text-white">Filters</h3>
 
-          {/* Financial Filters */}
-          <div>
-            <label className="block text-sm font-medium text-neutral-300 mb-2">
-              Minimum Total Spent
-            </label>
-            <input
-              type="number"
-              value={filters.total_spent_min || ''}
-              onChange={(e) => setFilters({ ...filters, total_spent_min: parseFloat(e.target.value) || undefined })}
-              placeholder="e.g.: 500"
-              className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
-            />
+          {/* Points Filters - PRIMARY */}
+          <div className="p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg space-y-3">
+            <h4 className="text-sm font-semibold text-orange-400">⭐ Points</h4>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs text-neutral-400 mb-1">Min</label>
+                <input
+                  type="number"
+                  value={filters.points_min || ''}
+                  onChange={(e) => setFilters({ ...filters, points_min: parseInt(e.target.value) || undefined })}
+                  placeholder="0"
+                  className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-neutral-400 mb-1">Max</label>
+                <input
+                  type="number"
+                  value={filters.points_max || ''}
+                  onChange={(e) => setFilters({ ...filters, points_max: parseInt(e.target.value) || undefined })}
+                  placeholder="∞"
+                  className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg text-sm"
+                />
+              </div>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-neutral-300 mb-2">
-              Spent in last 30 days (minimum)
-            </label>
-            <input
-              type="number"
-              value={filters.spent_last_30_days_min || ''}
-              onChange={(e) => setFilters({ ...filters, spent_last_30_days_min: parseFloat(e.target.value) || undefined })}
-              placeholder="e.g.: 100"
-              className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
-            />
+          {/* Visits Filters - PRIMARY */}
+          <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg space-y-3">
+            <h4 className="text-sm font-semibold text-green-400">👣 Visits</h4>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs text-neutral-400 mb-1">Total Min</label>
+                <input
+                  type="number"
+                  value={filters.total_visits_min || ''}
+                  onChange={(e) => setFilters({ ...filters, total_visits_min: parseInt(e.target.value) || undefined })}
+                  placeholder="0"
+                  className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-neutral-400 mb-1">Last 30 days</label>
+                <input
+                  type="number"
+                  value={filters.visits_last_30_days_min || ''}
+                  onChange={(e) => setFilters({ ...filters, visits_last_30_days_min: parseInt(e.target.value) || undefined })}
+                  placeholder="0"
+                  className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg text-sm"
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Visit Filters */}
-          <div>
-            <label className="block text-sm font-medium text-neutral-300 mb-2">
-              Total Visits (minimum)
-            </label>
-            <input
-              type="number"
-              value={filters.total_visits_min || ''}
-              onChange={(e) => setFilters({ ...filters, total_visits_min: parseInt(e.target.value) || undefined })}
-              placeholder="e.g.: 5"
-              className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-neutral-300 mb-2">
-              Visits last 30 days (minimum)
-            </label>
-            <input
-              type="number"
-              value={filters.visits_last_30_days_min || ''}
-              onChange={(e) => setFilters({ ...filters, visits_last_30_days_min: parseInt(e.target.value) || undefined })}
-              placeholder="e.g.: 2"
-              className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
-            />
+          {/* Spending Filters */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-semibold text-neutral-400">💰 Spending</h4>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs text-neutral-400 mb-1">Total Min $</label>
+                <input
+                  type="number"
+                  value={filters.total_spent_min || ''}
+                  onChange={(e) => setFilters({ ...filters, total_spent_min: parseFloat(e.target.value) || undefined })}
+                  placeholder="0"
+                  className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-neutral-400 mb-1">Last 30 days $</label>
+                <input
+                  type="number"
+                  value={filters.spent_last_30_days_min || ''}
+                  onChange={(e) => setFilters({ ...filters, spent_last_30_days_min: parseFloat(e.target.value) || undefined })}
+                  placeholder="0"
+                  className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg text-sm"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Membership Types */}
@@ -646,15 +678,15 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
                         Name
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-neutral-400 uppercase">
-                        Email
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-neutral-400 uppercase">
                         Tier
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-neutral-400 uppercase">
-                        Visits
+                      <th className="px-4 py-3 text-center text-xs font-medium text-orange-400 uppercase">
+                        ⭐ Points
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-neutral-400 uppercase">
+                      <th className="px-4 py-3 text-center text-xs font-medium text-green-400 uppercase">
+                        👣 Visits
+                      </th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-neutral-400 uppercase">
                         Spent
                       </th>
                     </tr>
@@ -662,16 +694,23 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
                   <tbody className="divide-y divide-neutral-700">
                     {matchingMembers.map((member) => (
                       <tr key={member.id} className="hover:bg-neutral-700">
-                        <td className="px-4 py-3 text-sm text-white">{member.full_name}</td>
-                        <td className="px-4 py-3 text-sm text-neutral-300">{member.email}</td>
+                        <td className="px-4 py-3">
+                          <div className="text-sm text-white font-medium">{member.full_name}</div>
+                          <div className="text-xs text-neutral-500">{member.email}</div>
+                        </td>
                         <td className="px-4 py-3 text-sm">
                           <span className="px-2 py-1 rounded-full text-xs bg-brand-100 text-brand-800">
                             {member.membership_type}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-sm text-white">{member.total_visits || 0}</td>
-                        <td className="px-4 py-3 text-sm text-green-400">
-                          ${(member.lifetime_spent || 0).toFixed(2)}
+                        <td className="px-4 py-3 text-center">
+                          <span className="text-lg font-bold text-orange-400">{member.points || 0}</span>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <span className="text-lg font-bold text-green-400">{member.total_visits || 0}</span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-neutral-400 text-right">
+                          ${(member.lifetime_spent || 0).toFixed(0)}
                         </td>
                       </tr>
                     ))}

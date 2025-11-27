@@ -9,7 +9,29 @@ export async function POST(request: NextRequest) {
     // Start with base query from member_stats view
     let query = supabase.from('member_stats').select('*')
 
-    // Apply filters
+    // Apply filters - Points (Primary)
+    if (filters.points_min) {
+      query = query.gte('points', filters.points_min)
+    }
+    
+    if (filters.points_max) {
+      query = query.lte('points', filters.points_max)
+    }
+
+    // Visits
+    if (filters.total_visits_min) {
+      query = query.gte('total_visits', filters.total_visits_min)
+    }
+    
+    if (filters.total_visits_max) {
+      query = query.lte('total_visits', filters.total_visits_max)
+    }
+
+    if (filters.visits_last_30_days_min) {
+      query = query.gte('visits_last_30_days', filters.visits_last_30_days_min)
+    }
+
+    // Spending
     if (filters.total_spent_min) {
       query = query.gte('lifetime_spent', filters.total_spent_min)
     }
@@ -20,14 +42,6 @@ export async function POST(request: NextRequest) {
 
     if (filters.spent_last_30_days_min) {
       query = query.gte('spent_last_30_days', filters.spent_last_30_days_min)
-    }
-
-    if (filters.total_visits_min) {
-      query = query.gte('total_visits', filters.total_visits_min)
-    }
-
-    if (filters.visits_last_30_days_min) {
-      query = query.gte('visits_last_30_days', filters.visits_last_30_days_min)
     }
 
     if (filters.membership_types && filters.membership_types.length > 0) {
