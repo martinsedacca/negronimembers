@@ -88,6 +88,18 @@ export default function ProgressClient({ member, transactionCount, memberCodes, 
 
   const isTopLevel = !nextLevel
 
+  // Calculate best progress (use visits if available, otherwise points)
+  const mainProgress = nextLevel?.visits_required ? visitsProgress : pointsProgress
+  const mainToNext = nextLevel?.visits_required ? visitsToNext : pointsToNext
+  const mainMetric = nextLevel?.visits_required ? 'visits' : 'points'
+
+  // SVG circle properties
+  const circleSize = 200
+  const strokeWidth = 12
+  const radius = (circleSize - strokeWidth) / 2
+  const circumference = 2 * Math.PI * radius
+  const progressOffset = circumference - (mainProgress / 100) * circumference
+
   return (
     <div className="min-h-screen pb-6">
       {/* Header */}
@@ -100,92 +112,136 @@ export default function ProgressClient({ member, transactionCount, memberCodes, 
         </motion.div>
       </div>
 
-      {/* Current Level Card */}
+      {/* Progress Circle */}
       <div className="px-6 mb-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1 }}
-          className="relative overflow-hidden rounded-3xl p-8 bg-gradient-to-br from-orange-900/30 to-orange-800/30 border-2 border-orange-500/50"
+          className="relative rounded-3xl p-8 bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-700"
         >
-          {/* Background pattern */}
-          <div className="absolute inset-0 opacity-5">
-            <div className="absolute inset-0" style={{ 
-              backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
-              backgroundSize: '20px 20px' 
-            }} />
-          </div>
-
-          <div className="relative">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl bg-orange-500/30 border-3 border-orange-500">
-                {currentLevel?.name === 'Gold' ? '👑' : '🎯'}
+          {/* Circle */}
+          <div className="flex flex-col items-center">
+            <div className="relative mb-6">
+              {/* Star on top */}
+              <div className="absolute -top-2 left-1/2 -translate-x-1/2 z-10">
+                <Star className="w-6 h-6 text-orange-500 fill-orange-500" />
               </div>
-              <div>
-                <p className="text-sm text-neutral-400 mb-1">Current Level</p>
-                <h2 className="text-3xl font-bold text-white">{currentLevel?.name || member.membership_type}</h2>
+              
+              <svg width={circleSize} height={circleSize} className="transform -rotate-90">
+                {/* Background circle */}
+                <circle
+                  cx={circleSize / 2}
+                  cy={circleSize / 2}
+                  r={radius}
+                  stroke="rgb(64, 64, 64)"
+                  strokeWidth={strokeWidth}
+                  fill="none"
+                />
+                {/* Progress circle */}
+                <motion.circle
+                  cx={circleSize / 2}
+                  cy={circleSize / 2}
+                  r={radius}
+                  stroke="url(#progressGradient)"
+                  strokeWidth={strokeWidth}
+                  fill="none"
+                  strokeLinecap="round"
+                  initial={{ strokeDashoffset: circumference }}
+                  animate={{ strokeDashoffset: isTopLevel ? 0 : progressOffset }}
+                  transition={{ duration: 1.5, ease: "easeOut" }}
+                  style={{
+                    strokeDasharray: circumference,
+                  }}
+                />
+                {/* Gradient definition */}
+                <defs>
+                  <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#f97316" />
+                    <stop offset="100%" stopColor="#eab308" />
+                  </linearGradient>
+                </defs>
+              </svg>
+
+              {/* Center content */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-xs text-neutral-400 uppercase tracking-wider mb-1">Level</span>
+                <span className="text-5xl font-bold text-white">
+                  {currentLevel?.name === 'Gold' ? '👑' : currentLevel?.name?.charAt(0) || 'M'}
+                </span>
+                <span className="text-lg font-semibold text-orange-500 mt-1">
+                  {currentLevel?.name || member.membership_type}
+                </span>
               </div>
             </div>
 
-            <p className="text-neutral-300 text-lg mb-6">
-              {currentLevel?.description || 'Enjoy exclusive member benefits'}
-            </p>
+            {/* Progress message */}
+            {nextLevel ? (
+              <div className="text-center">
+                <p className="text-2xl font-bold text-white mb-1">
+                  {mainToNext} {mainMetric} more
+                </p>
+                <p className="text-neutral-400">
+                  to reach <span className="text-orange-500 font-semibold">{nextLevel.name}</span>
+                </p>
+              </div>
+            ) : (
+              <div className="text-center">
+                <p className="text-xl font-bold text-green-500 mb-1">
+                  🎉 You've reached the top!
+                </p>
+                <p className="text-neutral-400">
+                  Enjoy all exclusive benefits
+                </p>
+              </div>
+            )}
+          </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-neutral-900/50 rounded-xl p-3 border border-neutral-700">
-                <Award className="w-5 h-5 text-orange-500 mb-1" />
-                <p className="text-2xl font-bold text-white">{member.points || 0}</p>
-                <p className="text-xs text-neutral-400">Points</p>
-              </div>
-              <div className="bg-neutral-900/50 rounded-xl p-3 border border-neutral-700">
-                <TrendingUp className="w-5 h-5 text-green-500 mb-1" />
-                <p className="text-2xl font-bold text-white">{transactionCount}</p>
-                <p className="text-xs text-neutral-400">Visits</p>
-              </div>
+          {/* Stats */}
+          <div className="grid grid-cols-2 gap-3 mt-6">
+            <div className="bg-neutral-900/80 rounded-xl p-4 border border-neutral-700 text-center">
+              <Award className="w-5 h-5 text-orange-500 mx-auto mb-2" />
+              <p className="text-2xl font-bold text-white">{member.points || 0}</p>
+              <p className="text-xs text-neutral-400">Points</p>
+            </div>
+            <div className="bg-neutral-900/80 rounded-xl p-4 border border-neutral-700 text-center">
+              <TrendingUp className="w-5 h-5 text-green-500 mx-auto mb-2" />
+              <p className="text-2xl font-bold text-white">{transactionCount}</p>
+              <p className="text-xs text-neutral-400">Visits</p>
             </div>
           </div>
         </motion.div>
       </div>
 
-      {/* Progress to Next Level */}
+      {/* Progress Bars (detailed) */}
       {nextLevel && (
         <div className="px-6 mb-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="bg-gradient-to-br from-yellow-900/20 to-yellow-800/20 border-2 border-yellow-500/30 rounded-2xl p-6"
+            transition={{ delay: 0.2 }}
+            className="bg-neutral-800 border border-neutral-700 rounded-2xl p-5"
           >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-xl bg-yellow-500/20 border border-yellow-500 flex items-center justify-center">
-                <Crown className="w-6 h-6 text-yellow-500" />
-              </div>
-              <div className="flex-1">
-                <h4 className="font-bold text-white">Next Level: {nextLevel.name}</h4>
-                <p className="text-sm text-neutral-400">Complete one of the requirements below</p>
-              </div>
-            </div>
-
+            <h4 className="font-semibold text-white mb-4">Progress to {nextLevel.name}</h4>
+            
             <div className="space-y-4">
               {/* Points Progress */}
               {nextLevel.points_required > 0 && (
                 <div>
                   <div className="flex justify-between text-sm mb-2">
-                    <span className="text-neutral-400 flex items-center gap-1">
-                      <Award className="w-4 h-4" /> Points
+                    <span className="text-neutral-400 flex items-center gap-2">
+                      <Award className="w-4 h-4 text-orange-500" /> Points
                     </span>
-                    <span className="text-yellow-500 font-medium">
+                    <span className="text-white font-medium">
                       {member.points || 0} / {nextLevel.points_required}
-                      {pointsToNext > 0 && <span className="text-neutral-500 ml-1">({pointsToNext} to go)</span>}
                     </span>
                   </div>
-                  <div className="h-3 bg-neutral-800 rounded-full overflow-hidden">
+                  <div className="h-2 bg-neutral-700 rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${pointsProgress}%` }}
                       transition={{ duration: 1, delay: 0.3 }}
-                      className="h-full bg-gradient-to-r from-yellow-500 to-yellow-400 rounded-full"
+                      className="h-full bg-gradient-to-r from-orange-500 to-orange-400 rounded-full"
                     />
                   </div>
                 </div>
@@ -195,15 +251,14 @@ export default function ProgressClient({ member, transactionCount, memberCodes, 
               {nextLevel.visits_required > 0 && (
                 <div>
                   <div className="flex justify-between text-sm mb-2">
-                    <span className="text-neutral-400 flex items-center gap-1">
-                      <TrendingUp className="w-4 h-4" /> Visits
+                    <span className="text-neutral-400 flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-green-500" /> Visits
                     </span>
-                    <span className="text-yellow-500 font-medium">
+                    <span className="text-white font-medium">
                       {transactionCount} / {nextLevel.visits_required}
-                      {visitsToNext > 0 && <span className="text-neutral-500 ml-1">({visitsToNext} to go)</span>}
                     </span>
                   </div>
-                  <div className="h-3 bg-neutral-800 rounded-full overflow-hidden">
+                  <div className="h-2 bg-neutral-700 rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${visitsProgress}%` }}
@@ -214,33 +269,12 @@ export default function ProgressClient({ member, transactionCount, memberCodes, 
                 </div>
               )}
 
-              {/* OR indicator if both requirements exist */}
               {nextLevel.points_required > 0 && nextLevel.visits_required > 0 && (
-                <p className="text-xs text-center text-neutral-500 py-1">
+                <p className="text-xs text-center text-neutral-500 pt-2">
                   Complete either requirement to level up
                 </p>
               )}
             </div>
-
-            <p className="text-sm text-neutral-300 mt-4">
-              {nextLevel.description}
-            </p>
-          </motion.div>
-        </div>
-      )}
-
-      {/* Max Level Reached */}
-      {isTopLevel && (
-        <div className="px-6 mb-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="bg-gradient-to-br from-green-900/20 to-green-800/20 border-2 border-green-500/30 rounded-2xl p-6 text-center"
-          >
-            <Star className="w-12 h-12 text-green-500 mx-auto mb-3" />
-            <h4 className="font-bold text-white text-lg mb-2">You've reached the top!</h4>
-            <p className="text-sm text-neutral-400">Enjoy all the exclusive benefits of your membership.</p>
           </motion.div>
         </div>
       )}
