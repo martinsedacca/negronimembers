@@ -288,7 +288,7 @@ export default function ProfilePage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end justify-center"
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-end justify-center"
             onClick={cancelEditing}
           >
             <motion.div
@@ -297,7 +297,7 @@ export default function ProfilePage() {
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-lg bg-neutral-900 border-t border-neutral-700 rounded-t-3xl p-6 pb-10"
+              className="w-full max-w-lg bg-neutral-900 border-t border-neutral-700 rounded-t-3xl p-6 pb-24"
             >
               {/* Modal Header */}
               <div className="flex items-center justify-between mb-6">
