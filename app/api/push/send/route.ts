@@ -18,8 +18,12 @@ export async function POST(request: NextRequest) {
       icon,
       target_type = 'segment',
       target_filter = {},
-      member_ids = []
+      member_ids = [],
+      segment_name = null,
     } = body
+
+    // Get current user (admin sending the notification)
+    const { data: { user } } = await supabase.auth.getUser()
 
     if (!title || !message) {
       console.error('🔴 [Push] Missing title or message')
@@ -31,7 +35,7 @@ export async function POST(request: NextRequest) {
 
     console.log('🔔 [Push] Preparing to send notification:', { title, target_type, target_filter })
 
-    // Create notification record
+    // Create notification record with reporting fields
     const { data: notification, error: notificationError } = await supabase
       .from('push_notifications')
       .insert({
@@ -41,6 +45,10 @@ export async function POST(request: NextRequest) {
         url,
         target_type,
         target_filter,
+        segment_name,
+        segment_filters: target_filter,
+        sent_by: user?.id || null,
+        sent_at: new Date().toISOString(),
       })
       .select()
       .single()
@@ -89,7 +97,12 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    console.log(`🔔 [Push] Sending to ${subscriptions.length} subscriptions`)
+    // Calculate unique members and total devices
+    const uniqueMemberIds = [...new Set(subscriptions.map(s => s.member_id).filter(Boolean))]
+    const totalMembers = uniqueMemberIds.length
+    const totalDevices = subscriptions.length
+
+    console.log(`🔔 [Push] Sending to ${totalMembers} members across ${totalDevices} devices`)
 
     // Send notifications
     const result = await sendBulkPushNotifications(
@@ -116,19 +129,37 @@ export async function POST(request: NextRequest) {
       .update({
         total_sent: result.sent,
         total_failed: result.failed,
+        total_members: totalMembers,
+        total_devices: totalDevices,
+        status: 'sent',
       })
       .eq('id', notification.id)
 
-    // Log deliveries
-    const deliveries = subscriptions.map((sub, index) => {
+    // Helper to detect browser from endpoint
+    const detectBrowser = (endpoint: string): { device_type: string, browser: string } => {
+      if (endpoint.includes('push.apple.com')) {
+        return { device_type: 'safari', browser: 'Safari (APNs)' }
+      } else if (endpoint.includes('fcm.googleapis.com')) {
+        return { device_type: 'chrome', browser: 'Chrome/Firefox (FCM)' }
+      } else if (endpoint.includes('mozilla.com')) {
+        return { device_type: 'firefox', browser: 'Firefox' }
+      }
+      return { device_type: 'unknown', browser: 'Unknown' }
+    }
+
+    // Log deliveries with device info
+    const deliveries = subscriptions.map((sub) => {
       const error = result.errors.find(e => e.endpoint === sub.endpoint)
+      const browserInfo = detectBrowser(sub.endpoint)
       return {
         notification_id: notification.id,
         subscription_id: sub.id,
         member_id: sub.member_id,
+        device_type: browserInfo.device_type,
+        browser: browserInfo.browser,
         status: error ? 'failed' : 'sent',
-        error_message: error?.error,
-        sent_at: new Date().toISOString(),
+        error: error?.error || null,
+        delivered_at: new Date().toISOString(),
       }
     })
 
@@ -150,7 +181,8 @@ export async function POST(request: NextRequest) {
       success: true,
       notification_id: notification.id,
       stats: {
-        total: result.total,
+        total_members: totalMembers,
+        total_devices: totalDevices,
         sent: result.sent,
         failed: result.failed,
       },
