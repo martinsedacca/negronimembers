@@ -1,5 +1,7 @@
 // Service Worker for Push Notifications + Offline QR Cache
-const CACHE_VERSION = 'negroni-v1';
+// Change this version to force update on all clients
+const SW_VERSION = '1.0.1';
+const CACHE_VERSION = `negroni-v${SW_VERSION}`;
 const CRITICAL_CACHE = 'negroni-critical';
 const QR_CACHE = 'negroni-qr';
 
@@ -10,11 +12,14 @@ const CACHE_URLS = [
 
 // Instalar service worker
 self.addEventListener('install', (event) => {
-  console.log('[Service Worker] Installing...');
+  console.log(`[Service Worker] Installing version ${SW_VERSION}...`);
   event.waitUntil(
     caches.open(CRITICAL_CACHE)
       .then((cache) => cache.addAll(CACHE_URLS))
-      .then(() => self.skipWaiting())
+      .then(() => {
+        console.log(`[Service Worker] Version ${SW_VERSION} installed, activating immediately`);
+        return self.skipWaiting();
+      })
   );
 });
 
