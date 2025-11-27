@@ -53,16 +53,21 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
         .order('code')
       if (codesData) setCodes(codesData)
       
-      // Fetch branches/locations
-      const { data: branchesData } = await supabase
+      // Fetch branches/locations (without is_active filter in case column doesn't exist)
+      const { data: branchesData, error } = await supabase
         .from('branches')
         .select('id, name')
-        .eq('is_active', true)
         .order('name')
-      if (branchesData) setBranches(branchesData)
+      
+      if (error) {
+        console.error('Error fetching branches:', error)
+      }
+      if (branchesData) {
+        setBranches(branchesData)
+      }
     }
     fetchData()
-  }, [])
+  }, [supabase])
 
   const toggleTier = (tier: string) => {
     setSelectedTiers(prev => 
@@ -296,46 +301,52 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
         <div className="border border-neutral-700 rounded-lg p-4">
           <h3 className="text-sm font-medium text-white mb-3">Available at Locations</h3>
           
-          <div className="space-y-3">
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={isAllLocations}
-                onChange={() => {
-                  setIsAllLocations(true)
-                  setSelectedBranches([])
-                }}
-                className="h-4 w-4 text-orange-500 focus:ring-orange-500 border-neutral-600 rounded"
-              />
-              <span className="text-neutral-300">All locations</span>
-            </label>
-            
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={!isAllLocations}
-                onChange={() => setIsAllLocations(false)}
-                className="h-4 w-4 text-orange-500 focus:ring-orange-500 border-neutral-600 rounded"
-              />
-              <span className="text-neutral-300">Specific locations only</span>
-            </label>
-            
-            {!isAllLocations && branches.length > 0 && (
-              <div className="ml-7 mt-2 space-y-2">
-                {branches.map((branch) => (
-                  <label key={branch.id} className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedBranches.includes(branch.id)}
-                      onChange={() => toggleBranch(branch.id)}
-                      className="h-4 w-4 text-orange-500 focus:ring-orange-500 border-neutral-600 rounded"
-                    />
-                    <span className="text-neutral-400">{branch.name}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
+          {branches.length === 0 ? (
+            <p className="text-neutral-500 text-sm">No locations found. The benefit will be available at all locations.</p>
+          ) : (
+            <div className="space-y-3">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="radio"
+                  name="locations"
+                  checked={isAllLocations}
+                  onChange={() => {
+                    setIsAllLocations(true)
+                    setSelectedBranches([])
+                  }}
+                  className="h-4 w-4 text-orange-500 focus:ring-orange-500 border-neutral-600"
+                />
+                <span className="text-neutral-300">All locations</span>
+              </label>
+              
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="radio"
+                  name="locations"
+                  checked={!isAllLocations}
+                  onChange={() => setIsAllLocations(false)}
+                  className="h-4 w-4 text-orange-500 focus:ring-orange-500 border-neutral-600"
+                />
+                <span className="text-neutral-300">Specific locations only</span>
+              </label>
+              
+              {!isAllLocations && (
+                <div className="ml-7 mt-2 space-y-2 p-3 bg-neutral-900/50 rounded-lg">
+                  {branches.map((branch) => (
+                    <label key={branch.id} className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedBranches.includes(branch.id)}
+                        onChange={() => toggleBranch(branch.id)}
+                        className="h-4 w-4 text-orange-500 focus:ring-orange-500 border-neutral-600 rounded"
+                      />
+                      <span className="text-neutral-300">{branch.name}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Terms & Conditions */}
