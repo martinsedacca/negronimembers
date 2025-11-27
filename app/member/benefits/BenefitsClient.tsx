@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, Tag, Gift, Percent, Star, HelpCircle, X, ChevronLeft, ChevronRight, Check, Lock } from 'lucide-react'
+import { Sparkles, Tag, Gift, Percent, Star, HelpCircle, X, ChevronLeft, ChevronRight, Lock } from 'lucide-react'
 import Link from 'next/link'
 
 interface MembershipType {
@@ -67,15 +67,13 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
     }
   }
 
-  // Get benefits for a specific level from membership type benefits object
-  const getLevelBenefits = (level: MembershipType) => {
-    if (!level.benefits) return []
-    // Convert benefits object to array
-    return Object.entries(level.benefits).map(([key, value]) => ({
-      id: key,
-      title: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-      value: value
-    }))
+  // Filter benefits (promotions) by membership level
+  const getBenefitsForLevel = (levelName: string) => {
+    return benefits.filter(benefit => {
+      const applicable_to = benefit.applicable_to || ['all']
+      // Show if applies to all OR applies to this specific tier
+      return applicable_to.includes('all') || applicable_to.includes(`tier:${levelName}`)
+    })
   }
 
   // Tutorial content
@@ -224,7 +222,7 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
         </div>
       )}
 
-      {/* Level Benefits */}
+      {/* Benefits for this level */}
       <div className="px-6 mb-6">
         <motion.div
           key={`benefits-${activeTab}`}
@@ -235,34 +233,53 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
           <h4 className="font-semibold text-white mb-3 flex items-center gap-2">
             <Gift className="w-4 h-4 text-orange-500" />
             {sortedTypes[activeTab]?.name || 'Level'} Benefits
+            <span className="text-sm text-neutral-400 font-normal">
+              ({sortedTypes[activeTab] ? getBenefitsForLevel(sortedTypes[activeTab].name).length : 0})
+            </span>
           </h4>
 
-          {sortedTypes[activeTab] && getLevelBenefits(sortedTypes[activeTab]).length > 0 ? (
-            <div className="space-y-2">
-              {getLevelBenefits(sortedTypes[activeTab]).map((benefit, index) => (
+          {sortedTypes[activeTab] && getBenefitsForLevel(sortedTypes[activeTab].name).length > 0 ? (
+            <div className="space-y-3">
+              {getBenefitsForLevel(sortedTypes[activeTab].name).map((benefit: any, index: number) => (
                 <motion.div
                   key={benefit.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.05 * index }}
-                  className={`flex items-center gap-3 p-3 rounded-xl ${
+                  className={`rounded-xl p-4 border ${
                     activeTab <= currentLevelIndex
-                      ? 'bg-neutral-800 border border-neutral-700'
-                      : 'bg-neutral-800/50 border border-neutral-700/50 opacity-60'
+                      ? 'bg-gradient-to-br from-neutral-800 to-neutral-900 border-neutral-700'
+                      : 'bg-neutral-800/50 border-neutral-700/50 opacity-60'
                   }`}
                 >
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                    activeTab <= currentLevelIndex
-                      ? 'bg-orange-500/20 text-orange-500'
-                      : 'bg-neutral-700 text-neutral-500'
-                  }`}>
-                    {activeTab <= currentLevelIndex ? <Check className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-white text-sm font-medium">{benefit.title}</p>
-                    {typeof benefit.value === 'string' && (
-                      <p className="text-xs text-neutral-400">{benefit.value}</p>
-                    )}
+                  <div className="flex items-start gap-3">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                      activeTab <= currentLevelIndex
+                        ? 'bg-orange-500/20 border border-orange-500/30'
+                        : 'bg-neutral-700 border border-neutral-600'
+                    }`}>
+                      {activeTab <= currentLevelIndex 
+                        ? getDiscountIcon(benefit.discount_type)
+                        : <Lock className="w-5 h-5 text-neutral-500" />
+                      }
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <h4 className="font-semibold text-white text-sm">{benefit.title}</h4>
+                        {benefit.discount_type && benefit.discount_value && (
+                          <span className={`text-xs px-2 py-1 rounded-full font-semibold ${
+                            activeTab <= currentLevelIndex
+                              ? 'bg-orange-500/20 text-orange-400'
+                              : 'bg-neutral-700 text-neutral-400'
+                          }`}>
+                            {getDiscountText(benefit.discount_type, benefit.discount_value)}
+                          </span>
+                        )}
+                      </div>
+                      {benefit.description && (
+                        <p className="text-xs text-neutral-400 mt-1">{benefit.description}</p>
+                      )}
+                    </div>
                   </div>
                 </motion.div>
               ))}
@@ -270,51 +287,11 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
           ) : (
             <div className="text-center py-8 bg-neutral-800/50 rounded-xl border border-neutral-700">
               <Sparkles className="w-10 h-10 text-neutral-600 mx-auto mb-2" />
-              <p className="text-neutral-400 text-sm">No specific benefits configured for this level</p>
+              <p className="text-neutral-400 text-sm">No benefits available for this level yet</p>
             </div>
           )}
         </motion.div>
       </div>
-
-      {/* Active Promotions */}
-      {benefits.length > 0 && (
-        <div className="px-6 mb-6">
-          <h4 className="font-semibold text-white mb-3 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-orange-500" />
-            Active Promotions
-            <span className="text-sm text-neutral-400 font-normal">({benefits.length})</span>
-          </h4>
-          
-          <div className="space-y-3">
-            {benefits.slice(0, 3).map((benefit, index) => (
-              <motion.div
-                key={benefit.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 + index * 0.05 }}
-                className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-xl p-4 border border-neutral-700"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-orange-500/20 border border-orange-500/30 flex items-center justify-center flex-shrink-0">
-                    {getDiscountIcon(benefit.discount_type)}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <h4 className="font-semibold text-white text-sm">{benefit.title}</h4>
-                      <span className="text-xs px-2 py-1 rounded-full bg-orange-500/20 text-orange-400 font-semibold">
-                        {getDiscountText(benefit.discount_type, benefit.discount_value)}
-                      </span>
-                    </div>
-                    {benefit.description && (
-                      <p className="text-xs text-neutral-400 mt-1">{benefit.description}</p>
-                    )}
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Redeem Code CTA */}
       {!hasCodes && (
