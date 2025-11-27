@@ -2,13 +2,16 @@ import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+// Create Supabase admin client lazily to avoid build errors
+const getSupabaseAdmin = () => {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) throw new Error('Missing Supabase credentials')
+  return createClient(url, key)
+}
 
 // Initialize Resend if API key exists
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
+const getResend = () => process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,6 +23,7 @@ export async function POST(request: NextRequest) {
 
     // Generate 6-digit OTP
     const code = Math.floor(100000 + Math.random() * 900000).toString()
+    const supabaseAdmin = getSupabaseAdmin()
 
     // Delete any existing unused codes for this member
     await supabaseAdmin
@@ -43,6 +47,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Send email with OTP
+    const resend = getResend()
     if (resend) {
       await resend.emails.send({
         from: 'Negroni Members <noreply@onetimeleads.com>',
