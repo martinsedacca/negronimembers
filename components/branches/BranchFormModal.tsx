@@ -25,7 +25,7 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
     is_active: branch?.is_active ?? true,
   })
 
-  // Reverse geocode to get address from coordinates
+  // Reverse geocode to get city from coordinates (address should be entered manually for accuracy)
   const reverseGeocode = async (lat: string, lng: string) => {
     try {
       const response = await fetch(
@@ -35,15 +35,13 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
       const data = await response.json()
       if (data && data.address) {
         const addr = data.address
-        // Build a clean address
-        const streetParts = [addr.house_number, addr.road].filter(Boolean).join(' ')
-        const address = streetParts || addr.neighbourhood || addr.suburb || ''
         const city = addr.city || addr.town || addr.village || addr.municipality || ''
+        const state = addr.state || ''
         
+        // Only fill city (address should be copied from Google Maps for accuracy)
         setFormData(prev => ({
           ...prev,
-          address: address,
-          city: city
+          city: city ? `${city}${state ? ', ' + state : ''}` : prev.city
         }))
       }
     } catch (error) {
@@ -307,10 +305,10 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
 
             {/* Coordinates Display */}
             {formData.latitude && formData.longitude ? (
-              <div className="bg-neutral-700/50 rounded-lg p-3">
+              <div className="bg-neutral-700/50 rounded-lg p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-neutral-400">Coordinates</p>
+                    <p className="text-xs text-neutral-400">Coordinates captured ✓</p>
                     <p className="text-sm text-white font-mono">
                       {formData.latitude}, {formData.longitude}
                     </p>
@@ -326,17 +324,22 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
                     </a>
                     <button
                       type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, latitude: '', longitude: '' }))}
+                      onClick={() => setFormData(prev => ({ ...prev, latitude: '', longitude: '', city: '' }))}
                       className="text-xs px-3 py-1.5 bg-neutral-600 text-white rounded hover:bg-neutral-500 transition"
                     >
                       Clear
                     </button>
                   </div>
                 </div>
+                {!formData.address && (
+                  <p className="text-xs text-amber-400 bg-amber-500/10 px-2 py-1 rounded">
+                    💡 Copy the address from Google Maps into the Address field above
+                  </p>
+                )}
               </div>
             ) : (
               <p className="text-xs text-neutral-500">
-                Search for an address above to set the location coordinates
+                Paste a Google Maps link above to capture coordinates
               </p>
             )}
           </div>
