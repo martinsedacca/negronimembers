@@ -71,30 +71,42 @@ export default function QRScanner({
   }
 
   useEffect(() => {
+    // Clean up scanner when switching to manual mode
+    if (mode === 'manual' && scannerRef.current) {
+      scannerRef.current.clear().catch(console.error)
+      scannerRef.current = null
+    }
+    
+    // Initialize scanner when in scan mode
     if (mode === 'scan' && !scannerRef.current) {
-      const scanner = new Html5QrcodeScanner(
-        'qr-reader',
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.0,
-        },
-        false
-      )
+      // Small delay to ensure DOM is ready
+      const timeout = setTimeout(() => {
+        const scanner = new Html5QrcodeScanner(
+          'qr-reader',
+          {
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0,
+          },
+          false
+        )
 
-      scanner.render(
-        (decodedText) => {
-          // QR contains member_id (UUID) or member_number (legacy)
-          verifyMember(decodedText)
-          scanner.clear()
-          scannerRef.current = null
-        },
-        (error) => {
-          // Ignore scanning errors (too frequent)
-        }
-      )
+        scanner.render(
+          (decodedText) => {
+            // QR contains member_id (UUID) or member_number (legacy)
+            verifyMember(decodedText)
+            scanner.clear()
+            scannerRef.current = null
+          },
+          (error) => {
+            // Ignore scanning errors (too frequent)
+          }
+        )
 
-      scannerRef.current = scanner
+        scannerRef.current = scanner
+      }, 100)
+      
+      return () => clearTimeout(timeout)
     }
 
     return () => {
