@@ -107,24 +107,32 @@ export default function PassClient({ member }: PassClientProps) {
 
   return (
     <div className="min-h-screen pb-6">
-      {/* Header */}
-      <div className="px-6 pt-8 pb-4">
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-2xl font-bold text-white mb-2">Your Digital Card</h1>
-          <p className="text-neutral-400">Scan this QR code at checkout</p>
-        </motion.div>
+      {/* Hero Header with Image */}
+      <div className="relative h-48 overflow-hidden">
+        <img 
+          src="/images/brand/lounge-red.jpg" 
+          alt="Negroni" 
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-neutral-950" />
+        <div className="relative h-full flex flex-col justify-end px-6 pb-6">
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
+            <p className="text-orange-400 text-sm font-medium mb-1">Welcome back,</p>
+            <h1 className="text-2xl font-bold text-white">{member.first_name}</h1>
+          </motion.div>
+        </div>
       </div>
 
       {/* QR Card */}
-      <div className="px-6 mb-6">
+      <div className="px-6 -mt-6 mb-6 relative z-10">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1 }}
-          className={`relative overflow-hidden rounded-3xl p-8 ${
+          className={`relative overflow-hidden rounded-3xl p-8 shadow-2xl ${
             isGold 
-              ? 'bg-gradient-to-br from-yellow-900/30 to-yellow-800/30 border-2 border-yellow-500/50'
-              : 'bg-gradient-to-br from-orange-900/30 to-orange-800/30 border-2 border-orange-500/50'
+              ? 'bg-gradient-to-br from-yellow-900/90 to-neutral-900 border border-yellow-500/30'
+              : 'bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-700'
           }`}
         >
           {/* Background pattern */}

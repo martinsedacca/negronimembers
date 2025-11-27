@@ -262,21 +262,31 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen pb-24">
-      {/* Header */}
-      <div className="px-6 pt-8 pb-6">
-        <button 
-          onClick={() => router.back()}
-          className="flex items-center gap-2 text-neutral-400 hover:text-white transition mb-4"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          Back
-        </button>
-        <h1 className="text-2xl font-bold text-white">Profile</h1>
-        <p className="text-neutral-400 mt-1">Manage your account information</p>
+      {/* Hero Header with Image */}
+      <div className="relative h-44 overflow-hidden">
+        <img 
+          src="/images/brand/exterior-night.jpg" 
+          alt="Negroni" 
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/70 to-neutral-950" />
+        <div className="relative h-full flex flex-col justify-between px-6 pt-6 pb-4">
+          <button 
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-white/80 hover:text-white transition w-fit"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-white">Profile</h1>
+            <p className="text-neutral-300 text-sm">Manage your account</p>
+          </div>
+        </div>
       </div>
 
       {/* Profile Fields */}
-      <div className="px-6 space-y-3">
+      <div className="px-6 -mt-4 space-y-3 relative z-10">
         <ProfileField
           icon={User}
           label="Full Name"
