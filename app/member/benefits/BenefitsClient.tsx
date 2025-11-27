@@ -104,10 +104,10 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
           src="/images/brand/lounge-red.jpg" 
           alt="" 
           fill
-          className="object-cover opacity-20"
+          className="object-cover opacity-40"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-neutral-950/60 via-neutral-950/85 to-neutral-950" />
+        <div className="absolute inset-0 bg-gradient-to-b from-neutral-950/30 via-neutral-950/70 to-neutral-950" />
       </div>
 
       {/* Content */}
