@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Sparkles, Crown, Tag, Gift, Percent, Star } from 'lucide-react'
 import Link from 'next/link'
@@ -189,49 +188,6 @@ export default function BenefitsClient({ member, benefits, hasCodes }: BenefitsC
           </motion.div>
         )}
 
-        {/* Upgrade CTA for Member users */}
-        {!isGold && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-            className="mt-6 p-6 bg-gradient-to-br from-yellow-900/20 to-yellow-800/20 border-2 border-yellow-500/30 rounded-2xl"
-          >
-            <div className="flex items-start gap-4 mb-4">
-              <div className="w-12 h-12 rounded-xl bg-yellow-500/20 border border-yellow-500 flex items-center justify-center flex-shrink-0">
-                <Crown className="w-6 h-6 text-yellow-500" />
-              </div>
-              <div className="flex-1">
-                <h4 className="font-bold text-white mb-1">Upgrade to Gold</h4>
-                <p className="text-sm text-neutral-400">
-                  Unlock premium benefits and exclusive perks
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-2 mb-4">
-              <div className="flex items-center gap-2 text-sm text-neutral-300">
-                <span className="text-green-500">✓</span>
-                <span>Priority access to events</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-neutral-300">
-                <span className="text-green-500">✓</span>
-                <span>Exclusive Gold member benefits</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-neutral-300">
-                <span className="text-green-500">✓</span>
-                <span>Special birthday rewards</span>
-              </div>
-            </div>
-
-            <Link
-              href="/member/progress"
-              className="block w-full py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black rounded-xl font-semibold hover:from-yellow-600 hover:to-yellow-700 transition text-center"
-            >
-              Learn More About Gold
-            </Link>
-          </motion.div>
-        )}
       </div>
     </div>
   )

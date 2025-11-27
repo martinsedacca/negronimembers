@@ -4,8 +4,10 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   User, Mail, Phone, LogOut, ChevronRight, 
-  Loader2, Check, X, Shield, ArrowLeft 
+  Loader2, Check, X, Shield, ArrowLeft,
+  Bell, FileText, Trash2, ExternalLink
 } from 'lucide-react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useMember, useRequireAuth } from '../context/MemberContext'
 import { createClient } from '@/lib/supabase/client'
@@ -27,6 +29,14 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  
+  // Notifications
+  const [emailNotifications, setEmailNotifications] = useState(true)
+  const [pushNotifications, setPushNotifications] = useState(true)
+  
+  // Delete account modal
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
 
   if (authLoading || !member) {
     return (
@@ -189,6 +199,30 @@ export default function ProfilePage() {
     router.replace('/member/auth')
   }
 
+  const handleDeleteAccount = async () => {
+    setDeleteLoading(true)
+    try {
+      // Call API to delete account
+      const response = await fetch('/api/member/delete-account', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId: member.id }),
+      })
+      
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to delete account')
+      }
+      
+      // Sign out and redirect
+      await logout()
+      router.replace('/member/auth')
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete account')
+      setDeleteLoading(false)
+    }
+  }
+
   const ProfileField = ({ 
     icon: Icon, 
     label, 
@@ -275,16 +309,149 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Logout Button */}
+      {/* Notifications */}
       <div className="px-6 mt-8">
+        <h3 className="text-sm font-semibold text-neutral-400 uppercase mb-4">Notifications</h3>
+        <div className="bg-neutral-800 border border-neutral-700 rounded-xl overflow-hidden">
+          <div className="flex items-center justify-between p-4 border-b border-neutral-700">
+            <div className="flex items-center gap-3">
+              <Mail className="w-5 h-5 text-neutral-400" />
+              <span className="text-white">Email notifications</span>
+            </div>
+            <button
+              onClick={() => setEmailNotifications(!emailNotifications)}
+              className={`relative w-12 h-7 rounded-full transition-colors ${
+                emailNotifications ? 'bg-orange-500' : 'bg-neutral-600'
+              }`}
+            >
+              <span
+                className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${
+                  emailNotifications ? 'left-6' : 'left-1'
+                }`}
+              />
+            </button>
+          </div>
+          <div className="flex items-center justify-between p-4">
+            <div className="flex items-center gap-3">
+              <Bell className="w-5 h-5 text-neutral-400" />
+              <span className="text-white">Push notifications</span>
+            </div>
+            <button
+              onClick={() => setPushNotifications(!pushNotifications)}
+              className={`relative w-12 h-7 rounded-full transition-colors ${
+                pushNotifications ? 'bg-orange-500' : 'bg-neutral-600'
+              }`}
+            >
+              <span
+                className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${
+                  pushNotifications ? 'left-6' : 'left-1'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Legal */}
+      <div className="px-6 mt-8">
+        <h3 className="text-sm font-semibold text-neutral-400 uppercase mb-4">Legal</h3>
+        <div className="bg-neutral-800 border border-neutral-700 rounded-xl overflow-hidden">
+          <Link
+            href="/privacy"
+            className="flex items-center justify-between p-4 border-b border-neutral-700 hover:bg-neutral-700/50 transition"
+          >
+            <div className="flex items-center gap-3">
+              <FileText className="w-5 h-5 text-neutral-400" />
+              <span className="text-white">Privacy Policy</span>
+            </div>
+            <ExternalLink className="w-4 h-4 text-neutral-500" />
+          </Link>
+          <Link
+            href="/terms"
+            className="flex items-center justify-between p-4 hover:bg-neutral-700/50 transition"
+          >
+            <div className="flex items-center gap-3">
+              <FileText className="w-5 h-5 text-neutral-400" />
+              <span className="text-white">Terms & Conditions</span>
+            </div>
+            <ExternalLink className="w-4 h-4 text-neutral-500" />
+          </Link>
+        </div>
+      </div>
+
+      {/* Account Actions */}
+      <div className="px-6 mt-8 pb-8 space-y-3">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-500 hover:bg-red-500/20 transition"
+          className="w-full flex items-center justify-center gap-3 p-4 bg-neutral-800 border border-neutral-700 rounded-xl text-white hover:bg-neutral-700 transition"
         >
           <LogOut className="w-5 h-5" />
           Sign Out
         </button>
+        
+        <button
+          onClick={() => setShowDeleteModal(true)}
+          className="w-full flex items-center justify-center gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-500 hover:bg-red-500/20 transition"
+        >
+          <Trash2 className="w-5 h-5" />
+          Delete Account
+        </button>
       </div>
+
+      {/* Delete Account Modal */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-6"
+            onClick={() => !deleteLoading && setShowDeleteModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.95 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-sm bg-neutral-900 border border-neutral-700 rounded-2xl p-6"
+            >
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/20 flex items-center justify-center">
+                  <Trash2 className="w-8 h-8 text-red-500" />
+                </div>
+                <h2 className="text-xl font-bold text-white mb-2">Delete Account?</h2>
+                <p className="text-neutral-400 text-sm">
+                  This action cannot be undone. All your data will be permanently deleted.
+                </p>
+              </div>
+              
+              <div className="space-y-3">
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleteLoading}
+                  className="w-full py-3 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {deleteLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    'Yes, Delete My Account'
+                  )}
+                </button>
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  disabled={deleteLoading}
+                  className="w-full py-3 bg-neutral-800 text-white rounded-xl font-semibold hover:bg-neutral-700 transition disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Edit Modal */}
       <AnimatePresence>
