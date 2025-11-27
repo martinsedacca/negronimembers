@@ -69,7 +69,14 @@ export async function POST(request: NextRequest) {
 
     console.log('🔧 [Push Test] Sending notification...')
     
-    const result = await webpush.sendNotification(pushSubscription, payload)
+    // Add options to force immediate delivery
+    const options = {
+      TTL: 60, // Time to live in seconds
+      urgency: 'high' as const,
+      topic: 'test-notification',
+    }
+    
+    const result = await webpush.sendNotification(pushSubscription, payload, options)
     
     console.log('🔧 [Push Test] Result:', result)
 

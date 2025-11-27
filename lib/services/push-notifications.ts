@@ -43,7 +43,10 @@ export async function sendPushNotification(
       data: payload.data,
     })
 
-    await webpush.sendNotification(subscription, notificationPayload)
+    await webpush.sendNotification(subscription, notificationPayload, {
+      TTL: 86400, // 24 hours
+      urgency: 'high',
+    })
     
     return { success: true }
   } catch (error: any) {
