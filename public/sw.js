@@ -106,8 +106,8 @@ self.addEventListener('push', function(event) {
   const title = data.title || 'Negroni'
   const options = {
     body: data.body || 'Tienes una nueva notificación',
-    icon: data.icon || '/NEGRONI-Logo-hueso_png.png',
-    badge: data.badge || '/NEGRONI-Logo-hueso_png.png',
+    icon: data.icon || '/icon-192x192.png',
+    badge: data.badge || '/icon-72x72.png',
     tag: 'negroni-notification', // Prevent duplicate notifications
     renotify: true,
     data: {
