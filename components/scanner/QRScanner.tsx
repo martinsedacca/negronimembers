@@ -72,15 +72,26 @@ export default function QRScanner({
 
   useEffect(() => {
     // Clean up scanner when switching to manual mode
-    if (mode === 'manual' && scannerRef.current) {
-      scannerRef.current.clear().catch(console.error)
-      scannerRef.current = null
+    if (mode === 'manual') {
+      if (scannerRef.current) {
+        scannerRef.current.clear().catch(console.error)
+        scannerRef.current = null
+      }
+      // Also clear the DOM element contents
+      const qrElement = document.getElementById('qr-reader')
+      if (qrElement) {
+        qrElement.innerHTML = ''
+      }
+      return
     }
     
     // Initialize scanner when in scan mode
     if (mode === 'scan' && !scannerRef.current) {
       // Small delay to ensure DOM is ready
       const timeout = setTimeout(() => {
+        const qrElement = document.getElementById('qr-reader')
+        if (!qrElement) return
+        
         const scanner = new Html5QrcodeScanner(
           'qr-reader',
           {
@@ -183,7 +194,7 @@ export default function QRScanner({
       </div>
 
       <div className="p-6">
-        {mode === 'scan' ? (
+        {mode === 'scan' && (
           <div>
             <div id="qr-reader" className="rounded-lg overflow-hidden"></div>
             {loading && (
@@ -192,7 +203,8 @@ export default function QRScanner({
               </div>
             )}
           </div>
-        ) : (
+        )}
+        {mode === 'manual' && (
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-neutral-300 mb-2">
