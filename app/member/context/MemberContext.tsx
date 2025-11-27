@@ -186,53 +186,45 @@ export function MemberProvider({ children }: { children: ReactNode }) {
     }
   }, [supabase])
 
+  // Track if sync is already in progress
+  const isSyncingRef = useRef(false)
+
   // Full sync with database
   const refreshData = useCallback(async () => {
-    console.log('🔄 [refreshData] Starting sync...')
+    // Prevent concurrent syncs
+    if (isSyncingRef.current) return
+    
+    isSyncingRef.current = true
     setSyncing(true)
     setError(null)
 
     try {
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
-      
-      console.log('🔄 [refreshData] Auth check:', { 
-        hasUser: !!user, 
-        userId: user?.id,
-        userEmail: user?.email,
-        authError: authError?.message 
-      })
+      const { data: { user } } = await supabase.auth.getUser()
       
       if (!user) {
-        console.log('🔄 [refreshData] No user found, clearing auth state')
         setIsAuthenticated(false)
         setMember(null)
         clearStoredData()
         setLoading(false)
         setSyncing(false)
+        isSyncingRef.current = false
         return
       }
 
       // Get member ID first
-      const { data: memberData, error: memberError } = await supabase
+      const { data: memberData } = await supabase
         .from('members')
         .select('id, onboarding_completed')
         .eq('user_id', user.id)
         .maybeSingle()
 
-      console.log('🔄 [refreshData] Member lookup:', { 
-        hasMember: !!memberData, 
-        memberId: memberData?.id,
-        onboardingCompleted: memberData?.onboarding_completed,
-        memberError: memberError?.message 
-      })
-
       if (!memberData) {
-        console.log('🔄 [refreshData] No member found for user, clearing auth state')
         setIsAuthenticated(false)
         setMember(null)
         clearStoredData()
         setLoading(false)
         setSyncing(false)
+        isSyncingRef.current = false
         return
       }
 
@@ -264,14 +256,13 @@ export function MemberProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false)
       setSyncing(false)
+      isSyncingRef.current = false
     }
   }, [supabase, fetchAllData])
 
   // Listen for auth state changes from Supabase
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('🔐 [MemberContext] Auth state changed:', event, !!session)
-      
       if (event === 'SIGNED_IN' && session) {
         // User just signed in, refresh data
         refreshData()
@@ -396,25 +387,11 @@ export function useRequireAuth(requireOnboarding = true) {
   const router = useRouter()
 
   useEffect(() => {
-    console.log('🔐 [useRequireAuth] State:', {
-      loading,
-      isAuthenticated,
-      hasMember: !!member,
-      memberId: member?.id,
-      memberEmail: member?.email,
-      onboardingCompleted: member?.onboarding_completed,
-      requireOnboarding
-    })
-
     if (!loading) {
       if (!isAuthenticated || !member) {
-        console.log('🔐 [useRequireAuth] → Redirecting to /member/auth (not authenticated or no member)')
         router.replace('/member/auth')
       } else if (requireOnboarding && member.onboarding_completed !== true) {
-        console.log('🔐 [useRequireAuth] → Redirecting to /member/onboarding (onboarding not completed)')
         router.replace('/member/onboarding')
-      } else {
-        console.log('🔐 [useRequireAuth] ✅ User authorized, staying on page')
       }
     }
   }, [loading, isAuthenticated, member, requireOnboarding, router])
