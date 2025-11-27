@@ -330,9 +330,13 @@ export default function AuthPage() {
                   Verification code
                 </label>
                 <input
+                  id="otp-input"
+                  name="otp"
                   type="text"
                   inputMode="numeric"
+                  pattern="[0-9]*"
                   autoComplete="one-time-code"
+                  autoFocus
                   value={code}
                   onChange={(e) => {
                     setCode(e.target.value.replace(/\D/g, '').slice(0, 6))
