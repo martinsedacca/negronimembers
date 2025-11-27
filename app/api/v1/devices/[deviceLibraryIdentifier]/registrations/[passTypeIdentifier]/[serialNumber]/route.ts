@@ -32,7 +32,7 @@ export async function POST(
     // Find the wallet pass
     const { data: pass, error: passError } = await supabase
       .from('wallet_passes')
-      .select('id, member_id')
+      .select('id, member_id, serial_number')
       .eq('serial_number', serialNumber)
       .single()
 
@@ -44,18 +44,18 @@ export async function POST(
       )
     }
 
-    // Register or update push token
+    // Register or update push token using correct column names
     const { error: tokenError } = await supabase
       .from('wallet_push_tokens')
       .upsert({
-        pass_id: pass.id,
+        pass_serial_number: pass.serial_number,
         member_id: pass.member_id,
         device_library_identifier: deviceLibraryIdentifier,
         push_token: pushToken,
         is_active: true,
-        last_updated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       }, {
-        onConflict: 'device_library_identifier,pass_id',
+        onConflict: 'device_library_identifier,pass_serial_number',
       })
 
     if (tokenError) {
@@ -94,23 +94,11 @@ export async function DELETE(
 
     const supabase = await createClient()
 
-    // Find the pass
-    const { data: pass } = await supabase
-      .from('wallet_passes')
-      .select('id')
-      .eq('serial_number', serialNumber)
-      .single()
-
-    if (!pass) {
-      console.error('🔴 [Wallet] Pass not found for unregister:', serialNumber)
-      return NextResponse.json({}, { status: 200 }) // Apple expects 200 even if not found
-    }
-
-    // Mark token as inactive
+    // Mark token as inactive using serial number directly
     await supabase
       .from('wallet_push_tokens')
       .update({ is_active: false })
-      .eq('pass_id', pass.id)
+      .eq('pass_serial_number', serialNumber)
       .eq('device_library_identifier', deviceLibraryIdentifier)
 
     console.log('✅ [Wallet] Device unregistered successfully')
