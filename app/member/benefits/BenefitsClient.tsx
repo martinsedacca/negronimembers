@@ -81,18 +81,18 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
   // Tutorial content
   const tutorialSteps = [
     {
-      title: '¡Bienvenido al programa!',
-      description: 'Gana puntos con cada visita y desbloquea beneficios exclusivos.',
+      title: 'Welcome to the program!',
+      description: 'Earn points with every visit and unlock exclusive benefits.',
       icon: '🎉'
     },
     {
-      title: 'Sube de nivel',
-      description: 'A medida que acumulas puntos o visitas, subes de nivel automáticamente.',
+      title: 'Level up',
+      description: 'As you accumulate points or visits, you level up automatically.',
       icon: '⬆️'
     },
     {
-      title: 'Más beneficios',
-      description: 'Cada nivel tiene beneficios mejores. ¡Llega al máximo nivel para disfrutar de todo!',
+      title: 'More benefits',
+      description: 'Each level has better benefits. Reach the top level to enjoy everything!',
       icon: '🎁'
     }
   ]
@@ -117,7 +117,7 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
             className="flex items-center gap-2 text-sm text-orange-500 hover:text-orange-400 transition"
           >
             <HelpCircle className="w-5 h-5" />
-            <span className="hidden sm:inline">¿Cómo funciona?</span>
+            <span className="hidden sm:inline">How it works</span>
           </button>
         </motion.div>
       </div>
@@ -189,10 +189,10 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
                 <div className="flex items-center gap-2">
                   <h3 className="text-xl font-bold text-white">{sortedTypes[activeTab].name}</h3>
                   {activeTab === currentLevelIndex && (
-                    <span className="text-xs px-2 py-0.5 bg-orange-500 text-white rounded-full">Tu nivel</span>
+                    <span className="text-xs px-2 py-0.5 bg-orange-500 text-white rounded-full">Current</span>
                   )}
                   {activeTab < currentLevelIndex && (
-                    <span className="text-xs px-2 py-0.5 bg-green-500 text-white rounded-full">Completado</span>
+                    <span className="text-xs px-2 py-0.5 bg-green-500 text-white rounded-full">Completed</span>
                   )}
                 </div>
                 <p className="text-sm text-neutral-400">{sortedTypes[activeTab].description}</p>
@@ -202,19 +202,19 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
             {/* Requirements */}
             {activeTab > currentLevelIndex && (
               <div className="mt-3 p-3 bg-neutral-900/50 rounded-lg">
-                <p className="text-xs text-neutral-500 mb-2">Para desbloquear necesitas:</p>
+                <p className="text-xs text-neutral-500 mb-2">To unlock you need:</p>
                 <div className="flex gap-4 text-sm">
                   {sortedTypes[activeTab].points_required > 0 && (
                     <span className="text-orange-400">
-                      {sortedTypes[activeTab].points_required} puntos
+                      {sortedTypes[activeTab].points_required} points
                     </span>
                   )}
                   {sortedTypes[activeTab].points_required > 0 && sortedTypes[activeTab].visits_required > 0 && (
-                    <span className="text-neutral-500">o</span>
+                    <span className="text-neutral-500">or</span>
                   )}
                   {sortedTypes[activeTab].visits_required > 0 && (
                     <span className="text-green-400">
-                      {sortedTypes[activeTab].visits_required} visitas
+                      {sortedTypes[activeTab].visits_required} visits
                     </span>
                   )}
                 </div>
@@ -234,7 +234,7 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
         >
           <h4 className="font-semibold text-white mb-3 flex items-center gap-2">
             <Gift className="w-4 h-4 text-orange-500" />
-            Beneficios de {sortedTypes[activeTab]?.name || 'este nivel'}
+            {sortedTypes[activeTab]?.name || 'Level'} Benefits
           </h4>
 
           {sortedTypes[activeTab] && getLevelBenefits(sortedTypes[activeTab]).length > 0 ? (
@@ -270,7 +270,7 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
           ) : (
             <div className="text-center py-8 bg-neutral-800/50 rounded-xl border border-neutral-700">
               <Sparkles className="w-10 h-10 text-neutral-600 mx-auto mb-2" />
-              <p className="text-neutral-400 text-sm">No hay beneficios configurados para este nivel</p>
+              <p className="text-neutral-400 text-sm">No specific benefits configured for this level</p>
             </div>
           )}
         </motion.div>
@@ -281,7 +281,7 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
         <div className="px-6 mb-6">
           <h4 className="font-semibold text-white mb-3 flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-orange-500" />
-            Promociones activas
+            Active Promotions
             <span className="text-sm text-neutral-400 font-normal">({benefits.length})</span>
           </h4>
           
@@ -328,15 +328,15 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
             <div className="flex items-center gap-3 mb-3">
               <Tag className="w-5 h-5 text-purple-500" />
               <div>
-                <h4 className="font-semibold text-white text-sm">¿Tienes un código especial?</h4>
-                <p className="text-xs text-neutral-400">Canjéalo para obtener beneficios exclusivos</p>
+                <h4 className="font-semibold text-white text-sm">Have a special code?</h4>
+                <p className="text-xs text-neutral-400">Redeem it to unlock exclusive benefits</p>
               </div>
             </div>
             <Link
               href="/member/codes"
               className="block w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition text-center text-sm"
             >
-              Canjear Código
+              Redeem Code
             </Link>
           </motion.div>
         </div>
@@ -405,7 +405,7 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
                       className="flex-1 py-3 bg-neutral-800 text-white rounded-xl font-semibold hover:bg-neutral-700 transition flex items-center justify-center gap-2"
                     >
                       <ChevronLeft className="w-4 h-4" />
-                      Anterior
+                      Back
                     </button>
                   )}
                   {tutorialStep < tutorialSteps.length - 1 ? (
@@ -413,7 +413,7 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
                       onClick={() => setTutorialStep(tutorialStep + 1)}
                       className="flex-1 py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition flex items-center justify-center gap-2"
                     >
-                      Siguiente
+                      Next
                       <ChevronRight className="w-4 h-4" />
                     </button>
                   ) : (
@@ -421,7 +421,7 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
                       onClick={() => setShowTutorial(false)}
                       className="flex-1 py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition"
                     >
-                      ¡Entendido!
+                      Got it!
                     </button>
                   )}
                 </div>

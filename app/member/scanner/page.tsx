@@ -153,9 +153,9 @@ export default function ScannerPage() {
             <div className="w-24 h-24 mx-auto mb-6 rounded-2xl bg-orange-500/20 border-2 border-orange-500 flex items-center justify-center">
               <Camera className="w-12 h-12 text-orange-500" />
             </div>
-            <h1 className="text-2xl font-bold text-white mb-2">Scanner QR</h1>
+            <h1 className="text-2xl font-bold text-white mb-2">Scan Menu</h1>
             <p className="text-neutral-400 mb-6">
-              Escanea códigos QR para ver menús, promociones y más
+              Scan the QR code on your table to view the menu
             </p>
             
             {error && (
@@ -167,7 +167,7 @@ export default function ScannerPage() {
               className="px-8 py-4 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition flex items-center gap-2 mx-auto"
             >
               <Camera className="w-5 h-5" />
-              Iniciar Cámara
+              Start Camera
             </button>
           </motion.div>
         )}
@@ -210,10 +210,10 @@ export default function ScannerPage() {
             {/* Instructions */}
             <div className="absolute bottom-32 left-0 right-0 text-center">
               <p className="text-white text-lg font-medium">
-                Apunta al código QR
+                Point at the QR code
               </p>
               <p className="text-neutral-400 text-sm mt-1">
-                El escaneo es automático
+                Scanning is automatic
               </p>
             </div>
             
@@ -225,7 +225,7 @@ export default function ScannerPage() {
               className="absolute bottom-12 left-1/2 -translate-x-1/2 px-6 py-3 bg-white/10 backdrop-blur text-white rounded-xl font-semibold flex items-center gap-2"
             >
               <X className="w-5 h-5" />
-              Cancelar
+              Cancel
             </button>
           </>
         )}
@@ -240,10 +240,10 @@ export default function ScannerPage() {
             <div className="w-24 h-24 mx-auto mb-6 rounded-2xl bg-green-500/20 border-2 border-green-500 flex items-center justify-center">
               <span className="text-5xl">✅</span>
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">¡QR Detectado!</h2>
+            <h2 className="text-2xl font-bold text-white mb-2">QR Detected!</h2>
             
             <div className="bg-neutral-800 rounded-xl p-4 mb-6 max-w-sm mx-auto">
-              <p className="text-neutral-400 text-xs mb-1">Contenido:</p>
+              <p className="text-neutral-400 text-xs mb-1">Content:</p>
               <p className="text-white text-sm break-all">{result}</p>
             </div>
             
@@ -254,7 +254,7 @@ export default function ScannerPage() {
                   className="px-6 py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition flex items-center gap-2"
                 >
                   <ExternalLink className="w-5 h-5" />
-                  Abrir Link
+                  Open Menu
                 </button>
               )}
               <button
@@ -264,7 +264,7 @@ export default function ScannerPage() {
                 }}
                 className="px-6 py-3 bg-neutral-800 text-white rounded-xl font-semibold hover:bg-neutral-700 transition"
               >
-                Escanear Otro
+                Scan Another
               </button>
             </div>
           </motion.div>
