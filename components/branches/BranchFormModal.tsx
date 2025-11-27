@@ -25,8 +25,34 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
     is_active: branch?.is_active ?? true,
   })
 
+  // Reverse geocode to get address from coordinates
+  const reverseGeocode = async (lat: string, lng: string) => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
+        { headers: { 'Accept-Language': 'en' } }
+      )
+      const data = await response.json()
+      if (data && data.address) {
+        const addr = data.address
+        // Build a clean address
+        const streetParts = [addr.house_number, addr.road].filter(Boolean).join(' ')
+        const address = streetParts || addr.neighbourhood || addr.suburb || ''
+        const city = addr.city || addr.town || addr.village || addr.municipality || ''
+        
+        setFormData(prev => ({
+          ...prev,
+          address: address,
+          city: city
+        }))
+      }
+    } catch (error) {
+      console.error('Reverse geocode error:', error)
+    }
+  }
+
   // Parse Google Maps URL to extract coordinates
-  const parseGoogleMapsUrl = (url: string) => {
+  const parseGoogleMapsUrl = async (url: string) => {
     // Pattern: @25.7616,-80.1918 or /place/.../@25.7616,-80.1918
     const match = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/)
     if (match) {
@@ -35,6 +61,8 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
         latitude: match[1],
         longitude: match[2]
       }))
+      // Get address from coordinates
+      await reverseGeocode(match[1], match[2])
       return true
     }
     // Pattern: q=25.7616,-80.1918
@@ -45,6 +73,8 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
         latitude: match2[1],
         longitude: match2[2]
       }))
+      // Get address from coordinates
+      await reverseGeocode(match2[1], match2[2])
       return true
     }
     return false
