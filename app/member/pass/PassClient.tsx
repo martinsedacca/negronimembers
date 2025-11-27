@@ -123,17 +123,22 @@ export default function PassClient({ member }: PassClientProps) {
       {/* Content */}
       <div className="relative z-10">
         {/* Header with Logo */}
-        <div className="px-6 pt-6 pb-4">
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
+        <div className="px-6 pt-8 pb-6">
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }} 
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center text-center"
+          >
             <Image 
               src="/NEGRONI-Logo-hueso_png.png" 
               alt="Negroni" 
-              width={120} 
-              height={30}
-              className="mb-4 opacity-90"
+              width={140} 
+              height={35}
+              className="mb-6"
             />
-            <p className="text-orange-500 text-sm font-medium mb-1">Welcome back,</p>
-            <h1 className="text-2xl font-bold text-white">{member.first_name || member.full_name?.split(' ')[0] || 'Member'}</h1>
+            <p className="text-neutral-400 text-sm tracking-wide">
+              Welcome back, <span className="text-white font-medium">{member.first_name || member.full_name?.split(' ')[0] || 'Member'}</span>
+            </p>
           </motion.div>
         </div>
 
