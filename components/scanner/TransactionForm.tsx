@@ -27,7 +27,11 @@ export default function TransactionForm({ memberData, onComplete, onCancel }: Tr
   useEffect(() => {
     fetch('/api/branches')
       .then(res => res.json())
-      .then(data => setBranches(data.filter((b: any) => b.is_active)))
+      .then(data => {
+        // API returns { branches: [...] }
+        const branchList = data.branches || data || []
+        setBranches(branchList.filter((b: any) => b.is_active))
+      })
       .catch(console.error)
   }, [])
 
@@ -188,9 +192,9 @@ export default function TransactionForm({ memberData, onComplete, onCancel }: Tr
           </div>
         )}
 
-        {/* Branch */}
+        {/* Location */}
         <div>
-          <label className="block text-sm font-medium text-neutral-300 mb-2">Branch</label>
+          <label className="block text-sm font-medium text-neutral-300 mb-2">Location</label>
           <div className="relative">
             <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500 pointer-events-none z-10" />
             <select
@@ -198,7 +202,7 @@ export default function TransactionForm({ memberData, onComplete, onCancel }: Tr
               onChange={(e) => setFormData({ ...formData, branch_id: e.target.value })}
               className="w-full pl-10 pr-4 py-3 bg-neutral-700 border border-neutral-600 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none"
             >
-              <option value="">Select a branch...</option>
+              <option value="">Select a location...</option>
               {branches.map((branch) => (
                 <option key={branch.id} value={branch.id}>
                   {branch.name}
