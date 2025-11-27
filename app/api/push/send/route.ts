@@ -95,7 +95,10 @@ export async function POST(request: NextRequest) {
     const result = await sendBulkPushNotifications(
       subscriptions.map(sub => ({
         endpoint: sub.endpoint,
-        keys: sub.keys,
+        keys: {
+          p256dh: sub.p256dh,
+          auth: sub.auth,
+        },
       })),
       {
         title,
