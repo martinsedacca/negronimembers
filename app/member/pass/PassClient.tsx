@@ -106,15 +106,15 @@ export default function PassClient({ member }: PassClientProps) {
   }
 
   return (
-    <div className="min-h-screen pb-6 relative">
+    <div className="min-h-screen pb-6 relative overflow-hidden">
       {/* Background Image */}
-      <div className="fixed inset-0 z-0">
+      <div className="absolute inset-0 z-0">
         <img 
           src="/images/brand/lounge-red.jpg" 
           alt="" 
-          className="absolute inset-0 w-full h-full object-cover opacity-15"
+          className="w-full h-full object-cover opacity-20"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-neutral-950/70 via-neutral-950/90 to-neutral-950" />
+        <div className="absolute inset-0 bg-gradient-to-b from-neutral-950/60 via-neutral-950/85 to-neutral-950" />
       </div>
 
       {/* Content */}
