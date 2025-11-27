@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { X, Save, Loader2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { X, Save, Loader2, Search, MapPin } from 'lucide-react'
 import type { Database } from '@/lib/types/database'
 
 type Branch = Database['public']['Tables']['branches']['Row']
@@ -50,6 +50,50 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
     return false
   }
   const [saving, setSaving] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [searching, setSearching] = useState(false)
+
+  // Search for address using Nominatim (OpenStreetMap)
+  const searchAddress = async (query: string) => {
+    if (query.length < 3) {
+      setSearchResults([])
+      return
+    }
+    
+    setSearching(true)
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`,
+        { headers: { 'Accept-Language': 'en' } }
+      )
+      const data = await response.json()
+      setSearchResults(data)
+    } catch (error) {
+      console.error('Search error:', error)
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchQuery) searchAddress(searchQuery)
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
+  const selectSearchResult = (result: any) => {
+    setFormData(prev => ({
+      ...prev,
+      latitude: result.lat,
+      longitude: result.lon,
+      address: result.display_name.split(',').slice(0, 3).join(', ')
+    }))
+    setSearchResults([])
+    setSearchQuery('')
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -182,58 +226,88 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
             />
           </div>
 
-          {/* Map Coordinates */}
+          {/* Map Location Search */}
           <div className="border border-neutral-600 rounded-lg p-4 space-y-3">
-            <label className="block text-sm font-medium text-neutral-300">
-              📍 Map Location
+            <label className="block text-sm font-medium text-neutral-300 flex items-center gap-2">
+              <MapPin className="w-4 h-4" />
+              Map Location
             </label>
-            <div>
-              <input
-                type="text"
-                placeholder="Paste Google Maps link here..."
-                onChange={(e) => {
-                  const url = e.target.value
-                  if (url.includes('google.com/maps') || url.includes('goo.gl/maps')) {
-                    parseGoogleMapsUrl(url)
-                  }
-                }}
-                className="w-full px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
-              />
-              <p className="text-xs text-neutral-500 mt-1">
-                Paste a Google Maps URL to auto-fill coordinates
+            
+            {/* Address Search */}
+            <div className="relative">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    const value = e.target.value
+                    setSearchQuery(value)
+                    // Also check if it's a Google Maps URL
+                    if (value.includes('google.com/maps') || value.includes('goo.gl/maps')) {
+                      parseGoogleMapsUrl(value)
+                      setSearchQuery('')
+                    }
+                  }}
+                  placeholder="Search address or paste Google Maps link..."
+                  className="w-full pl-10 pr-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                />
+                {searching && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-orange-500 animate-spin" />
+                )}
+              </div>
+              
+              {/* Search Results */}
+              {searchResults.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-neutral-800 border border-neutral-600 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                  {searchResults.map((result, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => selectSearchResult(result)}
+                      className="w-full px-4 py-3 text-left hover:bg-neutral-700 border-b border-neutral-700 last:border-0 transition"
+                    >
+                      <p className="text-sm text-white truncate">{result.display_name.split(',').slice(0, 2).join(',')}</p>
+                      <p className="text-xs text-neutral-500 truncate">{result.display_name}</p>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Coordinates Display */}
+            {formData.latitude && formData.longitude ? (
+              <div className="bg-neutral-700/50 rounded-lg p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-neutral-400">Coordinates</p>
+                    <p className="text-sm text-white font-mono">
+                      {formData.latitude}, {formData.longitude}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <a
+                      href={`https://www.google.com/maps?q=${formData.latitude},${formData.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs px-3 py-1.5 bg-orange-500 text-white rounded hover:bg-orange-600 transition"
+                    >
+                      View Map
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, latitude: '', longitude: '' }))}
+                      className="text-xs px-3 py-1.5 bg-neutral-600 text-white rounded hover:bg-neutral-500 transition"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-neutral-500">
+                Search for an address above to set the location coordinates
               </p>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs text-neutral-400 mb-1">Latitude</label>
-                <input
-                  type="text"
-                  value={formData.latitude}
-                  onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
-                  className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
-                  placeholder="25.7617"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-neutral-400 mb-1">Longitude</label>
-                <input
-                  type="text"
-                  value={formData.longitude}
-                  onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
-                  className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
-                  placeholder="-80.1918"
-                />
-              </div>
-            </div>
-            {formData.latitude && formData.longitude && (
-              <a
-                href={`https://www.google.com/maps?q=${formData.latitude},${formData.longitude}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1"
-              >
-                Preview on Google Maps →
-              </a>
             )}
           </div>
 
