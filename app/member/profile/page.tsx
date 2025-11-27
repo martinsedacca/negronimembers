@@ -109,24 +109,14 @@ export default function ProfilePage() {
 
     try {
       if (editingField === 'email') {
-        // For email, update directly - Supabase will send confirmation email
-        const { error: updateError } = await supabase.auth.updateUser({
-          email: newValue,
+        // Send OTP via custom API
+        const response = await fetch('/api/member/send-email-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ memberId: member.id, email: newValue }),
         })
-        if (updateError) throw updateError
-
-        // Also update in members table
-        await supabase
-          .from('members')
-          .update({ email: newValue })
-          .eq('id', member.id)
-
-        updateMember({ email: newValue })
-        setSuccess('A confirmation link has been sent to your new email. Please check your inbox.')
-        setTimeout(() => {
-          cancelEditing()
-        }, 3000)
-        return
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error || 'Failed to send code')
       } else if (editingField === 'phone') {
         const { error: otpError } = await supabase.auth.signInWithOtp({
           phone: newValue,
@@ -154,12 +144,16 @@ export default function ProfilePage() {
     try {
       // Verify OTP
       if (editingField === 'email') {
-        const { error: verifyError } = await supabase.auth.verifyOtp({
-          email: newValue,
-          token: otp,
-          type: 'email',
+        // Use custom API for email verification
+        const response = await fetch('/api/member/verify-email-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ memberId: member.id, email: newValue, code: otp }),
         })
-        if (verifyError) throw verifyError
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error || 'Invalid code')
+        
+        updateMember({ email: newValue })
       } else if (editingField === 'phone') {
         const { error: verifyError } = await supabase.auth.verifyOtp({
           phone: newValue,
@@ -167,21 +161,18 @@ export default function ProfilePage() {
           type: 'sms',
         })
         if (verifyError) throw verifyError
+
+        // Update member record
+        const { error: updateError } = await supabase
+          .from('members')
+          .update({ phone: newValue })
+          .eq('id', member.id)
+
+        if (updateError) throw updateError
+        
+        updateMember({ phone: newValue })
       }
 
-      // Update member record
-      const updateData = editingField === 'email' 
-        ? { email: newValue } 
-        : { phone: newValue }
-
-      const { error: updateError } = await supabase
-        .from('members')
-        .update(updateData)
-        .eq('id', member.id)
-
-      if (updateError) throw updateError
-
-      updateMember(updateData)
       setSuccess(`${editingField === 'email' ? 'Email' : 'Phone'} updated successfully!`)
       setTimeout(() => {
         cancelEditing()
@@ -373,16 +364,10 @@ export default function ProfilePage() {
                       className="w-full px-4 py-4 bg-neutral-800 text-white border border-neutral-700 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
                       autoFocus
                     />
-                    {editingField === 'email' && (
+                    {(editingField === 'email' || editingField === 'phone') && (
                       <p className="text-xs text-neutral-500 mt-2 flex items-center gap-1">
                         <Shield className="w-3 h-3" />
-                        A confirmation link will be sent to your new email
-                      </p>
-                    )}
-                    {editingField === 'phone' && (
-                      <p className="text-xs text-neutral-500 mt-2 flex items-center gap-1">
-                        <Shield className="w-3 h-3" />
-                        A verification code will be sent via SMS
+                        A 6-digit verification code will be sent to confirm this change
                       </p>
                     )}
                   </div>
@@ -396,11 +381,10 @@ export default function ProfilePage() {
                     {loading ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        {editingField === 'name' ? 'Saving...' : editingField === 'email' ? 'Updating...' : 'Sending code...'}
+                        {editingField === 'name' ? 'Saving...' : 'Sending code...'}
                       </>
                     ) : (
-                      editingField === 'name' ? 'Save Changes' : 
-                      editingField === 'email' ? 'Update Email' : 'Send Verification Code'
+                      editingField === 'name' ? 'Save Changes' : 'Send Verification Code'
                     )}
                   </button>
                 </>
