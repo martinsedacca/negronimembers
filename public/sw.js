@@ -87,34 +87,43 @@ self.addEventListener('fetch', (event) => {
 
 // Push Notifications
 self.addEventListener('push', function(event) {
-  console.log('[Service Worker] Push received:', event)
+  console.log('[Service Worker] 🔔 Push event received!')
+  console.log('[Service Worker] Push event data:', event.data)
   
   let data = {}
   try {
-    data = event.data ? event.data.json() : {}
+    if (event.data) {
+      const text = event.data.text()
+      console.log('[Service Worker] Raw push data:', text)
+      data = JSON.parse(text)
+      console.log('[Service Worker] Parsed push data:', data)
+    }
   } catch (e) {
     console.error('[Service Worker] Error parsing push data:', e)
-    data = { title: 'Nueva notificación', body: 'Tienes una nueva notificación' }
+    data = { title: 'Negroni', body: 'Tienes una nueva notificación' }
   }
 
-  const title = data.title || 'Membership System'
+  const title = data.title || 'Negroni'
   const options = {
     body: data.body || 'Tienes una nueva notificación',
     icon: data.icon || '/icon-192x192.png',
     badge: data.badge || '/badge-72x72.png',
+    tag: 'negroni-notification', // Prevent duplicate notifications
+    renotify: true,
     data: {
-      url: data.url || '/',
+      url: data.url || '/member/pass',
       ...data.data
     },
     vibrate: [200, 100, 200],
-    actions: data.url ? [
-      { action: 'open', title: 'Ver' },
-      { action: 'close', title: 'Cerrar' }
-    ] : []
+    requireInteraction: false, // Auto-dismiss after a while
   }
+
+  console.log('[Service Worker] Showing notification:', title, options)
 
   event.waitUntil(
     self.registration.showNotification(title, options)
+      .then(() => console.log('[Service Worker] ✅ Notification shown successfully'))
+      .catch(err => console.error('[Service Worker] ❌ Error showing notification:', err))
   )
 })
 
