@@ -23,30 +23,16 @@ export default function BenefitsPage() {
     fetchBranches()
   }, [])
 
-  // Filter promotions based on applicability and date validity
-  const applicableBenefits = useMemo(() => {
-    if (!member) return []
-    
+  // Filter promotions - only check date validity, BenefitsClient will filter by level
+  const activeBenefits = useMemo(() => {
     const now = new Date().toISOString()
     
     return promotions.filter((promo: any) => {
-      // Check date validity: end_date null means no expiration
+      // Check date validity: far future date (2099) means no expiration
       const isDateValid = !promo.end_date || promo.end_date >= now
-      if (!isDateValid) return false
-      
-      // Check applicability
-      const applicable_to = promo.applicable_to || ['all']
-      
-      if (applicable_to.includes('all')) return true
-      if (applicable_to.includes(`tier:${member.membership_type}`)) return true
-      
-      for (const code of memberCodes) {
-        if (applicable_to.includes(`code:${code}`)) return true
-      }
-      
-      return false
+      return isDateValid && promo.is_active
     })
-  }, [promotions, member, memberCodes])
+  }, [promotions])
 
   if (loading || !member) {
     return (
@@ -59,7 +45,7 @@ export default function BenefitsPage() {
   return (
     <BenefitsClient 
       member={member}
-      benefits={applicableBenefits}
+      benefits={activeBenefits}
       hasCodes={memberCodes.length > 0}
       membershipTypes={membershipTypes}
       transactionCount={transactions.length}

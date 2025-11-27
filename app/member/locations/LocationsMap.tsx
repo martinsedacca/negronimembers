@@ -22,69 +22,56 @@ interface LocationsMapProps {
   onSelectLocation: (location: Location) => void
 }
 
-// Custom marker icon with distance label
+// Custom marker icon - simple and clean
 const createIcon = (isSelected: boolean, distance?: number) => {
-  const distanceText = distance !== undefined ? `${distance.toFixed(1)} mi` : ''
+  const size = isSelected ? 32 : 28
+  const distanceText = distance !== undefined ? `${distance.toFixed(1)}mi` : ''
   
   return L.divIcon({
-    className: '',
-    html: `
-      <div class="marker-container" style="position:relative;width:50px;height:60px;">
-        <div style="
-          position:absolute;
-          left:50%;
-          bottom:0;
-          transform:translateX(-50%);
-          width:${isSelected ? '36px' : '30px'};
-          height:${isSelected ? '36px' : '30px'};
-          background:${isSelected ? '#f97316' : '#262626'};
-          border:2px solid ${isSelected ? '#fff' : '#f97316'};
-          border-radius:50%;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          box-shadow:0 2px 8px rgba(0,0,0,0.4);
-        ">
-          <span style="font-size:16px;">📍</span>
-        </div>
-        ${distanceText ? `
-          <div style="
-            position:absolute;
-            left:50%;
-            bottom:${isSelected ? '40px' : '34px'};
-            transform:translateX(-50%);
-            padding:2px 6px;
-            background:${isSelected ? '#f97316' : '#262626'};
-            color:#fff;
-            font-size:10px;
-            font-weight:bold;
-            border-radius:8px;
-            white-space:nowrap;
-            box-shadow:0 1px 4px rgba(0,0,0,0.3);
-          ">${distanceText}</div>
-        ` : ''}
-      </div>
-    `,
-    iconSize: [50, 60],
-    iconAnchor: [25, 30],
+    className: 'custom-leaflet-marker',
+    html: `<div style="
+      width: ${size}px;
+      height: ${size}px;
+      background: ${isSelected ? '#f97316' : '#1f1f1f'};
+      border: 2px solid ${isSelected ? '#fff' : '#f97316'};
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    ">📍</div>
+    ${distanceText ? `<div style="
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #f97316;
+      color: white;
+      font-size: 9px;
+      font-weight: bold;
+      padding: 1px 5px;
+      border-radius: 6px;
+      white-space: nowrap;
+    ">${distanceText}</div>` : ''}`,
+    iconSize: [size, size],
+    iconAnchor: [size/2, size/2],
   })
 }
 
 // User location icon (blue dot)
 const userLocationIcon = L.divIcon({
-  className: '',
-  html: `
-    <div style="
-      width:16px;
-      height:16px;
-      background:#3b82f6;
-      border:3px solid #fff;
-      border-radius:50%;
-      box-shadow:0 0 0 6px rgba(59,130,246,0.3);
-    "></div>
-  `,
-  iconSize: [16, 16],
-  iconAnchor: [8, 8],
+  className: 'custom-leaflet-marker',
+  html: `<div style="
+    width: 14px;
+    height: 14px;
+    background: #3b82f6;
+    border: 2px solid white;
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px rgba(59,130,246,0.3);
+  "></div>`,
+  iconSize: [14, 14],
+  iconAnchor: [7, 7],
 })
 
 // Component to handle map updates

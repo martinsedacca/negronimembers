@@ -81,3 +81,19 @@ body {
   position: relative;
   overflow-x: hidden;
 }
+
+/* Leaflet marker fixes */
+.leaflet-marker-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+.custom-leaflet-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.leaflet-div-icon {
+  background: transparent !important;
+  border: none !important;
+}
