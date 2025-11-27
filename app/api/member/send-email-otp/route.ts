@@ -48,29 +48,43 @@ export async function POST(request: NextRequest) {
 
     // Send email with OTP
     const resend = getResend()
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'
+    
+    console.log('📧 Sending OTP email:', { 
+      hasResend: !!resend, 
+      fromEmail,
+      toEmail: email,
+      hasApiKey: !!process.env.RESEND_API_KEY 
+    })
+    
     if (resend) {
-      await resend.emails.send({
-        from: 'Negroni Members <noreply@onetimeleads.com>',
-        to: email,
-        subject: 'Your verification code',
-        html: `
-          <div style="font-family: sans-serif; max-width: 400px; margin: 0 auto; padding: 20px;">
-            <h2 style="color: #333;">Verify your email</h2>
-            <p style="color: #666;">Use this code to verify your new email address:</p>
-            <div style="background: #f5f5f5; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
-              <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #ea580c;">${code}</span>
+      try {
+        const result = await resend.emails.send({
+          from: `Negroni Members <${fromEmail}>`,
+          to: email,
+          subject: 'Your verification code',
+          html: `
+            <div style="font-family: sans-serif; max-width: 400px; margin: 0 auto; padding: 20px;">
+              <h2 style="color: #333;">Verify your email</h2>
+              <p style="color: #666;">Use this code to verify your new email address:</p>
+              <div style="background: #f5f5f5; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #ea580c;">${code}</span>
+              </div>
+              <p style="color: #999; font-size: 12px;">This code expires in 10 minutes.</p>
+              <p style="color: #999; font-size: 12px;">If you didn't request this, please ignore this email.</p>
             </div>
-            <p style="color: #999; font-size: 12px;">This code expires in 10 minutes.</p>
-            <p style="color: #999; font-size: 12px;">If you didn't request this, please ignore this email.</p>
-          </div>
-        `,
-      })
+          `,
+        })
+        console.log('📧 Resend result:', result)
+      } catch (resendError: any) {
+        console.error('📧 Resend error:', resendError)
+        // Don't fail the request, just log the error
+      }
     } else {
-      // Fallback: log the code (for development)
-      console.log(`📧 Email OTP for ${email}: ${code}`)
+      console.log(`📧 No Resend configured. OTP for ${email}: ${code}`)
     }
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, code: process.env.NODE_ENV === 'development' ? code : undefined })
   } catch (error: any) {
     console.error('Send email OTP error:', error)
     return NextResponse.json({ error: error.message || 'Internal error' }, { status: 500 })
