@@ -63,7 +63,16 @@ export async function POST(
       throw tokenError
     }
 
-    console.log('✅ [Wallet] Device registered successfully')
+    // Mark member as having wallet push enabled
+    await supabase
+      .from('members')
+      .update({ 
+        has_wallet_push: true,
+        wallet_push_registered_at: new Date().toISOString()
+      })
+      .eq('id', pass.member_id)
+
+    console.log('✅ [Wallet] Device registered successfully for member:', pass.member_id)
 
     // Apple expects 201 Created for first registration, 200 OK for updates
     return NextResponse.json({}, { status: 201 })

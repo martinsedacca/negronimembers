@@ -44,6 +44,11 @@ export async function POST(request: NextRequest) {
       query = query.gte('spent_last_30_days', filters.spent_last_30_days_min)
     }
 
+    // Wallet Push filter
+    if (filters.has_wallet_push) {
+      query = query.eq('has_wallet_push', true)
+    }
+
     if (filters.membership_types && filters.membership_types.length > 0) {
       query = query.in('membership_type', filters.membership_types)
     }

@@ -29,6 +29,9 @@ interface SegmentFilters {
   membership_types?: string[]
   status?: string[]
   
+  // Wallet Push
+  has_wallet_push?: boolean
+  
   // Promotions
   never_used_promotions?: boolean
   
@@ -482,6 +485,20 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
                 </label>
               ))}
             </div>
+          </div>
+
+          {/* Wallet Push Filter */}
+          <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={filters.has_wallet_push || false}
+                onChange={(e) => setFilters({ ...filters, has_wallet_push: e.target.checked || undefined })}
+                className="rounded"
+              />
+              <span className="text-sm font-medium text-blue-400">📱 Solo con Wallet Push</span>
+            </label>
+            <p className="text-xs text-neutral-500 mt-1">Solo miembros que pueden recibir push notifications</p>
           </div>
 
           {/* Onboarding Responses */}
