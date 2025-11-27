@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:admin@negroni.com'
 
     console.log('🔧 [Push Test] VAPID Config:', {
-      publicKeyLength: vapidPublicKey?.length,
+      publicKey: vapidPublicKey,
       privateKeyLength: vapidPrivateKey?.length,
       subject: vapidSubject,
     })
@@ -77,6 +77,8 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Push notification sent!',
       statusCode: result.statusCode,
+      vapidPublicKey: vapidPublicKey,
+      subscriptionEndpoint: subscription.endpoint.substring(0, 60) + '...',
     })
   } catch (error: any) {
     console.error('🔧 [Push Test] Error:', error)
