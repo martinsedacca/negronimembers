@@ -29,6 +29,7 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
     phone: branch?.phone || '',
     email: branch?.email || '',
     manager_name: branch?.manager_name || '',
+    menu_url: (branch as any)?.menu_url || '',
     latitude: branch?.latitude?.toString() || '',
     longitude: branch?.longitude?.toString() || '',
     is_active: branch?.is_active ?? true,
@@ -263,6 +264,22 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
               className="w-full px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               placeholder="Manager name"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-neutral-300 mb-2">
+              Menu URL
+            </label>
+            <input
+              type="url"
+              value={formData.menu_url}
+              onChange={(e) => setFormData({ ...formData, menu_url: e.target.value })}
+              className="w-full px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              placeholder="https://menu.example.com/location"
+            />
+            <p className="text-xs text-neutral-500 mt-1">
+              Link to the menu for this location
+            </p>
           </div>
 
           {/* Map Location Search */}
