@@ -206,7 +206,7 @@ export default function EventsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950 flex flex-col">
+    <div className="min-h-screen bg-neutral-950">
       {/* Progress Bar */}
       <div className="fixed top-0 left-0 right-0 h-1 bg-neutral-800 z-50">
         <motion.div
@@ -217,59 +217,67 @@ export default function EventsPage() {
         />
       </div>
 
-      {/* Header - Only on first step */}
-      <AnimatePresence mode="wait">
-        {currentStep === 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="px-6 pt-12 pb-2 text-center"
-          >
-            <Image
-              src="/NEGRONI-Logo-hueso_png.png"
-              alt="Negroni"
-              width={100}
-              height={25}
-              className="mx-auto mb-4"
-            />
-            <p className="text-orange-500 text-sm font-medium tracking-wide uppercase mb-2">
-              Let us help you plan your next celebration
-            </p>
-            <h1 className="text-3xl font-bold text-white">
-              Plan Your Event
-            </h1>
-            <p className="text-neutral-400 text-sm leading-relaxed mt-3 max-w-sm mx-auto">
-              At Negroni, we make every gathering unforgettable. Whether you're planning an intimate dinner, a birthday celebration, or a corporate meeting, we offer the perfect setting.
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Main Content */}
+      <div className="px-6 pt-8 pb-32 max-w-md mx-auto">
+        {/* Logo */}
+        <div className="text-center mb-6">
+          <Image
+            src="/NEGRONI-Logo-hueso_png.png"
+            alt="Negroni"
+            width={100}
+            height={25}
+            className="mx-auto"
+          />
+        </div>
 
-      {/* Form Content */}
-      <div className="flex-1 flex items-center justify-center px-6 py-4">
-        <div className="w-full max-w-md">
-          <AnimatePresence mode="wait">
+        {/* Header - Only on first step */}
+        <AnimatePresence mode="wait">
+          {currentStep === 0 && (
             <motion.div
-              key={currentStep}
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              transition={{ duration: 0.3 }}
-              className="space-y-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, height: 0 }}
+              className="text-center mb-6"
             >
-              {/* Step Icon & Title */}
-              <div className="text-center mb-4">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3 ${
-                  currentStep === 0 ? 'bg-orange-500/20' : 'bg-neutral-800'
-                }`}>
-                  <currentStepData.icon className={`w-5 h-5 ${
-                    currentStep === 0 ? 'text-orange-500' : 'text-neutral-400'
-                  }`} />
-                </div>
-                <h2 className="text-xl font-bold text-white">{currentStepData.title}</h2>
-                <p className="text-neutral-500 text-sm mt-1">{currentStepData.subtitle}</p>
+              <h1 className="text-2xl text-white mb-3" style={{ fontFamily: 'Georgia, serif' }}>
+                Plan Your Event
+              </h1>
+              <p className="text-neutral-500 text-sm leading-relaxed">
+                At Negroni, we make every gathering unforgettable. Whether you&apos;re planning an intimate dinner, a birthday celebration, or a corporate meeting.
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Form Content */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentStep}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.3 }}
+            className="space-y-4"
+          >
+            {/* "Let us help" message - Only on first step */}
+            {currentStep === 0 && (
+              <p className="text-orange-500 text-center text-sm font-medium mb-2">
+                Let us help you plan your next celebration
+              </p>
+            )}
+
+            {/* Step Icon & Title */}
+            <div className="text-center mb-2">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 ${
+                currentStep === 0 ? 'bg-orange-500/20' : 'bg-neutral-800'
+              }`}>
+                <currentStepData.icon className={`w-5 h-5 ${
+                  currentStep === 0 ? 'text-orange-500' : 'text-neutral-400'
+                }`} />
               </div>
+              <h2 className="text-lg font-semibold text-white">{currentStepData.title}</h2>
+              <p className="text-neutral-500 text-sm">{currentStepData.subtitle}</p>
+            </div>
 
               {/* Input Field */}
               <div>
@@ -390,13 +398,12 @@ export default function EventsPage() {
                 )}
               </div>
 
-              {/* Step Counter */}
-              <p className="text-center text-neutral-600 text-sm">
-                Step {currentStep + 1} of {steps.length}
-              </p>
-            </motion.div>
-          </AnimatePresence>
-        </div>
+            {/* Step Counter */}
+            <p className="text-center text-neutral-600 text-sm">
+              Step {currentStep + 1} of {steps.length}
+            </p>
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   )
