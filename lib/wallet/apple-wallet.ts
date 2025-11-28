@@ -105,6 +105,17 @@ export async function generateApplePass(member: Member, authToken?: string): Pro
       console.log('🎫 [Wallet] PKPass webServiceURL:', passProps.webServiceURL);
       console.log('🎫 [Wallet] PKPass authenticationToken:', passProps.authenticationToken ? 'YES' : 'NO');
 
+      // DEBUG: Log all member fields to identify null values
+      console.log('🔍 [Wallet] Member fields debug:');
+      console.log('  - full_name:', member.full_name, '| type:', typeof member.full_name);
+      console.log('  - member_number:', member.member_number, '| type:', typeof member.member_number);
+      console.log('  - email:', member.email, '| type:', typeof member.email);
+      console.log('  - membership_type:', member.membership_type, '| type:', typeof member.membership_type);
+      console.log('  - expiry_date:', member.expiry_date, '| type:', typeof member.expiry_date);
+      console.log('  - joined_date:', member.joined_date, '| type:', typeof member.joined_date);
+      console.log('  - phone:', member.phone, '| type:', typeof member.phone);
+      console.log('  - id:', member.id, '| type:', typeof member.id);
+
       // Set pass type
       pass.type = 'storeCard';
 
@@ -141,31 +152,26 @@ export async function generateApplePass(member: Member, authToken?: string): Pro
       });
 
       // Auxiliary field - Membership tier
-      if (member.membership_type) {
-        pass.auxiliaryFields.push({
-          key: 'membership_tier',
-          label: 'TIER',
-          value: member.membership_type.toUpperCase(),
-        });
-      }
+      pass.auxiliaryFields.push({
+        key: 'membership_tier',
+        label: 'TIER',
+        value: member.membership_type?.toUpperCase() || 'MEMBER',
+      });
 
-      // Back fields - Additional info (only add fields with valid values)
-      if (member.email) {
-        pass.backFields.push({
+      // Back fields - Additional info
+      pass.backFields.push(
+        {
           key: 'email',
           label: 'Email',
-          value: member.email,
-        });
-      }
-      
-      if (member.joined_date) {
-        pass.backFields.push({
+          value: member.email || 'No email',
+        },
+        {
           key: 'joined_date',
           label: 'Miembro desde',
-          value: member.joined_date,
+          value: member.joined_date || new Date().toISOString().split('T')[0],
           dateStyle: 'PKDateStyleMedium',
-        });
-      }
+        }
+      );
 
       if (member.phone) {
         pass.backFields.push({
