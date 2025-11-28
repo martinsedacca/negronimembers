@@ -38,6 +38,7 @@ export default function ProfilePage() {
   // Delete account modal
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const [logoutLoading, setLogoutLoading] = useState(false)
 
   if (authLoading || !member) {
     return (
@@ -196,6 +197,7 @@ export default function ProfilePage() {
   }
 
   const handleLogout = async () => {
+    setLogoutLoading(true)
     await logout()
     router.replace('/member/auth')
   }
@@ -398,10 +400,20 @@ export default function ProfilePage() {
       <div className="px-6 mt-8 pb-8 space-y-3">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-3 p-4 bg-neutral-800 border border-neutral-700 rounded-xl text-white hover:bg-neutral-700 transition"
+          disabled={logoutLoading}
+          className="w-full flex items-center justify-center gap-3 p-4 bg-neutral-800 border border-neutral-700 rounded-xl text-white hover:bg-neutral-700 transition disabled:opacity-50"
         >
-          <LogOut className="w-5 h-5" />
-          Sign Out
+          {logoutLoading ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Signing out...
+            </>
+          ) : (
+            <>
+              <LogOut className="w-5 h-5" />
+              Sign Out
+            </>
+          )}
         </button>
         
         <button

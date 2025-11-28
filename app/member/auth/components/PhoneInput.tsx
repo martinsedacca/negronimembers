@@ -38,7 +38,7 @@ const COUNTRIES: Country[] = [
     code: '+54', 
     name: 'Argentina', 
     flag: '🇦🇷', 
-    maxLength: 13,
+    maxLength: 10,
     placeholder: '11 1234 5678'
   },
   { 

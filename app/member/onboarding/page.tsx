@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowRight, ArrowLeft, Check, Star, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useMember } from '../context/MemberContext'
 import BirthdayInput from './components/BirthdayInput'
 
 interface OnboardingQuestion {
@@ -30,6 +31,7 @@ interface MemberData {
 export default function OnboardingPage() {
   const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
+  const { refreshData: refreshMemberContext } = useMember()
   
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -96,6 +98,7 @@ export default function OnboardingPage() {
           .from('members')
           .update({ onboarding_completed: true, updated_at: new Date().toISOString() })
           .eq('id', member.id)
+        await refreshMemberContext()
         router.push('/member/pass')
         return
       }
@@ -105,7 +108,7 @@ export default function OnboardingPage() {
     } finally {
       setLoading(false)
     }
-  }, [router, supabase])
+  }, [router, supabase, refreshMemberContext])
 
   useEffect(() => {
     fetchData()
@@ -185,6 +188,8 @@ export default function OnboardingPage() {
           }
         }
 
+        // Refresh member context before redirecting to avoid loop
+        await refreshMemberContext()
         router.push('/member/pass')
       } catch (error) {
         console.error('Error completing onboarding:', error)
@@ -423,9 +428,9 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col overflow-x-hidden">
+    <div className="h-[100dvh] flex flex-col overflow-hidden">
       {/* Progress bar */}
-      <div className="sticky top-0 z-10 bg-neutral-900/95 backdrop-blur-lg border-b border-neutral-800">
+      <div className="flex-shrink-0 bg-neutral-900 border-b border-neutral-800">
         <div className="max-w-lg mx-auto px-6 py-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-neutral-400">
@@ -446,15 +451,17 @@ export default function OnboardingPage() {
         </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 flex items-center justify-center p-6">
-        <div className="w-full max-w-lg">
-          <AnimatePresence mode="wait">{renderQuestion()}</AnimatePresence>
+      {/* Content - scrollable only if needed */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="min-h-full flex items-center justify-center p-6">
+          <div className="w-full max-w-lg">
+            <AnimatePresence mode="wait">{renderQuestion()}</AnimatePresence>
+          </div>
         </div>
       </div>
 
-      {/* Navigation */}
-      <div className="sticky bottom-0 bg-neutral-900/95 backdrop-blur-lg border-t border-neutral-800">
+      {/* Navigation - fixed at bottom */}
+      <div className="flex-shrink-0 bg-neutral-900 border-t border-neutral-800">
         <div className="max-w-lg mx-auto px-6 py-4 flex gap-4">
           {currentStep > 0 && (
             <motion.button
