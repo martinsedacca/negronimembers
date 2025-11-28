@@ -20,17 +20,10 @@ export async function GET(
 
     const supabase = await createClient()
 
-    // Get all active tokens for this device
+    // Get all active tokens for this device with their associated passes
     const { data: tokens, error: tokensError } = await supabase
       .from('wallet_push_tokens')
-      .select(`
-        pass_id,
-        wallet_passes!inner (
-          serial_number,
-          updated_at,
-          voided
-        )
-      `)
+      .select('pass_serial_number, updated_at')
       .eq('device_library_identifier', deviceLibraryIdentifier)
       .eq('is_active', true)
 
@@ -44,13 +37,25 @@ export async function GET(
       return NextResponse.json({}, { status: 204 })
     }
 
+    // Get the wallet passes for these serial numbers
+    const serialNumbers = tokens.map(t => t.pass_serial_number).filter(Boolean)
+    
+    const { data: passes, error: passesError } = await supabase
+      .from('wallet_passes')
+      .select('serial_number, updated_at, voided')
+      .in('serial_number', serialNumbers)
+
+    if (passesError) {
+      console.error('🔴 [Wallet] Error fetching passes:', passesError)
+      throw passesError
+    }
+
     // Filter passes updated since the given timestamp
     let updatedSerials: string[] = []
     let lastUpdated = new Date(0)
 
-    for (const token of tokens) {
-      const pass = token.wallet_passes as any
-      if (!pass || pass.voided) continue
+    for (const pass of passes || []) {
+      if (pass.voided) continue
 
       const passUpdatedAt = new Date(pass.updated_at)
       
