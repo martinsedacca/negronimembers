@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { useRequireAuth } from '../context/MemberContext'
 import { createClient } from '@/lib/supabase/client'
 import { Loader2, MapPin, Phone, Navigation, Search, Locate, X, ExternalLink, Share2 } from 'lucide-react'
+import { BookingButton } from '@/components/ui/BookingButton'
 import dynamic from 'next/dynamic'
 import { motion, AnimatePresence, PanInfo } from 'framer-motion'
 
@@ -342,14 +343,15 @@ export default function LocationsPage() {
 
               {/* Book your Table */}
               {selectedLocation.booking_url && (
-                <a
-                  href={selectedLocation.booking_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 p-4 bg-orange-500 text-white rounded-xl mb-4 hover:bg-orange-600 transition font-semibold"
-                >
-                  Book your Table
-                </a>
+                <div className="mb-4">
+                  <BookingButton
+                    href={selectedLocation.booking_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Book your Table
+                  </BookingButton>
+                </div>
               )}
 
               {/* Quick Actions */}

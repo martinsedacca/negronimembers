@@ -6,6 +6,7 @@ import { Sparkles, Tag, Gift, Percent, Star, HelpCircle, X, ChevronLeft, Chevron
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
+import { BookingButton } from '@/components/ui/BookingButton'
 
 const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
@@ -980,14 +981,15 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
 
               {/* Book your table button */}
               {selectedBenefit.booking_url && (
-                <a
-                  href={selectedBenefit.booking_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full mt-6 py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition flex items-center justify-center gap-2"
-                >
-                  Book your Table
-                </a>
+                <div className="mt-6">
+                  <BookingButton
+                    href={selectedBenefit.booking_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Book your Table
+                  </BookingButton>
+                </div>
               )}
 
               {/* Close Button */}
