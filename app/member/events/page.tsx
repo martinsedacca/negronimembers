@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronRight, ChevronLeft, Check, Calendar, Users, MapPin, PartyPopper, User, Phone, Mail, Loader2, ChevronDown, AlertCircle } from 'lucide-react'
+import { ChevronRight, ChevronLeft, Check, Calendar, Users, MapPin, PartyPopper, User, Mail, Loader2, AlertCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
+import { useMember } from '../context/MemberContext'
 
 interface Branch {
   id: string
@@ -23,50 +24,36 @@ const eventTypes = [
   'Other'
 ]
 
-const guestRanges = [
-  '1-10',
-  '11-20',
-  '21-30',
-  '31-50',
-  '51-100',
-  '100+'
-]
-
-const countryCodes = [
-  { code: '+1', country: 'US', flag: '🇺🇸' },
-  { code: '+1', country: 'CA', flag: '🇨🇦' },
-  { code: '+52', country: 'MX', flag: '🇲🇽' },
-  { code: '+54', country: 'AR', flag: '🇦🇷' },
-  { code: '+55', country: 'BR', flag: '🇧🇷' },
-  { code: '+56', country: 'CL', flag: '🇨🇱' },
-  { code: '+57', country: 'CO', flag: '🇨🇴' },
-  { code: '+58', country: 'VE', flag: '🇻🇪' },
-  { code: '+34', country: 'ES', flag: '🇪🇸' },
-  { code: '+44', country: 'UK', flag: '🇬🇧' },
-  { code: '+33', country: 'FR', flag: '🇫🇷' },
-  { code: '+49', country: 'DE', flag: '🇩🇪' },
-  { code: '+39', country: 'IT', flag: '🇮🇹' },
-]
-
 export default function EventsPage() {
+  const { member } = useMember()
   const [currentStep, setCurrentStep] = useState(0)
   const [branches, setBranches] = useState<Branch[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
   const [fieldError, setFieldError] = useState('')
-  const [countryCode, setCountryCode] = useState(countryCodes[0])
-  const [showCountryPicker, setShowCountryPicker] = useState(false)
+  const [initialized, setInitialized] = useState(false)
   
   const [formData, setFormData] = useState({
     fullName: '',
-    phone: '',
     email: '',
     guests: '',
     eventDate: '',
     eventType: '',
     location: ''
   })
+
+  // Pre-fill form with member data
+  useEffect(() => {
+    if (member && !initialized) {
+      setFormData(prev => ({
+        ...prev,
+        fullName: member.full_name || '',
+        email: member.email || ''
+      }))
+      setInitialized(true)
+    }
+  }, [member, initialized])
 
   useEffect(() => {
     async function fetchBranches() {
@@ -81,69 +68,72 @@ export default function EventsPage() {
     fetchBranches()
   }, [])
 
-  const steps = [
-    {
-      id: 'name',
-      title: "What's your name?",
-      subtitle: "Let's start with introductions",
-      icon: User,
-      field: 'fullName',
-      type: 'text',
-      placeholder: 'Full Name'
-    },
-    {
-      id: 'phone',
-      title: "What's your phone number?",
-      subtitle: "We'll use this to confirm your reservation",
-      icon: Phone,
-      field: 'phone',
-      type: 'tel',
-      placeholder: 'Phone Number'
-    },
-    {
-      id: 'email',
-      title: "What's your email?",
-      subtitle: "We'll send the confirmation here",
-      icon: Mail,
-      field: 'email',
-      type: 'email',
-      placeholder: 'Email Address'
-    },
-    {
-      id: 'guests',
-      title: 'How many guests?',
-      subtitle: "Select the number of people attending",
-      icon: Users,
-      field: 'guests',
-      type: 'select',
-      options: guestRanges
-    },
-    {
-      id: 'date',
-      title: 'When is your event?',
-      subtitle: "Pick your preferred date",
-      icon: Calendar,
-      field: 'eventDate',
-      type: 'date'
-    },
-    {
-      id: 'eventType',
-      title: 'What type of event?',
-      subtitle: "Help us prepare the perfect experience",
-      icon: PartyPopper,
-      field: 'eventType',
-      type: 'select',
-      options: eventTypes
-    },
-    {
-      id: 'location',
-      title: 'Select a location',
-      subtitle: "Choose your preferred Negroni restaurant",
-      icon: MapPin,
-      field: 'location',
-      type: 'location'
-    }
-  ]
+  // Build steps dynamically based on what data we already have
+  const steps = useMemo(() => {
+    const allSteps = [
+      {
+        id: 'name',
+        title: "What's your name?",
+        subtitle: "Let's start with introductions",
+        icon: User,
+        field: 'fullName',
+        type: 'text',
+        placeholder: 'Full Name',
+        skip: !!member?.full_name
+      },
+      {
+        id: 'email',
+        title: "What's your email?",
+        subtitle: "We'll send the confirmation here",
+        icon: Mail,
+        field: 'email',
+        type: 'email',
+        placeholder: 'your@email.com',
+        skip: !!member?.email
+      },
+      {
+        id: 'guests',
+        title: 'How many guests?',
+        subtitle: "Enter the exact number of people attending",
+        icon: Users,
+        field: 'guests',
+        type: 'number',
+        placeholder: 'Number of guests',
+        skip: false
+      },
+      {
+        id: 'date',
+        title: 'When is your event?',
+        subtitle: "Pick your preferred date",
+        icon: Calendar,
+        field: 'eventDate',
+        type: 'date',
+        skip: false
+      },
+      {
+        id: 'eventType',
+        title: 'What type of event?',
+        subtitle: "Help us prepare the perfect experience",
+        icon: PartyPopper,
+        field: 'eventType',
+        type: 'select',
+        options: eventTypes,
+        skip: false
+      },
+      {
+        id: 'location',
+        title: 'Select a location',
+        subtitle: "Choose your preferred Negroni restaurant",
+        icon: MapPin,
+        field: 'location',
+        type: 'location',
+        skip: false
+      }
+    ]
+    
+    // Filter out steps we can skip
+    return allSteps.filter(step => !step.skip)
+  }, [member])
 
   const currentStepData = steps[currentStep]
   const isLastStep = currentStep === steps.length - 1
@@ -154,13 +144,13 @@ export default function EventsPage() {
     return regex.test(email)
   }
 
-  const validatePhone = (phone: string) => {
-    const digits = phone.replace(/\D/g, '')
-    return digits.length >= 7 && digits.length <= 15
-  }
-
   const validateName = (name: string) => {
     return name.trim().length >= 2
+  }
+
+  const validateGuests = (guests: string) => {
+    const num = parseInt(guests)
+    return !isNaN(num) && num >= 1 && num <= 500
   }
 
   const validateCurrentStep = (): string | null => {
@@ -174,11 +164,11 @@ export default function EventsPage() {
       case 'name':
         if (!validateName(value)) return 'Please enter your full name'
         break
-      case 'phone':
-        if (!validatePhone(value)) return 'Please enter a valid phone number (7-15 digits)'
-        break
       case 'email':
         if (!validateEmail(value)) return 'Please enter a valid email address'
+        break
+      case 'guests':
+        if (!validateGuests(value)) return 'Please enter a valid number of guests (1-500)'
         break
     }
     return null
@@ -224,13 +214,12 @@ export default function EventsPage() {
     
     try {
       const supabase = createClient()
-      const fullPhone = `${countryCode.code} ${formData.phone}`
       const { error: insertError } = await supabase
         .from('event_requests')
         .insert({
-          full_name: formData.fullName,
-          phone: fullPhone,
-          email: formData.email,
+          full_name: formData.fullName || member?.full_name,
+          phone: member?.phone || '',
+          email: formData.email || member?.email,
           guests: formData.guests,
           event_date: formData.eventDate,
           event_type: formData.eventType,
@@ -365,61 +354,24 @@ export default function EventsPage() {
                   }`}
                   autoFocus
                 />
-              ) : currentStepData.type === 'tel' ? (
-                <div className="space-y-3">
-                  {/* Country Code Selector */}
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => setShowCountryPicker(!showCountryPicker)}
-                      className="w-full px-4 py-3 bg-neutral-900 border-2 border-neutral-700 rounded-xl text-white flex items-center justify-between"
-                    >
-                      <span className="flex items-center gap-3">
-                        <span className="text-2xl">{countryCode.flag}</span>
-                        <span>{countryCode.country}</span>
-                        <span className="text-neutral-400">{countryCode.code}</span>
-                      </span>
-                      <ChevronDown className={`w-5 h-5 text-neutral-400 transition ${showCountryPicker ? 'rotate-180' : ''}`} />
-                    </button>
-                    
-                    {showCountryPicker && (
-                      <div className="absolute top-full left-0 right-0 mt-2 bg-neutral-900 border border-neutral-700 rounded-xl max-h-48 overflow-y-auto z-10">
-                        {countryCodes.map((cc, idx) => (
-                          <button
-                            key={`${cc.country}-${idx}`}
-                            onClick={() => {
-                              setCountryCode(cc)
-                              setShowCountryPicker(false)
-                            }}
-                            className="w-full px-4 py-3 flex items-center gap-3 hover:bg-neutral-800 transition text-left"
-                          >
-                            <span className="text-xl">{cc.flag}</span>
-                            <span className="text-white">{cc.country}</span>
-                            <span className="text-neutral-400">{cc.code}</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Phone Input */}
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => {
-                      setFieldError('')
-                      // Only allow numbers
-                      const value = e.target.value.replace(/[^\d]/g, '')
-                      setFormData(prev => ({ ...prev, phone: value }))
-                    }}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Phone number (digits only)"
-                    className={`w-full px-6 py-4 bg-neutral-900 border-2 rounded-2xl text-white placeholder-neutral-500 focus:outline-none transition text-lg ${
-                      fieldError ? 'border-red-500' : 'border-neutral-700 focus:border-orange-500'
-                    }`}
-                    autoFocus
-                  />
-                </div>
+              ) : currentStepData.type === 'number' ? (
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min="1"
+                  max="500"
+                  value={formData.guests}
+                  onChange={(e) => {
+                    setFieldError('')
+                    setFormData(prev => ({ ...prev, guests: e.target.value }))
+                  }}
+                  onKeyDown={handleKeyDown}
+                  placeholder="e.g. 25"
+                  className={`w-full px-6 py-4 bg-neutral-900 border-2 rounded-2xl text-white placeholder-neutral-500 focus:outline-none transition text-lg text-center ${
+                    fieldError ? 'border-red-500' : 'border-neutral-700 focus:border-orange-500'
+                  }`}
+                  autoFocus
+                />
               ) : currentStepData.type === 'email' ? (
                 <input
                   type="email"
