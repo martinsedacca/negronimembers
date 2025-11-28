@@ -307,9 +307,6 @@ export default function PassClient({ member }: PassClientProps) {
             <UtensilsCrossed className="w-5 h-5" />
             View Menu
           </button>
-          <p className="text-xs text-neutral-500 text-center mt-2">
-            Browse our menus at all locations
-          </p>
         </motion.div>
       </div>
 
@@ -327,9 +324,6 @@ export default function PassClient({ member }: PassClientProps) {
             <Calendar className="w-5 h-5" />
             Book your Table
           </button>
-          <p className="text-xs text-neutral-500 text-center mt-2">
-            Reserve at any of our locations
-          </p>
         </motion.div>
       </div>
 
