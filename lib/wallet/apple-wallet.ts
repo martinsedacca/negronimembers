@@ -141,26 +141,31 @@ export async function generateApplePass(member: Member, authToken?: string): Pro
       });
 
       // Auxiliary field - Membership tier
-      pass.auxiliaryFields.push({
-        key: 'membership_tier',
-        label: 'TIER',
-        value: member.membership_type.toUpperCase(),
-      });
+      if (member.membership_type) {
+        pass.auxiliaryFields.push({
+          key: 'membership_tier',
+          label: 'TIER',
+          value: member.membership_type.toUpperCase(),
+        });
+      }
 
-      // Back fields - Additional info
-      pass.backFields.push(
-        {
+      // Back fields - Additional info (only add fields with valid values)
+      if (member.email) {
+        pass.backFields.push({
           key: 'email',
           label: 'Email',
           value: member.email,
-        },
-        {
+        });
+      }
+      
+      if (member.joined_date) {
+        pass.backFields.push({
           key: 'joined_date',
           label: 'Miembro desde',
           value: member.joined_date,
           dateStyle: 'PKDateStyleMedium',
-        }
-      );
+        });
+      }
 
       if (member.phone) {
         pass.backFields.push({
