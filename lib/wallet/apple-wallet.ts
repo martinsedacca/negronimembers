@@ -170,6 +170,13 @@ export async function generateApplePass(member: Member, authToken?: string, push
       });
 
       // Back fields - Additional info
+      // Permanent link to member portal - always visible
+      pass.backFields.push({
+        key: 'member_portal',
+        label: '📱 Mi Cuenta',
+        value: 'https://www.negronimembers.com/member',
+      });
+
       pass.backFields.push(
         {
           key: 'email',
