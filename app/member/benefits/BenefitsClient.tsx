@@ -879,17 +879,6 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
                 <X className="w-5 h-5 text-neutral-400" />
               </button>
 
-              {/* Benefit Image (if exists) */}
-              {selectedBenefit.image_url && (
-                <div className="mb-4 -mx-6 -mt-6 sm:mx-0 sm:mt-0 sm:rounded-xl overflow-hidden">
-                  <img 
-                    src={selectedBenefit.image_url} 
-                    alt={selectedBenefit.title}
-                    className="w-full h-auto"
-                  />
-                </div>
-              )}
-
               {/* Benefit Icon & Discount */}
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-14 h-14 rounded-xl bg-orange-500/20 border-2 border-orange-500/50 flex items-center justify-center">
@@ -989,10 +978,26 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
                 </div>
               </div>
 
+              {/* Book your table button */}
+              {selectedBenefit.booking_url && (
+                <a
+                  href={selectedBenefit.booking_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full mt-6 py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition flex items-center justify-center gap-2"
+                >
+                  Book your Table
+                </a>
+              )}
+
               {/* Close Button */}
               <button
                 onClick={() => setSelectedBenefit(null)}
-                className="w-full mt-6 py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition"
+                className={`w-full py-3 rounded-xl font-semibold transition ${
+                  selectedBenefit.booking_url 
+                    ? 'mt-3 bg-neutral-800 text-white hover:bg-neutral-700 border border-neutral-700' 
+                    : 'mt-6 bg-orange-500 text-white hover:bg-orange-600'
+                }`}
               >
                 Close
               </button>

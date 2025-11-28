@@ -35,6 +35,7 @@ interface Location {
   email: string | null
   latitude: number | null
   longitude: number | null
+  booking_url: string | null
   distance?: number
 }
 

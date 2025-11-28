@@ -26,6 +26,7 @@ interface Location {
   email: string | null
   latitude: number | null
   longitude: number | null
+  booking_url: string | null
   distance?: number
 }
 
@@ -58,7 +59,7 @@ export default function LocationsPage() {
     async function fetchLocations() {
       const { data } = await supabase
         .from('branches')
-        .select('id, name, address, city, phone, email, latitude, longitude')
+        .select('id, name, address, city, phone, email, latitude, longitude, booking_url')
         .eq('is_active', true)
         .order('name')
       
@@ -338,6 +339,18 @@ export default function LocationsPage() {
                   </p>
                 )}
               </div>
+
+              {/* Book your Table */}
+              {selectedLocation.booking_url && (
+                <a
+                  href={selectedLocation.booking_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 p-4 bg-orange-500 text-white rounded-xl mb-4 hover:bg-orange-600 transition font-semibold"
+                >
+                  Book your Table
+                </a>
+              )}
 
               {/* Quick Actions */}
               {selectedLocation.phone && (
