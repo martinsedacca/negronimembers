@@ -148,10 +148,10 @@ export function MemberProvider({ children }: { children: ReactNode }) {
   // Fetch all member data from Supabase
   const fetchAllData = useCallback(async (userId: string, memberId: string) => {
     const [memberRes, transactionsRes, promotionsRes, codesRes, membershipTypesRes, memberPromosRes] = await Promise.all([
-      // Member data
+      // Member data with current tier name from membership_types
       supabase
         .from('members')
-        .select('*')
+        .select('*, membership_types(id, name)')
         .eq('user_id', userId)
         .maybeSingle(),
       
@@ -211,8 +211,19 @@ export function MemberProvider({ children }: { children: ReactNode }) {
       }
     }
 
+    // Process member data - use tier name from JOIN if available
+    let memberData = memberRes.data as (Member & { membership_types?: { id: string; name: string } }) | null
+    if (memberData && memberData.membership_types) {
+      // Override membership_type with current name from membership_types table
+      memberData = {
+        ...memberData,
+        membership_type: memberData.membership_types.name,
+        membership_type_id: memberData.membership_types.id,
+      }
+    }
+
     return {
-      member: memberRes.data as Member | null,
+      member: memberData as Member | null,
       transactions: (transactionsRes.data || []) as Transaction[],
       promotions: allPromotions,
       memberCodes: (codesRes.data || []).map((mc: any) => mc.codes?.code).filter(Boolean) as string[],
@@ -300,6 +311,44 @@ export function MemberProvider({ children }: { children: ReactNode }) {
             })
             .eq('id', allData.member.id)
             .then(() => console.log('✅ Member totals synced'))
+        }
+
+        // Check if member should be promoted to a higher tier (backup check)
+        const bestTier = allData.membershipTypes
+          .filter(t => 
+            (t.points_required > 0 && calculatedPoints >= t.points_required) ||
+            (t.visits_required > 0 && calculatedTotalVisits >= t.visits_required) ||
+            (t.points_required === 0 && t.visits_required === 0)
+          )
+          .sort((a, b) => {
+            const aLevel = Math.max(a.points_required || 0, a.visits_required || 0)
+            const bLevel = Math.max(b.points_required || 0, b.visits_required || 0)
+            return bLevel - aLevel
+          })[0]
+
+        if (bestTier && bestTier.id !== updatedMember.membership_type_id) {
+          const currentLevel = allData.membershipTypes.find(t => t.id === updatedMember.membership_type_id)
+          const currentLevelValue = currentLevel 
+            ? Math.max(currentLevel.points_required || 0, currentLevel.visits_required || 0) 
+            : 0
+          const newLevelValue = Math.max(bestTier.points_required || 0, bestTier.visits_required || 0)
+          
+          // Only promote (not demote)
+          if (newLevelValue > currentLevelValue) {
+            console.log(`🎉 Promoting member to ${bestTier.name}`)
+            updatedMember.membership_type_id = bestTier.id
+            updatedMember.membership_type = bestTier.name
+            
+            // Update in DB
+            supabase
+              .from('members')
+              .update({ 
+                membership_type_id: bestTier.id,
+                membership_type: bestTier.name 
+              })
+              .eq('id', allData.member.id)
+              .then(() => console.log('✅ Member tier promoted'))
+          }
         }
 
         setMember(updatedMember as Member)

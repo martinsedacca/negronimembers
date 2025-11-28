@@ -43,11 +43,12 @@ interface BenefitsClientProps {
 }
 
 export default function BenefitsClient({ member, benefits, hasCodes, membershipTypes, transactionCount, branches }: BenefitsClientProps) {
-  const [activeTab, setActiveTab] = useState(0)
+  const [activeTab, setActiveTab] = useState(-1) // -1 means not yet initialized
   const [showTutorial, setShowTutorial] = useState(false)
   const [tutorialStep, setTutorialStep] = useState(0)
   const [promotionUsage, setPromotionUsage] = useState<Record<string, number>>({})
   const [totalUsage, setTotalUsage] = useState<Record<string, number>>({})
+  const [selectedBenefit, setSelectedBenefit] = useState<any | null>(null)
   const supabase = createClient()
 
   // Fetch promotion usage counts
@@ -156,27 +157,28 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
       const basePoints = current?.points_required || 0
       
       // Calculate remaining to reach next level
-      visitsRemaining = next.visits_required > 0 ? Math.max(0, next.visits_required - currentVisits) : 0
-      pointsRemaining = next.points_required > 0 ? Math.max(0, next.points_required - currentPoints) : 0
+      const visitsNeeded = next.visits_required > 0 ? Math.max(0, next.visits_required - currentVisits) : 0
+      const pointsNeeded = next.points_required > 0 ? Math.max(0, next.points_required - currentPoints) : 0
       
-      // Calculate progress as percentage of range between current and next level
-      let visitsProgress = 0
-      let pointsProgress = 0
+      // Only show remaining if they haven't met that requirement yet
+      visitsRemaining = visitsNeeded
+      pointsRemaining = pointsNeeded
       
-      if (next.visits_required > 0 && next.visits_required > baseVisits) {
-        const range = next.visits_required - baseVisits
-        const achieved = Math.max(0, currentVisits - baseVisits)
-        visitsProgress = Math.min(100, Math.round((achieved / range) * 100))
+      // Calculate progress as percentage
+      let visitsProgress = 100
+      let pointsProgress = 100
+      
+      if (next.visits_required > 0) {
+        visitsProgress = Math.min(100, Math.round((currentVisits / next.visits_required) * 100))
       }
       
-      if (next.points_required > 0 && next.points_required > basePoints) {
-        const range = next.points_required - basePoints
-        const achieved = Math.max(0, currentPoints - basePoints)
-        pointsProgress = Math.min(100, Math.round((achieved / range) * 100))
+      if (next.points_required > 0) {
+        pointsProgress = Math.min(100, Math.round((currentPoints / next.points_required) * 100))
       }
       
-      // Use the better progress (whichever is higher)
-      prog = Math.max(visitsProgress, pointsProgress)
+      // Progress should be the LOWER of the two (both requirements must be met)
+      // This shows the limiting factor
+      prog = Math.min(visitsProgress, pointsProgress)
     }
     
     return { 
@@ -188,6 +190,16 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
       currentLevelName: current?.name || member.membership_type || 'Member'
     }
   }, [sortedTypes, member.membership_type_id, member.membership_type, member.points, transactionCount])
+
+  // Initialize activeTab to current level on mount
+  useEffect(() => {
+    if (activeTab === -1 && currentLevelIndex >= 0) {
+      setActiveTab(currentLevelIndex)
+    }
+  }, [activeTab, currentLevelIndex])
+
+  // Effective tab (use currentLevelIndex if not yet initialized)
+  const effectiveTab = activeTab === -1 ? Math.max(0, currentLevelIndex) : activeTab
 
   // SVG circle properties
   const circleSize = 120
@@ -347,17 +359,29 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
             {nextLevel ? (
               <div className="text-center">
                 <p className="text-neutral-400 text-sm mb-1">
-                  {nextLevel.visits_required > 0 && nextLevel.points_required > 0 ? (
-                    // Both requirements exist - show both remaining
-                    <>
-                      <span className="text-orange-500 font-semibold">{pointsToNext}</span> points or{' '}
-                      <span className="text-orange-500 font-semibold">{visitsToNext}</span> visits
-                    </>
-                  ) : nextLevel.visits_required > 0 ? (
-                    <><span className="text-orange-500 font-semibold">{visitsToNext}</span> visits</>
-                  ) : (
-                    <><span className="text-orange-500 font-semibold">{pointsToNext}</span> points</>
-                  )}
+                  {(() => {
+                    const needsPoints = pointsToNext > 0
+                    const needsVisits = visitsToNext > 0
+                    
+                    if (needsPoints && needsVisits) {
+                      // Show both requirements with "or" (can meet either)
+                      return (
+                        <>
+                          <span className="text-orange-500 font-semibold">{pointsToNext}</span> points or{' '}
+                          <span className="text-orange-500 font-semibold">{visitsToNext}</span> visits
+                        </>
+                      )
+                    } else if (needsPoints) {
+                      // Only points remaining
+                      return <><span className="text-orange-500 font-semibold">{pointsToNext}</span> points</>
+                    } else if (needsVisits) {
+                      // Only visits remaining  
+                      return <><span className="text-orange-500 font-semibold">{visitsToNext}</span> visits</>
+                    } else {
+                      // Both met - shouldn't happen if tier system is working
+                      return <span className="text-green-500">Requirements met!</span>
+                    }
+                  })()}
                 </p>
                 <p className="text-neutral-500 text-xs">to reach <span className="text-white">{nextLevel.name}</span></p>
               </div>
@@ -386,7 +410,7 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
               className="bg-neutral-800/80 backdrop-blur-sm rounded-xl p-1 flex"
             >
             {sortedTypes.map((type, index) => {
-              const isActive = activeTab === index
+              const isActive = effectiveTab === index
               const isCurrent = index === currentLevelIndex
               const isLocked = index > currentLevelIndex
               
@@ -415,60 +439,60 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
       )}
 
       {/* Level Info */}
-      {sortedTypes[activeTab] && (
+      {sortedTypes[effectiveTab] && (
         <div className="px-6 mb-6">
           <motion.div
-            key={activeTab}
+            key={effectiveTab}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             className={`p-5 rounded-2xl border ${
-              activeTab === currentLevelIndex
+              effectiveTab === currentLevelIndex
                 ? 'bg-gradient-to-br from-orange-900/30 to-orange-800/20 border-orange-500/50'
-                : activeTab > currentLevelIndex
+                : effectiveTab > currentLevelIndex
                 ? 'bg-neutral-800/50 border-neutral-700'
                 : 'bg-gradient-to-br from-green-900/20 to-green-800/10 border-green-500/30'
             }`}
           >
             <div className="flex items-center gap-3 mb-3">
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${
-                activeTab === currentLevelIndex
+                effectiveTab === currentLevelIndex
                   ? 'bg-orange-500/20 border-2 border-orange-500'
-                  : activeTab > currentLevelIndex
+                  : effectiveTab > currentLevelIndex
                   ? 'bg-neutral-700 border-2 border-neutral-600'
                   : 'bg-green-500/20 border-2 border-green-500'
               }`}>
-                {activeTab === currentLevelIndex ? '⭐' : activeTab > currentLevelIndex ? '🔒' : '✅'}
+                {effectiveTab === currentLevelIndex ? '⭐' : effectiveTab > currentLevelIndex ? '🔒' : '✅'}
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-xl font-bold text-white">{sortedTypes[activeTab].name}</h3>
-                  {activeTab === currentLevelIndex && (
+                  <h3 className="text-xl font-bold text-white">{sortedTypes[effectiveTab].name}</h3>
+                  {effectiveTab === currentLevelIndex && (
                     <span className="text-xs px-2 py-0.5 bg-orange-500 text-white rounded-full">Current</span>
                   )}
-                  {activeTab < currentLevelIndex && (
+                  {effectiveTab < currentLevelIndex && (
                     <span className="text-xs px-2 py-0.5 bg-green-500 text-white rounded-full">Completed</span>
                   )}
                 </div>
-                <p className="text-sm text-neutral-400">{sortedTypes[activeTab].description}</p>
+                <p className="text-sm text-neutral-400">{sortedTypes[effectiveTab].description}</p>
               </div>
             </div>
 
             {/* Requirements */}
-            {activeTab > currentLevelIndex && (
+            {effectiveTab > currentLevelIndex && (
               <div className="mt-3 p-3 bg-neutral-900/50 rounded-lg">
                 <p className="text-xs text-neutral-500 mb-2">To unlock you need:</p>
                 <div className="flex gap-4 text-sm">
-                  {sortedTypes[activeTab].points_required > 0 && (
+                  {sortedTypes[effectiveTab].points_required > 0 && (
                     <span className="text-orange-400">
-                      {sortedTypes[activeTab].points_required} points
+                      {sortedTypes[effectiveTab].points_required} points
                     </span>
                   )}
-                  {sortedTypes[activeTab].points_required > 0 && sortedTypes[activeTab].visits_required > 0 && (
+                  {sortedTypes[effectiveTab].points_required > 0 && sortedTypes[effectiveTab].visits_required > 0 && (
                     <span className="text-neutral-500">or</span>
                   )}
-                  {sortedTypes[activeTab].visits_required > 0 && (
+                  {sortedTypes[effectiveTab].visits_required > 0 && (
                     <span className="text-green-400">
-                      {sortedTypes[activeTab].visits_required} visits
+                      {sortedTypes[effectiveTab].visits_required} visits
                     </span>
                   )}
                 </div>
@@ -481,14 +505,14 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
       {/* Benefits for this level */}
       <div className="px-6 mb-6">
         <motion.div
-          key={`benefits-${activeTab}`}
+          key={`benefits-${effectiveTab}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1 }}
         >
-          {sortedTypes[activeTab] && (() => {
-            const levelBenefits = getBenefitsForLevel(sortedTypes[activeTab].name, sortedTypes[activeTab].id)
-            const isLevelLocked = activeTab > currentLevelIndex
+          {sortedTypes[effectiveTab] && (() => {
+            const levelBenefits = getBenefitsForLevel(sortedTypes[effectiveTab].name, sortedTypes[effectiveTab].id)
+            const isLevelLocked = effectiveTab > currentLevelIndex
             const { todaysBenefits, otherDaysBenefits } = isLevelLocked 
               ? { todaysBenefits: levelBenefits, otherDaysBenefits: [] }
               : separateBenefitsByAvailability(levelBenefits)
@@ -504,9 +528,10 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.05 * index }}
-                  className={`rounded-xl p-4 border ${
+                  onClick={() => !isLevelLocked && setSelectedBenefit(benefit)}
+                  className={`rounded-xl p-4 border cursor-pointer active:scale-[0.98] transition-transform ${
                     isLevelLocked
-                      ? 'bg-neutral-800/50 border-neutral-700/50 opacity-60'
+                      ? 'bg-neutral-800/50 border-neutral-700/50 opacity-60 cursor-not-allowed'
                       : isOtherDay
                         ? 'bg-neutral-800/50 border-neutral-700/50'
                         : isBlocked
@@ -590,7 +615,7 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
                   <div>
                     <h4 className="font-semibold text-white mb-3 flex items-center gap-2">
                       <Lock className="w-4 h-4 text-neutral-500" />
-                      {sortedTypes[activeTab]?.name} Benefits
+                      {sortedTypes[effectiveTab]?.name} Benefits
                       <span className="text-sm text-neutral-400 font-normal">
                         ({levelBenefits.length})
                       </span>
@@ -757,6 +782,146 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
                   )}
                 </div>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Benefit Detail Modal */}
+      <AnimatePresence>
+        {selectedBenefit && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-end sm:items-center sm:justify-center"
+            onClick={() => setSelectedBenefit(null)}
+          >
+            <motion.div
+              initial={{ y: '100%', opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '100%', opacity: 0 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full sm:max-w-md bg-neutral-900 rounded-t-3xl sm:rounded-2xl p-6 pb-10 sm:pb-6 max-h-[85vh] overflow-y-auto"
+            >
+              {/* Drag Handle (mobile) */}
+              <div className="w-12 h-1.5 bg-neutral-600 rounded-full mx-auto mb-6 sm:hidden" />
+              
+              {/* Close Button */}
+              <button
+                onClick={() => setSelectedBenefit(null)}
+                className="absolute top-4 right-4 p-2 bg-neutral-800 rounded-full hover:bg-neutral-700 transition hidden sm:flex"
+              >
+                <X className="w-5 h-5 text-neutral-400" />
+              </button>
+
+              {/* Benefit Icon & Discount */}
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-14 h-14 rounded-xl bg-orange-500/20 border-2 border-orange-500/50 flex items-center justify-center">
+                  {getDiscountIcon(selectedBenefit.discount_type)}
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-xl font-bold text-white">{selectedBenefit.title}</h2>
+                  {selectedBenefit.discount_type && selectedBenefit.discount_value && (
+                    <span className="text-lg text-orange-400 font-semibold">
+                      {getDiscountText(selectedBenefit.discount_type, selectedBenefit.discount_value)}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Description */}
+              {selectedBenefit.description && (
+                <div className="mb-4 p-4 bg-neutral-800/50 rounded-xl">
+                  <p className="text-neutral-300">{selectedBenefit.description}</p>
+                </div>
+              )}
+
+              {/* Details Grid */}
+              <div className="space-y-3">
+                {/* Valid Days */}
+                {selectedBenefit.valid_days && selectedBenefit.valid_days.length > 0 && selectedBenefit.valid_days.length < 7 && (
+                  <div className="flex items-start gap-3 p-3 bg-neutral-800/50 rounded-xl">
+                    <Calendar className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-white">Available Days</p>
+                      <p className="text-sm text-neutral-400">
+                        {selectedBenefit.valid_days.map((d: number) => dayNames[d]).join(', ')}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Expiration Date */}
+                {selectedBenefit.end_date && new Date(selectedBenefit.end_date).getFullYear() < 2090 && (
+                  <div className="flex items-start gap-3 p-3 bg-neutral-800/50 rounded-xl">
+                    <Clock className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-white">Expires</p>
+                      <p className="text-sm text-neutral-400">
+                        {new Date(selectedBenefit.end_date).toLocaleDateString('en-US', { 
+                          weekday: 'long', 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Max Usage */}
+                {selectedBenefit.max_usage_count && (
+                  <div className="flex items-start gap-3 p-3 bg-neutral-800/50 rounded-xl">
+                    <Tag className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-white">Limited Availability</p>
+                      <p className="text-sm text-neutral-400">
+                        {selectedBenefit.max_usage_count} total uses available
+                        {totalUsage[selectedBenefit.id] && (
+                          <span className="text-orange-400"> ({selectedBenefit.max_usage_count - (totalUsage[selectedBenefit.id] || 0)} remaining)</span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Per Member Limit */}
+                {selectedBenefit.max_uses_per_member && (
+                  <div className="flex items-start gap-3 p-3 bg-neutral-800/50 rounded-xl">
+                    <Star className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-white">Per Member Limit</p>
+                      <p className="text-sm text-neutral-400">
+                        {selectedBenefit.max_uses_per_member} use{selectedBenefit.max_uses_per_member > 1 ? 's' : ''} per member
+                        {promotionUsage[selectedBenefit.id] !== undefined && (
+                          <span className="text-orange-400"> (You've used {promotionUsage[selectedBenefit.id] || 0})</span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Locations */}
+                <div className="flex items-start gap-3 p-3 bg-neutral-800/50 rounded-xl">
+                  <MapPin className="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-white">Locations</p>
+                    <p className="text-sm text-neutral-400">
+                      {getLocationText(selectedBenefit.applicable_branches)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Close Button */}
+              <button
+                onClick={() => setSelectedBenefit(null)}
+                className="w-full mt-6 py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition"
+              >
+                Close
+              </button>
             </motion.div>
           </motion.div>
         )}

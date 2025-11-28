@@ -299,7 +299,7 @@ export default function LocationsPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 z-[100] flex items-end"
+            className="fixed inset-0 bg-black/80 z-[9999] flex items-end"
             onClick={() => setShowModal(false)}
           >
             <motion.div

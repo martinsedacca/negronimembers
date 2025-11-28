@@ -83,6 +83,7 @@ export async function POST(request: NextRequest) {
             phone: m.phone,
             member_number: m.member_number,
             membership_type: m.membership_type,
+            membership_type_id: m.membership_type_id,
           })),
         })
       }
@@ -330,6 +331,7 @@ export async function POST(request: NextRequest) {
         email: member.email,
         phone: member.phone,
         membership_type: member.membership_type,
+        membership_type_id: member.membership_type_id,
         status: member.status,
         member_number: member.member_number,
         points: totalPoints, // Use calculated value

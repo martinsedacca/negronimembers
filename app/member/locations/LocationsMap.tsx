@@ -5,6 +5,19 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, CircleMarker } from 're
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
+// Override Leaflet z-index to prevent it from covering modals
+const leafletStyles = `
+  .leaflet-pane,
+  .leaflet-top,
+  .leaflet-bottom,
+  .leaflet-control {
+    z-index: 1 !important;
+  }
+  .leaflet-popup-pane {
+    z-index: 2 !important;
+  }
+`
+
 // Fix Leaflet default icon issue
 delete (L.Icon.Default.prototype as any)._getIconUrl
 L.Icon.Default.mergeOptions({
@@ -112,13 +125,15 @@ export default function LocationsMap({ locations, userLocation, selectedLocation
       : [25.7617, -80.1918] // Default to Miami
 
   return (
-    <div className="h-72 rounded-xl overflow-hidden border border-neutral-700">
-      <MapContainer
-        center={center}
-        zoom={12}
-        style={{ height: '100%', width: '100%' }}
-        zoomControl={false}
-      >
+    <>
+      <style>{leafletStyles}</style>
+      <div className="h-72 rounded-xl overflow-hidden border border-neutral-700 relative z-0">
+        <MapContainer
+          center={center}
+          zoom={12}
+          style={{ height: '100%', width: '100%' }}
+          zoomControl={false}
+        >
         <TileLayer
           attribution='&copy; OpenStreetMap'
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
@@ -166,6 +181,7 @@ export default function LocationsMap({ locations, userLocation, selectedLocation
           </Marker>
         ))}
       </MapContainer>
-    </div>
+      </div>
+    </>
   )
 }

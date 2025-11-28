@@ -154,3 +154,7 @@ Esto es necesario porque si se edita el nombre de un tier, todos los miembros de
 - [x] `app/member/benefits/BenefitsClient.tsx` - getBenefitsForLevel soporta tier_id:
 - [x] `components/membership-types/MembershipTypeBenefitsModal.tsx` - Busca por tier_id: y tier:
 - [x] `components/promotions/PromotionsList.tsx` - Muestra nombres correctos de tier_id:
+- [x] `app/scanner/main/page.tsx` - Incluye membership_type_id en results
+- [x] `app/dashboard/scanner/page.tsx` - Interface actualizada con membership_type_id
+- [x] `app/api/webhooks/member-updated/route.ts` - Pasa membership_type_id a GHL
+- [x] `app/api/staff/scanner/verify/route.ts` - Incluye membership_type_id en respuestas
