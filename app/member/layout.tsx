@@ -17,8 +17,8 @@ function MemberLayoutContent({ children }: { children: React.ReactNode }) {
   const navItems = [
     { href: '/member/pass', icon: CreditCard, label: 'Pass' },
     { href: '/member/benefits', icon: Gift, label: 'Benefits' },
-    { href: '/member/events', icon: PartyPopper, label: 'Events' },
     { href: '/member/locations', icon: MapPin, label: 'Find Us' },
+    { href: '/member/events', icon: PartyPopper, label: 'Events' },
     { href: '/member/profile', icon: User, label: 'Profile' },
   ]
 

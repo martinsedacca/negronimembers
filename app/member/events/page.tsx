@@ -224,31 +224,30 @@ export default function EventsPage() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="px-6 pt-16 pb-8 text-center"
+            className="px-6 pt-12 pb-2 text-center"
           >
             <Image
               src="/NEGRONI-Logo-hueso_png.png"
               alt="Negroni"
-              width={120}
-              height={30}
-              className="mx-auto mb-6"
+              width={100}
+              height={25}
+              className="mx-auto mb-4"
             />
-            <h1 className="text-4xl font-bold text-white mb-2">
-              Plan<br />
-              <span className="text-orange-500">Your Event</span>
-            </h1>
-            <p className="text-neutral-400 text-sm leading-relaxed mt-6 max-w-lg mx-auto">
-              At Negroni, we make every gathering unforgettable. Whether you're planning an intimate dinner with friends, a birthday celebration, or a corporate meeting, our restaurants in Miami Midtown, Weston, and Beverly Hills offer the perfect setting.
+            <p className="text-orange-500 text-sm font-medium tracking-wide uppercase mb-2">
+              Let us help you plan your next celebration
             </p>
-            <p className="text-neutral-500 text-sm mt-4 max-w-lg mx-auto">
-              Enjoy vibrant ambiance, exceptional cuisine, and personalized service designed to elevate your experience.
+            <h1 className="text-3xl font-bold text-white">
+              Plan Your Event
+            </h1>
+            <p className="text-neutral-400 text-sm leading-relaxed mt-3 max-w-sm mx-auto">
+              At Negroni, we make every gathering unforgettable. Whether you're planning an intimate dinner, a birthday celebration, or a corporate meeting, we offer the perfect setting.
             </p>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Form Content */}
-      <div className="flex-1 flex items-center justify-center px-6 py-8">
+      <div className="flex-1 flex items-center justify-center px-6 py-4">
         <div className="w-full max-w-md">
           <AnimatePresence mode="wait">
             <motion.div
@@ -257,19 +256,19 @@ export default function EventsPage() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -50 }}
               transition={{ duration: 0.3 }}
-              className="space-y-6"
+              className="space-y-4"
             >
               {/* Step Icon & Title */}
-              <div className="text-center mb-8">
-                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 ${
+              <div className="text-center mb-4">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3 ${
                   currentStep === 0 ? 'bg-orange-500/20' : 'bg-neutral-800'
                 }`}>
-                  <currentStepData.icon className={`w-8 h-8 ${
+                  <currentStepData.icon className={`w-5 h-5 ${
                     currentStep === 0 ? 'text-orange-500' : 'text-neutral-400'
                   }`} />
                 </div>
-                <h2 className="text-2xl font-bold text-white">{currentStepData.title}</h2>
-                <p className="text-neutral-500 mt-1">{currentStepData.subtitle}</p>
+                <h2 className="text-xl font-bold text-white">{currentStepData.title}</h2>
+                <p className="text-neutral-500 text-sm mt-1">{currentStepData.subtitle}</p>
               </div>
 
               {/* Input Field */}
