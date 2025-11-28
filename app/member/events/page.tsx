@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronRight, ChevronLeft, Check, Calendar, Users, MapPin, PartyPopper, User, Phone, Mail, Loader2 } from 'lucide-react'
+import { ChevronRight, ChevronLeft, Check, Calendar, Users, MapPin, PartyPopper, User, Phone, Mail, Loader2, ChevronDown, AlertCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
 
@@ -32,12 +32,31 @@ const guestRanges = [
   '100+'
 ]
 
+const countryCodes = [
+  { code: '+1', country: 'US', flag: '🇺🇸' },
+  { code: '+1', country: 'CA', flag: '🇨🇦' },
+  { code: '+52', country: 'MX', flag: '🇲🇽' },
+  { code: '+54', country: 'AR', flag: '🇦🇷' },
+  { code: '+55', country: 'BR', flag: '🇧🇷' },
+  { code: '+56', country: 'CL', flag: '🇨🇱' },
+  { code: '+57', country: 'CO', flag: '🇨🇴' },
+  { code: '+58', country: 'VE', flag: '🇻🇪' },
+  { code: '+34', country: 'ES', flag: '🇪🇸' },
+  { code: '+44', country: 'UK', flag: '🇬🇧' },
+  { code: '+33', country: 'FR', flag: '🇫🇷' },
+  { code: '+49', country: 'DE', flag: '🇩🇪' },
+  { code: '+39', country: 'IT', flag: '🇮🇹' },
+]
+
 export default function EventsPage() {
   const [currentStep, setCurrentStep] = useState(0)
   const [branches, setBranches] = useState<Branch[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
+  const [fieldError, setFieldError] = useState('')
+  const [countryCode, setCountryCode] = useState(countryCodes[0])
+  const [showCountryPicker, setShowCountryPicker] = useState(false)
   
   const [formData, setFormData] = useState({
     fullName: '',
@@ -128,39 +147,89 @@ export default function EventsPage() {
 
   const currentStepData = steps[currentStep]
   const isLastStep = currentStep === steps.length - 1
+  
+  // Validation functions
+  const validateEmail = (email: string) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return regex.test(email)
+  }
+
+  const validatePhone = (phone: string) => {
+    const digits = phone.replace(/\D/g, '')
+    return digits.length >= 7 && digits.length <= 15
+  }
+
+  const validateName = (name: string) => {
+    return name.trim().length >= 2
+  }
+
+  const validateCurrentStep = (): string | null => {
+    const value = formData[currentStepData.field as keyof typeof formData]?.trim()
+    
+    if (!value) {
+      return 'This field is required'
+    }
+
+    switch (currentStepData.id) {
+      case 'name':
+        if (!validateName(value)) return 'Please enter your full name'
+        break
+      case 'phone':
+        if (!validatePhone(value)) return 'Please enter a valid phone number (7-15 digits)'
+        break
+      case 'email':
+        if (!validateEmail(value)) return 'Please enter a valid email address'
+        break
+    }
+    return null
+  }
+
   const canProceed = formData[currentStepData.field as keyof typeof formData]?.trim() !== ''
 
   const handleNext = () => {
-    if (canProceed && !isLastStep) {
+    const validationError = validateCurrentStep()
+    if (validationError) {
+      setFieldError(validationError)
+      return
+    }
+    setFieldError('')
+    if (!isLastStep) {
       setCurrentStep(prev => prev + 1)
     }
   }
 
   const handlePrev = () => {
+    setFieldError('')
     if (currentStep > 0) {
       setCurrentStep(prev => prev - 1)
     }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && canProceed && !isLastStep) {
+    if (e.key === 'Enter' && canProceed) {
       handleNext()
     }
   }
 
   const handleSubmit = async () => {
-    if (!canProceed) return
+    const validationError = validateCurrentStep()
+    if (validationError) {
+      setFieldError(validationError)
+      return
+    }
     
     setSubmitting(true)
     setError('')
+    setFieldError('')
     
     try {
       const supabase = createClient()
+      const fullPhone = `${countryCode.code} ${formData.phone}`
       const { error: insertError } = await supabase
         .from('event_requests')
         .insert({
           full_name: formData.fullName,
-          phone: formData.phone,
+          phone: fullPhone,
           email: formData.email,
           guests: formData.guests,
           event_date: formData.eventDate,
@@ -279,19 +348,94 @@ export default function EventsPage() {
               <p className="text-neutral-500 text-sm">{currentStepData.subtitle}</p>
             </div>
 
-              {/* Input Field */}
-              <div>
-                {currentStepData.type === 'text' || currentStepData.type === 'email' || currentStepData.type === 'tel' ? (
+            {/* Input Field */}
+            <div>
+              {currentStepData.type === 'text' ? (
+                <input
+                  type="text"
+                  value={formData[currentStepData.field as keyof typeof formData]}
+                  onChange={(e) => {
+                    setFieldError('')
+                    setFormData(prev => ({ ...prev, [currentStepData.field]: e.target.value }))
+                  }}
+                  onKeyDown={handleKeyDown}
+                  placeholder={currentStepData.placeholder}
+                  className={`w-full px-6 py-4 bg-neutral-900 border-2 rounded-2xl text-white placeholder-neutral-500 focus:outline-none transition text-lg ${
+                    fieldError ? 'border-red-500' : 'border-neutral-700 focus:border-orange-500'
+                  }`}
+                  autoFocus
+                />
+              ) : currentStepData.type === 'tel' ? (
+                <div className="space-y-3">
+                  {/* Country Code Selector */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowCountryPicker(!showCountryPicker)}
+                      className="w-full px-4 py-3 bg-neutral-900 border-2 border-neutral-700 rounded-xl text-white flex items-center justify-between"
+                    >
+                      <span className="flex items-center gap-3">
+                        <span className="text-2xl">{countryCode.flag}</span>
+                        <span>{countryCode.country}</span>
+                        <span className="text-neutral-400">{countryCode.code}</span>
+                      </span>
+                      <ChevronDown className={`w-5 h-5 text-neutral-400 transition ${showCountryPicker ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    {showCountryPicker && (
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-neutral-900 border border-neutral-700 rounded-xl max-h-48 overflow-y-auto z-10">
+                        {countryCodes.map((cc, idx) => (
+                          <button
+                            key={`${cc.country}-${idx}`}
+                            onClick={() => {
+                              setCountryCode(cc)
+                              setShowCountryPicker(false)
+                            }}
+                            className="w-full px-4 py-3 flex items-center gap-3 hover:bg-neutral-800 transition text-left"
+                          >
+                            <span className="text-xl">{cc.flag}</span>
+                            <span className="text-white">{cc.country}</span>
+                            <span className="text-neutral-400">{cc.code}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Phone Input */}
                   <input
-                    type={currentStepData.type}
-                    value={formData[currentStepData.field as keyof typeof formData]}
-                    onChange={(e) => setFormData(prev => ({ ...prev, [currentStepData.field]: e.target.value }))}
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => {
+                      setFieldError('')
+                      // Only allow numbers
+                      const value = e.target.value.replace(/[^\d]/g, '')
+                      setFormData(prev => ({ ...prev, phone: value }))
+                    }}
                     onKeyDown={handleKeyDown}
-                    placeholder={currentStepData.placeholder}
-                    className="w-full px-6 py-4 bg-neutral-900 border-2 border-neutral-700 rounded-2xl text-white placeholder-neutral-500 focus:outline-none focus:border-orange-500 transition text-lg"
+                    placeholder="Phone number (digits only)"
+                    className={`w-full px-6 py-4 bg-neutral-900 border-2 rounded-2xl text-white placeholder-neutral-500 focus:outline-none transition text-lg ${
+                      fieldError ? 'border-red-500' : 'border-neutral-700 focus:border-orange-500'
+                    }`}
                     autoFocus
                   />
-                ) : currentStepData.type === 'date' ? (
+                </div>
+              ) : currentStepData.type === 'email' ? (
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => {
+                    setFieldError('')
+                    setFormData(prev => ({ ...prev, email: e.target.value }))
+                  }}
+                  onKeyDown={handleKeyDown}
+                  placeholder="your@email.com"
+                  className={`w-full px-6 py-4 bg-neutral-900 border-2 rounded-2xl text-white placeholder-neutral-500 focus:outline-none transition text-lg ${
+                    fieldError ? 'border-red-500' : 'border-neutral-700 focus:border-orange-500'
+                  }`}
+                  autoFocus
+                />
+              ) : currentStepData.type === 'date' ? (
                   <input
                     type="date"
                     value={formData.eventDate}
@@ -344,9 +488,17 @@ export default function EventsPage() {
                 ) : null}
               </div>
 
-              {error && (
-                <p className="text-red-500 text-sm text-center">{error}</p>
-              )}
+            {/* Field Error */}
+            {fieldError && (
+              <div className="flex items-center gap-2 text-red-500 text-sm justify-center">
+                <AlertCircle className="w-4 h-4" />
+                {fieldError}
+              </div>
+            )}
+
+            {error && (
+              <p className="text-red-500 text-sm text-center">{error}</p>
+            )}
 
               {/* Navigation */}
               <div className="flex items-center gap-4 pt-6">
