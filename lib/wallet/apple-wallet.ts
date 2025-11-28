@@ -66,12 +66,16 @@ export async function generateApplePass(member: Member, authToken?: string): Pro
           passTemplate.labelColor = 'rgb(240, 219, 192)'; // #F0DBC0 para labels
           // Eliminar logoText para que solo muestre el logo
           delete passTemplate.logoText;
+          // Eliminar groupingIdentifier - no soportado para storeCard
+          delete passTemplate.groupingIdentifier;
           passTemplate.barcode.message = member.member_number;
           
           // Add web service URL for automatic updates (MUST be in pass.json template)
-          // NOTE: webServiceURL MUST end with a trailing slash for Apple to call it
+          // Apple constructs URLs like: {webServiceURL}/v1/devices/{deviceId}/registrations/...
+          // Our endpoints are at /api/v1/... so webServiceURL should be {domain}/api
+          // Do NOT add trailing slash - Apple adds the path after
           if (authToken) {
-            const wsUrl = `${getWebServiceURL()}/api/v1/`;
+            const wsUrl = `${getWebServiceURL()}/api`;
             passTemplate.webServiceURL = wsUrl;
             passTemplate.authenticationToken = authToken;
             console.log('🔗 [Wallet] Adding to pass.json - webServiceURL:', wsUrl);
@@ -118,6 +122,13 @@ export async function generateApplePass(member: Member, authToken?: string): Pro
 
       // Set pass type
       pass.type = 'storeCard';
+      
+      // Remove groupingIdentifier if it exists - not supported for storeCard type
+      // This prevents the Apple Wallet warning: "groupingIdentifier is only supported for 
+      // boardingPass, eventTicket, and healthPass styles"
+      if ('groupingIdentifier' in pass.props) {
+        delete (pass.props as Record<string, unknown>).groupingIdentifier;
+      }
 
       // Header field - Valid Until
       if (member.expiry_date) {

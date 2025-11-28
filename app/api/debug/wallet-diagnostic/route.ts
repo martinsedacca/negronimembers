@@ -29,7 +29,7 @@ export async function GET() {
     .order('created_at', { ascending: false })
     .limit(20)
   
-  const webServiceURL = `${process.env.NEXT_PUBLIC_APP_URL}/api/v1`
+  const webServiceURL = `${process.env.NEXT_PUBLIC_APP_URL}/api`
   const passTypeId = process.env.APPLE_WALLET_PASS_TYPE_ID || 'pass.com.onetimeleads.negroni'
   
   // Check if we have real tokens (not test data)
@@ -47,11 +47,12 @@ export async function GET() {
       webServiceURL: webServiceURL,
       passTypeId: passTypeId,
       expectedEndpoints: {
-        register: `POST ${webServiceURL}/devices/{deviceId}/registrations/${passTypeId}/{serialNumber}`,
-        unregister: `DELETE ${webServiceURL}/devices/{deviceId}/registrations/${passTypeId}/{serialNumber}`,
-        getUpdates: `GET ${webServiceURL}/devices/{deviceId}/registrations/${passTypeId}`,
-        getPass: `GET ${webServiceURL}/passes/${passTypeId}/{serialNumber}`,
-        log: `POST ${webServiceURL}/log`
+        note: 'Apple adds /v1/ prefix to all paths',
+        register: `POST ${webServiceURL}/v1/devices/{deviceId}/registrations/${passTypeId}/{serialNumber}`,
+        unregister: `DELETE ${webServiceURL}/v1/devices/{deviceId}/registrations/${passTypeId}/{serialNumber}`,
+        getUpdates: `GET ${webServiceURL}/v1/devices/{deviceId}/registrations/${passTypeId}`,
+        getPass: `GET ${webServiceURL}/v1/passes/${passTypeId}/{serialNumber}`,
+        log: `POST ${webServiceURL}/v1/log`
       }
     },
     

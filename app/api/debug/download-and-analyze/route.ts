@@ -116,6 +116,18 @@ export async function GET() {
           : !passJson.authenticationToken 
             ? '🔴 CRITICAL: authenticationToken is MISSING - Apple will NEVER register this pass'
             : '✅ Pass is correctly configured for push notifications'
+      },
+      
+      appleWillCall: {
+        registerEndpoint: passJson.webServiceURL 
+          ? `POST ${passJson.webServiceURL}/v1/devices/{deviceId}/registrations/${passJson.passTypeIdentifier}/${passJson.serialNumber}`
+          : 'N/A - webServiceURL missing',
+        logEndpoint: passJson.webServiceURL
+          ? `POST ${passJson.webServiceURL}/v1/log`
+          : 'N/A - webServiceURL missing',
+        authTokenLength: passJson.authenticationToken?.length || 0,
+        authTokenValid: (passJson.authenticationToken?.length || 0) >= 16,
+        note: 'authenticationToken must be at least 16 characters'
       }
     })
   } catch (error: any) {
