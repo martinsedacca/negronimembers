@@ -22,7 +22,7 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
     full_name: member.full_name,
     email: member.email,
     phone: member.phone || '',
-    membership_type: member.membership_type,
+    membership_type_id: member.membership_type_id || membershipTypes.find(t => t.name === member.membership_type)?.id || '',
     status: member.status,
     points: member.points,
   })
@@ -31,16 +31,24 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
   const handleSave = async () => {
     setSaving(true)
     try {
+      // Get the tier name for backwards compatibility
+      const selectedType = membershipTypes.find(t => t.id === formData.membership_type_id)
+      const updateData = {
+        ...formData,
+        membership_type: selectedType?.name || member.membership_type, // Keep name in sync
+      }
+      
       const { error } = await supabase
         .from('members')
-        .update(formData)
+        .update(updateData)
         .eq('id', member.id)
 
       if (error) throw error
 
       // Notify wallet to update if relevant fields changed
+      const memberTypeChanged = formData.membership_type_id !== (member.membership_type_id || membershipTypes.find(t => t.name === member.membership_type)?.id)
       if (
-        formData.membership_type !== member.membership_type ||
+        memberTypeChanged ||
         formData.full_name !== member.full_name ||
         formData.points !== member.points ||
         formData.status !== member.status
@@ -166,9 +174,9 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
           
           <EditableField 
             label="Membership Type" 
-            field="membership_type" 
+            field="membership_type_id" 
             icon={CreditCard}
-            options={membershipTypes.map(t => ({ value: t.name, label: t.name }))}
+            options={membershipTypes.map(t => ({ value: t.id, label: t.name }))}
           />
           
           {/* Status Toggle */}

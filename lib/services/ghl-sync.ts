@@ -23,7 +23,8 @@ interface MemberData {
   email: string
   phone: string | null
   member_number: string
-  membership_type: string
+  membership_type: string // Tier name
+  membership_type_id?: string | null // FK to membership_types
   status: string
   points: number
   joined_date: string

@@ -84,23 +84,6 @@ export default function MembershipTypesList({ membershipTypes }: MembershipTypes
                   </div>
                 )}
 
-                {/* Benefits Preview */}
-                {type.benefits && typeof type.benefits === 'object' && (
-                  <div className="bg-neutral-800 rounded-lg p-3">
-                    <p className="text-xs text-neutral-500 uppercase tracking-wide mb-2">
-                      Features
-                    </p>
-                    <div className="space-y-1">
-                      {Object.entries(type.benefits as Record<string, any>).slice(0, 3).map(([key, value]) => (
-                        <div key={key} className="flex items-center gap-2 text-sm text-neutral-300">
-                          <div className="w-1 h-1 bg-orange-500 rounded-full" />
-                          <span className="capitalize">{key}: </span>
-                          <span className="text-neutral-400">{String(value)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
 
                 {/* Actions */}
                 <div className="flex gap-2 pt-3 border-t border-neutral-700">

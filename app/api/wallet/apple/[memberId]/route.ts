@@ -44,8 +44,17 @@ export async function GET(
     // Use existing token or generate new one
     const authToken = existingPass?.authentication_token || generateAuthToken();
 
+    console.log('🎫 [Wallet Download] === GENERATING PASS ===')
+    console.log('🎫 [Wallet Download] Member:', member.full_name, member.member_number)
+    console.log('🎫 [Wallet Download] AuthToken exists:', !!authToken)
+    console.log('🎫 [Wallet Download] AuthToken preview:', authToken?.substring(0, 20) + '...')
+    console.log('🎫 [Wallet Download] NEXT_PUBLIC_APP_URL:', process.env.NEXT_PUBLIC_APP_URL)
+    console.log('🎫 [Wallet Download] Expected webServiceURL:', `${process.env.NEXT_PUBLIC_APP_URL}/api/v1`)
+
     // Generate the pass with the auth token
     const passBuffer = await generateApplePass(member, authToken);
+    
+    console.log('🎫 [Wallet Download] Pass generated, size:', passBuffer.length, 'bytes')
 
     // Save pass info to database
     const { error: passError } = await supabase

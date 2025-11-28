@@ -202,7 +202,7 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
                           )}
                         </>
                       ) : (
-                        <span title="Sin tarjeta">
+                        <span title="No card">
                           <XCircle className="w-5 h-5 text-neutral-600" />
                         </span>
                       )}
@@ -211,7 +211,7 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-400">
                     <div className="flex items-center">
                       <Calendar className="w-4 h-4 mr-2 text-neutral-400" />
-                      {new Date(member.joined_date).toLocaleDateString('es-ES')}
+                      {new Date(member.joined_date).toLocaleDateString('en-US')}
                     </div>
                   </td>
                 </tr>
@@ -220,7 +220,7 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
           </table>
         ) : (
           <div className="text-center py-12">
-            <p className="text-neutral-400">No se encontraron miembros</p>
+            <p className="text-neutral-400">No members found</p>
           </div>
         )}
       </div>
@@ -228,8 +228,8 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
       {/* Summary */}
       <div className="px-6 py-4 bg-neutral-900/50 border-t border-neutral-700">
         <p className="text-sm text-neutral-300">
-          Mostrando <span className="font-medium">{filteredMembers.length}</span> de{' '}
-          <span className="font-medium">{members.length}</span> miembros
+          Showing <span className="font-medium">{filteredMembers.length}</span> of{' '}
+          <span className="font-medium">{members.length}</span> members
         </p>
       </div>
 

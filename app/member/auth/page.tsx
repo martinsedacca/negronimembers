@@ -207,12 +207,22 @@ export default function AuthPage() {
         }
       } else {
         // New user - create member record and go to onboarding
+        // Get default membership type ID
+        const { data: defaultTier } = await supabase
+          .from('membership_types')
+          .select('id, name')
+          .or('name.eq.Member,name.eq.Basic')
+          .order('points_required', { ascending: true })
+          .limit(1)
+          .single()
+        
         const { error: insertError } = await supabase
           .from('members')
           .insert({
             user_id: data.user.id,
             phone: fullPhone,
-            membership_type: 'Member',
+            membership_type: defaultTier?.name || 'Member',
+            membership_type_id: defaultTier?.id || null,
             onboarding_completed: false,
           })
 

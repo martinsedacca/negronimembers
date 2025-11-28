@@ -18,6 +18,8 @@ interface Location {
   name: string
   address: string | null
   city: string | null
+  phone: string | null
+  email: string | null
   latitude: number | null
   longitude: number | null
   distance?: number

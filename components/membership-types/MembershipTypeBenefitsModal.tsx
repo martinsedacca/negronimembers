@@ -36,22 +36,27 @@ export default function MembershipTypeBenefitsModal({ membershipType, onClose }:
 
   const fetchBenefits = async () => {
     try {
-      // Fetch benefits specific to this tier
-      const { data: tierSpecific, error: error1 } = await supabase
+      // Fetch benefits specific to this tier (support both old tier: and new tier_id: formats)
+      const { data: tierById, error: error1 } = await supabase
+        .from('promotions')
+        .select('*')
+        .contains('applicable_to', [`tier_id:${membershipType.id}`])
+
+      const { data: tierByName, error: error2 } = await supabase
         .from('promotions')
         .select('*')
         .contains('applicable_to', [`tier:${membershipType.name}`])
 
       // Fetch benefits for all members
-      const { data: allMembers, error: error2 } = await supabase
+      const { data: allMembers, error: error3 } = await supabase
         .from('promotions')
         .select('*')
         .contains('applicable_to', ['all'])
 
-      if (error1 || error2) throw error1 || error2
+      if (error1 || error2 || error3) throw error1 || error2 || error3
 
       // Combine and deduplicate
-      const allBenefits = [...(tierSpecific || []), ...(allMembers || [])]
+      const allBenefits = [...(tierById || []), ...(tierByName || []), ...(allMembers || [])]
       const uniqueBenefits = Array.from(
         new Map(allBenefits.map(item => [item.id, item])).values()
       ).sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime())

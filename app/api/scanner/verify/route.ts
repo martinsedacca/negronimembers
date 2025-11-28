@@ -50,6 +50,9 @@ export async function POST(request: NextRequest) {
         discount_value,
         start_date,
         end_date,
+        icon,
+        usage_type,
+        applicable_branches,
         is_assigned
       `)
       .eq('member_id', member.id)
@@ -94,6 +97,7 @@ export async function POST(request: NextRequest) {
         email: member.email,
         phone: member.phone,
         membership_type: member.membership_type,
+        membership_type_id: member.membership_type_id,
         status: member.status,
         member_number: member.member_number,
         points: member.points,

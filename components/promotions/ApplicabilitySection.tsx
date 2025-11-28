@@ -28,6 +28,10 @@ export default function ApplicabilitySection({
     return codes.find(c => c.id === codeId)?.code || codeId
   }
 
+  const getTierName = (tierId: string) => {
+    return membershipTypes.find(t => t.id === tierId)?.name || tierId
+  }
+
   return (
     <div className="bg-neutral-900 border border-neutral-700 rounded-lg p-4 space-y-4">
       <div className="flex items-center justify-between">
@@ -79,8 +83,8 @@ export default function ApplicabilitySection({
                 >
                   <input
                     type="checkbox"
-                    checked={selectedTiers.includes(type.name)}
-                    onChange={() => onToggleTier(type.name)}
+                    checked={selectedTiers.includes(type.id)}
+                    onChange={() => onToggleTier(type.id)}
                     className="h-4 w-4 text-orange-500 focus:ring-orange-500 border-neutral-600 rounded"
                   />
                   <span className="ml-3 text-sm text-white">{type.name}</span>
@@ -132,16 +136,16 @@ export default function ApplicabilitySection({
                 Access Summary (OR logic):
               </div>
               <div className="flex flex-wrap gap-2">
-                {selectedTiers.map((tier) => (
+                {selectedTiers.map((tierId) => (
                   <div
-                    key={tier}
+                    key={tierId}
                     className="flex items-center gap-1 px-2 py-1 bg-orange-500/20 border border-orange-500/30 rounded-full text-xs text-orange-400"
                   >
                     <Tag className="w-3 h-3" />
-                    {tier}
+                    {getTierName(tierId)}
                     <button
                       type="button"
-                      onClick={() => onToggleTier(tier)}
+                      onClick={() => onToggleTier(tierId)}
                       className="ml-1 hover:text-orange-300"
                     >
                       <X className="w-3 h-3" />

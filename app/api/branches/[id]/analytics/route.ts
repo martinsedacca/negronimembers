@@ -34,7 +34,7 @@ export async function GET(
       .from('transactions')
       .select(`
         *,
-        members(id, full_name, email, membership_type)
+        members(id, full_name, email, membership_type, membership_type_id)
       `)
       .eq('branch_id', params.id)
       .gte('created_at', startDate.toISOString())

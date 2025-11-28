@@ -23,6 +23,7 @@ interface Analytics {
       full_name: string
       email: string
       membership_type: string
+      membership_type_id?: string
       total_spent: number
       visit_count: number
     }>

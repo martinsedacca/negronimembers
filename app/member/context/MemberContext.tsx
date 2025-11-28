@@ -11,12 +11,15 @@ interface Member {
   email: string | null
   full_name: string | null
   phone: string | null
-  membership_type: string
+  membership_type: string // @deprecated - use membership_type_id
+  membership_type_id: string | null // FK to membership_types.id
   status: string
   member_number: string
   joined_date: string
   expiry_date: string | null
   points: number
+  total_spent: number
+  total_visits: number
   onboarding_completed: boolean
   date_of_birth: string | null
   created_at: string
@@ -33,6 +36,10 @@ interface Transaction {
   created_at: string
   usage_date: string
   branch_location: string | null
+  branch_id: string | null
+  staff_id: string | null
+  branches?: { name: string } | null
+  staff_members?: { first_name: string; last_name: string } | null
 }
 
 interface Promotion {
@@ -53,7 +60,6 @@ interface MembershipType {
   description: string
   points_required: number
   visits_required: number
-  benefits: Record<string, any>
   is_active: boolean
 }
 
@@ -149,10 +155,14 @@ export function MemberProvider({ children }: { children: ReactNode }) {
         .eq('user_id', userId)
         .maybeSingle(),
       
-      // Card usage (transactions)
+      // Card usage (transactions) with branch and staff info
       supabase
         .from('card_usage')
-        .select('*')
+        .select(`
+          *,
+          branches (name),
+          staff_members (first_name, last_name)
+        `)
         .eq('member_id', memberId)
         .order('created_at', { ascending: false })
         .limit(50),
@@ -256,7 +266,43 @@ export function MemberProvider({ children }: { children: ReactNode }) {
       const allData = await fetchAllData(user.id, memberData.id)
 
       if (allData.member) {
-        setMember(allData.member)
+        // Recalculate totals from transactions to ensure consistency
+        const calculatedTotalSpent = allData.transactions.reduce(
+          (sum, tx) => sum + (parseFloat(String(tx.amount_spent)) || 0), 0
+        )
+        const calculatedTotalVisits = allData.transactions.length
+        const calculatedPoints = allData.transactions.reduce(
+          (sum, tx) => sum + (tx.points_earned || 0), 0
+        )
+
+        // Update member with calculated values (always use fresh calculation)
+        const updatedMember = {
+          ...allData.member,
+          total_spent: calculatedTotalSpent,
+          total_visits: calculatedTotalVisits,
+          points: calculatedPoints,
+        }
+
+        // Update DB in background if values differ (fire and forget)
+        const dbTotalSpent = parseFloat(String(allData.member.total_spent)) || 0
+        const dbTotalVisits = allData.member.total_visits || 0
+        const dbPoints = allData.member.points || 0
+        
+        if (Math.abs(dbTotalSpent - calculatedTotalSpent) > 0.01 || 
+            dbTotalVisits !== calculatedTotalVisits ||
+            dbPoints !== calculatedPoints) {
+          supabase
+            .from('members')
+            .update({ 
+              total_spent: calculatedTotalSpent,
+              total_visits: calculatedTotalVisits,
+              points: calculatedPoints,
+            })
+            .eq('id', allData.member.id)
+            .then(() => console.log('✅ Member totals synced'))
+        }
+
+        setMember(updatedMember as Member)
         setTransactions(allData.transactions)
         setPromotions(allData.promotions)
         setMemberCodes(allData.memberCodes)
@@ -266,7 +312,7 @@ export function MemberProvider({ children }: { children: ReactNode }) {
 
         // Store in localStorage
         storeData({
-          member: allData.member,
+          member: updatedMember as Member,
           transactions: allData.transactions,
           promotions: allData.promotions,
           memberCodes: allData.memberCodes,

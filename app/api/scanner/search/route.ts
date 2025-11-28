@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       // Search by email
       const { data } = await supabase
         .from('members')
-        .select('id, full_name, email, phone, member_number, membership_type, status, points')
+        .select('id, full_name, email, phone, member_number, membership_type, membership_type_id, status, points')
         .ilike('email', `%${searchTerm}%`)
         .limit(10)
       members = data || []
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       const phoneDigits = searchTerm.replace(/\D/g, '')
       const { data } = await supabase
         .from('members')
-        .select('id, full_name, email, phone, member_number, membership_type, status, points')
+        .select('id, full_name, email, phone, member_number, membership_type, membership_type_id, status, points')
         .or(`phone.ilike.%${phoneDigits}%,phone.ilike.%${searchTerm}%`)
         .limit(10)
       members = data || []
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       // Using ilike with each word
       let query = supabase
         .from('members')
-        .select('id, full_name, email, phone, member_number, membership_type, status, points')
+        .select('id, full_name, email, phone, member_number, membership_type, membership_type_id, status, points')
 
       // Each word must appear somewhere in full_name
       for (const word of words) {
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
       if (isMemberNumber && members.length < 10) {
         const { data: numberResults } = await supabase
           .from('members')
-          .select('id, full_name, email, phone, member_number, membership_type, status, points')
+          .select('id, full_name, email, phone, member_number, membership_type, membership_type_id, status, points')
           .ilike('member_number', `%${searchTerm}%`)
           .limit(5)
         

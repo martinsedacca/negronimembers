@@ -35,7 +35,7 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
     full_name: member.full_name,
     email: member.email,
     phone: member.phone || '',
-    membership_type: member.membership_type,
+    membership_type_id: member.membership_type_id || membershipTypes.find(t => t.name === member.membership_type)?.id || '',
     status: member.status,
     points: member.points,
   })
@@ -45,6 +45,51 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
   const [syncingGHL, setSyncingGHL] = useState(false)
   const [historyData, setHistoryData] = useState<any[]>([])
   const [loadingHistory, setLoadingHistory] = useState(false)
+  const [calculatedStats, setCalculatedStats] = useState({
+    total_visits: member.total_visits || 0,
+    lifetime_spent: member.lifetime_spent || 0,
+    visits_last_30_days: member.visits_last_30_days || 0,
+    average_purchase: member.average_purchase || 0,
+    points: member.points || 0,
+  })
+
+  // Calculate stats from card_usage on mount
+  useEffect(() => {
+    const calculateStats = async () => {
+      const { data: usage } = await supabase
+        .from('card_usage')
+        .select('amount_spent, points_earned, created_at')
+        .eq('member_id', member.id)
+
+      if (usage && usage.length > 0) {
+        const now = new Date()
+        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+        
+        let totalSpent = 0
+        let totalPoints = 0
+        let visitsLast30 = 0
+        
+        usage.forEach(tx => {
+          const amount = parseFloat(String(tx.amount_spent)) || 0
+          totalSpent += amount
+          totalPoints += tx.points_earned || 0
+          
+          if (new Date(tx.created_at) >= thirtyDaysAgo) {
+            visitsLast30++
+          }
+        })
+
+        setCalculatedStats({
+          total_visits: usage.length,
+          lifetime_spent: totalSpent,
+          visits_last_30_days: visitsLast30,
+          average_purchase: usage.length > 0 ? totalSpent / usage.length : 0,
+          points: totalPoints,
+        })
+      }
+    }
+    calculateStats()
+  }, [member.id, supabase])
 
   // Generate QR code for member card download
   useEffect(() => {
@@ -68,16 +113,47 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
   const loadHistory = async () => {
     setLoadingHistory(true)
     try {
-      // Fetch card usage (visits, purchases, promos)
+      // Fetch card usage with branch and staff info
       const { data, error } = await supabase
         .from('card_usage')
-        .select('*')
+        .select(`
+          *,
+          branches (name),
+          staff_members (first_name, last_name)
+        `)
         .eq('member_id', member.id)
         .order('created_at', { ascending: false })
       
       if (error) throw error
       
-      setHistoryData(data || [])
+      // Also fetch applied promotions for each card_usage
+      const usageIds = (data || []).map(d => d.id).filter(Boolean)
+      let appliedPromos: any[] = []
+      
+      if (usageIds.length > 0) {
+        const { data: promos } = await supabase
+          .from('applied_promotions')
+          .select(`
+            card_usage_id,
+            discount_amount,
+            promotions (title, description, discount_type, discount_value)
+          `)
+          .in('card_usage_id', usageIds)
+        appliedPromos = promos || []
+      }
+
+      // Merge promotions into history data
+      const historyWithPromos = (data || []).map(tx => ({
+        ...tx,
+        applied_promotions: appliedPromos
+          .filter(p => p.card_usage_id === tx.id)
+          .map(p => ({
+            title: (p.promotions as any)?.title || 'Promotion',
+            discount_amount: p.discount_amount
+          }))
+      }))
+      
+      setHistoryData(historyWithPromos)
     } catch (error) {
       console.error('Error loading history:', error)
       setHistoryData([])
@@ -90,10 +166,17 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
     console.log('🟢 [DEBUG] handleSave called - Starting save process')
     setSaving(true)
     try {
+      // Get the tier name for backwards compatibility
+      const selectedType = membershipTypes.find(t => t.id === formData.membership_type_id)
+      const updateData = {
+        ...formData,
+        membership_type: selectedType?.name || member.membership_type, // Keep name in sync
+      }
+      
       console.log('🟢 [DEBUG] Updating member in database:', member.id)
       const { error } = await supabase
         .from('members')
-        .update(formData)
+        .update(updateData)
         .eq('id', member.id)
 
       if (error) {
@@ -157,7 +240,7 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
         throw new Error(data.error || 'Error al enviar tarjeta')
       }
 
-      alert('✅ Tarjeta enviada exitosamente')
+      alert('✅ Card sent successfully')
     } catch (error: any) {
       alert('❌ Error: ' + error.message)
     } finally {
@@ -196,7 +279,7 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
       }
 
       if (!response.ok) {
-        const errorMessage = data.details || data.error || 'Error desconocido'
+        const errorMessage = data.details || data.error || 'Unknown error'
         console.error('🔴 [Frontend] Error details:', JSON.stringify(data, null, 2))
         console.error('🔴 [Frontend] Full stack:', data.stack)
         throw new Error(errorMessage)
@@ -206,7 +289,7 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
       alert(`✅ ${data.message}\n\nContact ID: ${data.contact_id}`)
     } catch (error: any) {
       console.error('🔴 [Frontend] Sync error:', error)
-      alert(`❌ Error al sincronizar:\n\n${error.message}\n\n⚠️ IMPORTANTE: Abre la consola del navegador (F12) y copia TODOS los logs que veas.`)
+      alert(`❌ Sync error:\n\n${error.message}`)
     } finally {
       setSyncingGHL(false)
     }
@@ -281,7 +364,7 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
             onClick={() => setIsEditing(field)}
             className="text-lg text-white cursor-pointer hover:text-brand-400 transition px-3 py-2 rounded-lg hover:bg-neutral-800/50"
           >
-            {formData[field] || 'Sin especificar'}
+            {formData[field] || 'Not specified'}
           </div>
         )}
       </div>
@@ -321,7 +404,7 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
             >
               <div className="flex items-center justify-center gap-2">
                 <CreditCard className="w-4 h-4" />
-                <span>Información</span>
+                <span>Information</span>
               </div>
             </button>
             <button
@@ -334,7 +417,7 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
             >
               <div className="flex items-center justify-center gap-2">
                 <BarChart3 className="w-4 h-4" />
-                <span>Estadísticas y Tarjeta</span>
+                <span>Stats & Card</span>
               </div>
             </button>
             <button
@@ -347,7 +430,7 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
             >
               <div className="flex items-center justify-center gap-2">
                 <Clock className="w-4 h-4" />
-                <span>Historial</span>
+                <span>History</span>
               </div>
             </button>
           </div>
@@ -357,22 +440,22 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
         <div className="flex-1 overflow-y-auto">
           {activeTab === 'info' ? (
             <div className="p-6 space-y-6">
-              <EditableField label="Nombre Completo" field="full_name" icon={Award} />
+              <EditableField label="Full Name" field="full_name" icon={Award} />
               <EditableField label="Email" field="email" icon={Mail} type="email" />
-              <EditableField label="Teléfono" field="phone" icon={Phone} type="tel" />
+              <EditableField label="Phone" field="phone" icon={Phone} type="tel" />
               
               <EditableField 
-                label="Tipo de Membresía" 
-                field="membership_type" 
+                label="Membership Type" 
+                field="membership_type_id" 
                 icon={CreditCard}
-                options={membershipTypes.map(t => ({ value: t.name, label: t.name }))}
+                options={membershipTypes.map(t => ({ value: t.id, label: t.name }))}
               />
               
               {/* Status Toggle */}
               <div>
                 <div className="flex items-center gap-3 mb-3">
                   <TrendingUp className="w-4 h-4 text-brand-400" />
-                  <span className="text-xs text-neutral-500 uppercase tracking-wide">Estado</span>
+                  <span className="text-xs text-neutral-500 uppercase tracking-wide">Status</span>
                 </div>
                 <button
                   onClick={() => setFormData({ 
@@ -392,21 +475,21 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
                 <span className={`ml-3 text-lg font-medium ${
                   formData.status === 'active' ? 'text-green-400' : 'text-neutral-400'
                 }`}>
-                  {formData.status === 'active' ? 'Activo' : 'Inactivo'}
+                  {formData.status === 'active' ? 'Active' : 'Inactive'}
                 </span>
               </div>
 
-              <EditableField label="Puntos" field="points" icon={Award} type="number" />
+              <EditableField label="Points" field="points" icon={Award} type="number" />
 
               {/* Read-only info */}
               <div className="pt-4 border-t border-neutral-700 space-y-4">
                 <div>
                   <div className="flex items-center gap-3 mb-2">
                     <Calendar className="w-4 h-4 text-brand-400" />
-                    <span className="text-xs text-neutral-500 uppercase tracking-wide">Fecha de Registro</span>
+                    <span className="text-xs text-neutral-500 uppercase tracking-wide">Join Date</span>
                   </div>
                   <div className="text-lg text-neutral-300 px-3">
-                    {new Date(member.joined_date).toLocaleDateString('es-ES', { 
+                    {new Date(member.joined_date).toLocaleDateString('en-US', { 
                       year: 'numeric', 
                       month: 'long', 
                       day: 'numeric' 
@@ -420,20 +503,20 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
               {/* Statistics Grid */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-neutral-900/50 p-4 rounded-lg border border-neutral-700">
-                  <div className="text-2xl font-bold text-white">{member.total_visits || 0}</div>
-                  <div className="text-xs text-neutral-400 mt-1">Visitas Totales</div>
+                  <div className="text-2xl font-bold text-white">{calculatedStats.total_visits}</div>
+                  <div className="text-xs text-neutral-400 mt-1">Total Visits</div>
                 </div>
                 <div className="bg-neutral-900/50 p-4 rounded-lg border border-neutral-700">
-                  <div className="text-2xl font-bold text-green-400">${(member.lifetime_spent || 0).toFixed(0)}</div>
-                  <div className="text-xs text-neutral-400 mt-1">Gasto Total</div>
+                  <div className="text-2xl font-bold text-green-400">${calculatedStats.lifetime_spent.toFixed(0)}</div>
+                  <div className="text-xs text-neutral-400 mt-1">Total Spent</div>
                 </div>
                 <div className="bg-neutral-900/50 p-4 rounded-lg border border-neutral-700">
-                  <div className="text-2xl font-bold text-blue-400">{member.visits_last_30_days || 0}</div>
-                  <div className="text-xs text-neutral-400 mt-1">Últimos 30 días</div>
+                  <div className="text-2xl font-bold text-blue-400">{calculatedStats.visits_last_30_days}</div>
+                  <div className="text-xs text-neutral-400 mt-1">Last 30 Days</div>
                 </div>
                 <div className="bg-neutral-900/50 p-4 rounded-lg border border-neutral-700">
-                  <div className="text-2xl font-bold text-orange-400">${(member.average_purchase || 0).toFixed(0)}</div>
-                  <div className="text-xs text-neutral-400 mt-1">Promedio Compra</div>
+                  <div className="text-2xl font-bold text-orange-400">${calculatedStats.average_purchase.toFixed(0)}</div>
+                  <div className="text-xs text-neutral-400 mt-1">Avg Purchase</div>
                 </div>
               </div>
 
@@ -442,12 +525,12 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <Smartphone className="w-5 h-5 text-neutral-400" />
-                    <span className="text-sm font-medium text-white">Estado de Tarjeta Digital</span>
+                    <span className="text-sm font-medium text-white">Digital Card Status</span>
                   </div>
                   {member.has_wallet ? (
-                    <span className="text-xs px-2 py-1 bg-green-500/20 text-green-400 rounded">Instalada</span>
+                    <span className="text-xs px-2 py-1 bg-green-500/20 text-green-400 rounded">Installed</span>
                   ) : (
-                    <span className="text-xs px-2 py-1 bg-neutral-700 text-neutral-400 rounded">No instalada</span>
+                    <span className="text-xs px-2 py-1 bg-neutral-700 text-neutral-400 rounded">Not Installed</span>
                   )}
                 </div>
                 {member.has_wallet && member.wallet_types && (
@@ -477,11 +560,11 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
                       </div>
                     ) : (
                       <div className="w-48 h-48 bg-neutral-800 rounded-lg flex items-center justify-center">
-                        <span className="text-neutral-500">Generando QR...</span>
+                        <span className="text-neutral-500">Generating QR...</span>
                       </div>
                     )}
                     <p className="text-xs text-neutral-400 text-center mt-2">
-                      Escanea para descargar la tarjeta
+                      Scan to download the card
                     </p>
                   </div>
 
@@ -493,17 +576,17 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
                       className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-orange-500 hover:bg-orange-600 disabled:bg-neutral-700 disabled:cursor-not-allowed text-white rounded-lg font-medium transition"
                     >
                       <Send className="w-4 h-4" />
-                      {sendingCard ? 'Enviando...' : 'Enviar Tarjeta al Cliente'}
+                      {sendingCard ? 'Sending...' : 'Send Card to Customer'}
                     </button>
                     <p className="text-xs text-neutral-400 text-center">
-                      {member.email ? `Se enviará a: ${member.email}` : 'Email no disponible'}
+                      {member.email ? `Will be sent to: ${member.email}` : 'Email not available'}
                     </p>
                     <button
                       onClick={() => window.open(`/cards/${member.id}`, '_blank')}
                       className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-neutral-700 hover:bg-neutral-600 text-white rounded-lg font-medium transition"
                     >
                       <Download className="w-4 h-4" />
-                      Ver Tarjeta en Nueva Pestaña
+                      View Card in New Tab
                     </button>
                     <button
                       onClick={handleSyncToGHL}
@@ -511,7 +594,7 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
                       className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-neutral-700 disabled:cursor-not-allowed text-white rounded-lg font-medium transition"
                     >
                       <RefreshCw className={`w-4 h-4 ${syncingGHL ? 'animate-spin' : ''}`} />
-                      {syncingGHL ? 'Sincronizando...' : 'Sincronizar con GoHighLevel'}
+                      {syncingGHL ? 'Syncing...' : 'Sync with GoHighLevel'}
                     </button>
                   </div>
                 </div>
@@ -520,7 +603,7 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
               {/* Last Visit */}
               {member.last_visit && (
                 <div className="text-sm text-neutral-400 text-center">
-                  Última visita: {new Date(member.last_visit).toLocaleDateString('es-ES')}
+                  Last visit: {new Date(member.last_visit).toLocaleDateString('en-US')}
                 </div>
               )}
             </div>
@@ -529,39 +612,43 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
               {/* Timeline de Historial */}
               <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
                 <Clock className="w-5 h-5" />
-                Historial de Actividad
+                Activity History
               </h3>
 
               {loadingHistory ? (
                 <div className="text-center py-12">
                   <div className="inline-block w-8 h-8 border-4 border-neutral-600 border-t-orange-500 rounded-full animate-spin"></div>
-                  <p className="text-neutral-400 mt-4">Cargando historial...</p>
+                  <p className="text-neutral-400 mt-4">Loading history...</p>
                 </div>
               ) : historyData.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-neutral-400">No hay actividad registrada</p>
+                  <p className="text-neutral-400">No activity recorded</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {historyData.map((item, index) => {
+                    // Determine actual type based on amount_spent (more accurate than event_type)
+                    const actualType = parseFloat(item.amount_spent) > 0 ? 'purchase' : 
+                                       item.event_type === 'event' ? 'event' : 'visit'
+
                     const getIcon = () => {
-                      if (item.event_type === 'visit') return <MapPin className="w-5 h-5 text-blue-500" />
-                      if (item.event_type === 'purchase') return <ShoppingCart className="w-5 h-5 text-green-500" />
-                      if (item.event_type === 'promo_redeemed') return <Gift className="w-5 h-5 text-purple-500" />
+                      if (actualType === 'visit') return <MapPin className="w-5 h-5 text-blue-500" />
+                      if (actualType === 'purchase') return <ShoppingCart className="w-5 h-5 text-green-500" />
+                      if (actualType === 'event') return <Gift className="w-5 h-5 text-purple-500" />
                       return <Clock className="w-5 h-5 text-neutral-500" />
                     }
 
                     const getTitle = () => {
-                      if (item.event_type === 'visit') return 'Visita registrada'
-                      if (item.event_type === 'purchase') return 'Compra realizada'
-                      if (item.event_type === 'promo_redeemed') return 'Promoción canjeada'
+                      if (actualType === 'visit') return 'Visit'
+                      if (actualType === 'purchase') return 'Purchase'
+                      if (actualType === 'event') return 'Event'
                       return item.event_type
                     }
 
                     const getBgColor = () => {
-                      if (item.event_type === 'visit') return 'bg-blue-500/10 border-blue-500/30'
-                      if (item.event_type === 'purchase') return 'bg-green-500/10 border-green-500/30'
-                      if (item.event_type === 'promo_redeemed') return 'bg-purple-500/10 border-purple-500/30'
+                      if (actualType === 'visit') return 'bg-blue-500/10 border-blue-500/30'
+                      if (actualType === 'purchase') return 'bg-green-500/10 border-green-500/30'
+                      if (actualType === 'event') return 'bg-purple-500/10 border-purple-500/30'
                       return 'bg-neutral-700/50 border-neutral-600'
                     }
 
@@ -587,7 +674,7 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
                               <div>
                                 <h4 className="text-white font-semibold">{getTitle()}</h4>
                                 <p className="text-sm text-neutral-400 mt-1">
-                                  {new Date(item.created_at).toLocaleDateString('es-ES', {
+                                  {new Date(item.created_at).toLocaleDateString('en-US', {
                                     year: 'numeric',
                                     month: 'long',
                                     day: 'numeric',
@@ -610,14 +697,37 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
                               </div>
                             )}
 
+                            {/* Branch and Staff Info */}
+                            <div className="mt-2 flex flex-wrap gap-3 text-xs text-neutral-400">
+                              {(item.branches?.name || item.branch_location) && (
+                                <span className="flex items-center gap-1">
+                                  <MapPin className="w-3 h-3" />
+                                  {item.branches?.name || item.branch_location}
+                                </span>
+                              )}
+                              {item.staff_members && (
+                                <span className="flex items-center gap-1">
+                                  👤 {item.staff_members.first_name} {item.staff_members.last_name}
+                                </span>
+                              )}
+                            </div>
+
                             {item.notes && (
                               <p className="mt-2 text-sm text-neutral-300">{item.notes}</p>
                             )}
 
-                            {item.promotion_id && (
-                              <div className="mt-2 flex items-center gap-1 text-sm text-purple-400">
-                                <Gift className="w-4 h-4" />
-                                <span>Promoción aplicada</span>
+                            {/* Applied Promotions */}
+                            {item.applied_promotions && item.applied_promotions.length > 0 && (
+                              <div className="mt-2 space-y-1">
+                                {item.applied_promotions.map((promo: any, pIdx: number) => (
+                                  <div key={pIdx} className="flex items-center gap-2 text-sm text-purple-400">
+                                    <Gift className="w-4 h-4" />
+                                    <span>{promo.title}</span>
+                                    {parseFloat(promo.discount_amount) > 0 && (
+                                      <span className="text-green-400">-${parseFloat(promo.discount_amount).toFixed(2)}</span>
+                                    )}
+                                  </div>
+                                ))}
                               </div>
                             )}
                           </div>
@@ -634,13 +744,13 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
         {/* Footer - Only show save when in info tab */}
         {activeTab === 'info' && (
           <div className="bg-neutral-800 border-t border-neutral-700 px-6 py-4 flex items-center justify-between">
-            <p className="text-sm text-neutral-400">Click en cualquier campo para editar</p>
+            <p className="text-sm text-neutral-400">Click on any field to edit</p>
             <div className="flex gap-3">
               <button
                 onClick={onClose}
                 className="px-4 py-2 bg-neutral-700 text-neutral-200 rounded-lg hover:bg-neutral-600 transition"
               >
-                Cancelar
+                Cancel
               </button>
               <button
                 onClick={handleSave}
@@ -648,7 +758,7 @@ export default function MemberDetailModal({ member, membershipTypes, onClose, on
                 className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition disabled:opacity-50 flex items-center gap-2"
               >
                 <Save className="w-4 h-4" />
-                {saving ? 'Guardando...' : 'Guardar Cambios'}
+                {saving ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </div>

@@ -44,25 +44,25 @@ export default function DailyStats() {
 
   const statsData = [
     {
-      label: 'Ventas del Día',
+      label: 'Today\'s Sales',
       value: `$${(stats.total_sales || 0).toFixed(2)}`,
       icon: DollarSign,
       color: 'bg-green-500',
     },
     {
-      label: 'Transacciones',
+      label: 'Transactions',
       value: stats.total_transactions || 0,
       icon: ShoppingCart,
       color: 'bg-blue-500',
     },
     {
-      label: 'Clientes Únicos',
+      label: 'Unique Customers',
       value: stats.unique_customers || 0,
       icon: Users,
       color: 'bg-purple-500',
     },
     {
-      label: 'Ticket Promedio',
+      label: 'Average Ticket',
       value: `$${(stats.average_purchase || 0).toFixed(2)}`,
       icon: TrendingUp,
       color: 'bg-orange-500',

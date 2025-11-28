@@ -135,6 +135,7 @@ export async function POST(request: NextRequest) {
       phone: member.phone,
       member_number: member.member_number,
       membership_type: member.membership_type,
+      membership_type_id: member.membership_type_id,
       status: member.status,
       points: member.points || 0,
       joined_date: member.joined_date,

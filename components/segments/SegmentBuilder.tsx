@@ -26,7 +26,8 @@ interface SegmentFilters {
   spent_last_30_days_min?: number
   
   // Membership
-  membership_types?: string[]
+  membership_types?: string[] // @deprecated - use membership_type_ids
+  membership_type_ids?: string[]
   status?: string[]
   
   // Wallet Push
@@ -441,14 +442,14 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
                 <label key={type.id} className="flex items-center gap-2">
                   <input
                     type="checkbox"
-                    checked={filters.membership_types?.includes(type.name) || false}
+                    checked={filters.membership_type_ids?.includes(type.id) || false}
                     onChange={(e) => {
-                      const current = filters.membership_types || []
+                      const current = filters.membership_type_ids || []
                       setFilters({
                         ...filters,
-                        membership_types: e.target.checked
-                          ? [...current, type.name]
-                          : current.filter(t => t !== type.name)
+                        membership_type_ids: e.target.checked
+                          ? [...current, type.id]
+                          : current.filter(t => t !== type.id)
                       })
                     }}
                     className="rounded"

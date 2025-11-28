@@ -49,7 +49,11 @@ export async function POST(request: NextRequest) {
       query = query.eq('has_wallet_push', true)
     }
 
-    if (filters.membership_types && filters.membership_types.length > 0) {
+    // Support both old (membership_types by name) and new (membership_type_ids by ID)
+    if (filters.membership_type_ids && filters.membership_type_ids.length > 0) {
+      query = query.in('membership_type_id', filters.membership_type_ids)
+    } else if (filters.membership_types && filters.membership_types.length > 0) {
+      // Fallback for old format
       query = query.in('membership_type', filters.membership_types)
     }
 

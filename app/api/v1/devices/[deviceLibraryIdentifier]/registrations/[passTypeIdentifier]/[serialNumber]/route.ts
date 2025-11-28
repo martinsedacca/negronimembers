@@ -1,6 +1,32 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
+// Helper to log requests to database
+async function logRequest(
+  supabase: any,
+  method: string,
+  path: string,
+  request: NextRequest,
+  body: any,
+  responseStatus: number,
+  errorMessage?: string
+) {
+  try {
+    await supabase.from('wallet_request_logs').insert({
+      method,
+      path,
+      headers: Object.fromEntries(request.headers.entries()),
+      body,
+      ip_address: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip'),
+      user_agent: request.headers.get('user-agent'),
+      response_status: responseStatus,
+      error_message: errorMessage
+    })
+  } catch (e) {
+    console.error('Failed to log request:', e)
+  }
+}
+
 /**
  * Register a device to receive push notifications for a pass
  * Apple Wallet Protocol: POST /v1/devices/{deviceLibraryIdentifier}/registrations/{passTypeIdentifier}/{serialNumber}
@@ -9,25 +35,40 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { deviceLibraryIdentifier: string; passTypeIdentifier: string; serialNumber: string } }
 ) {
+  const supabase = await createClient()
+  const path = request.nextUrl.pathname
+  let body: any = {}
+  
   try {
-    const { deviceLibraryIdentifier, serialNumber } = params
-    const body = await request.json()
+    const { deviceLibraryIdentifier, passTypeIdentifier, serialNumber } = params
+    
+    // Clone request to read body (can only read once)
+    const clonedRequest = request.clone()
+    try {
+      body = await clonedRequest.json()
+    } catch {
+      body = {}
+    }
+    
     const { pushToken } = body
 
-    console.log('📲 [Wallet] Registering device:', {
-      device: deviceLibraryIdentifier,
-      serial: serialNumber,
-      pushToken: pushToken?.substring(0, 20) + '...'
-    })
+    console.log('📲 [Wallet] === DEVICE REGISTRATION REQUEST ===' )
+    console.log('📲 [Wallet] Path:', path)
+    console.log('📲 [Wallet] Device:', deviceLibraryIdentifier)
+    console.log('📲 [Wallet] PassType:', passTypeIdentifier)
+    console.log('📲 [Wallet] Serial:', serialNumber)
+    console.log('📲 [Wallet] PushToken:', pushToken?.substring(0, 30) + '...')
+    console.log('📲 [Wallet] Auth Header:', request.headers.get('authorization')?.substring(0, 30) + '...')
+    console.log('📲 [Wallet] User-Agent:', request.headers.get('user-agent'))
 
     if (!pushToken) {
+      console.error('🔴 [Wallet] No pushToken in request body!')
+      await logRequest(supabase, 'POST', path, request, body, 400, 'pushToken is required')
       return NextResponse.json(
         { error: 'pushToken is required' },
         { status: 400 }
       )
     }
-
-    const supabase = await createClient()
 
     // Find the wallet pass
     const { data: pass, error: passError } = await supabase
@@ -73,11 +114,15 @@ export async function POST(
       .eq('id', pass.member_id)
 
     console.log('✅ [Wallet] Device registered successfully for member:', pass.member_id)
+    
+    // Log successful registration
+    await logRequest(supabase, 'POST', path, request, body, 201)
 
     // Apple expects 201 Created for first registration, 200 OK for updates
     return NextResponse.json({}, { status: 201 })
   } catch (error: any) {
     console.error('🔴 [Wallet] Registration error:', error)
+    await logRequest(supabase, 'POST', path, request, body, 500, error?.message)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -93,15 +138,16 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { deviceLibraryIdentifier: string; passTypeIdentifier: string; serialNumber: string } }
 ) {
+  const supabase = await createClient()
+  const path = request.nextUrl.pathname
+  
   try {
     const { deviceLibraryIdentifier, serialNumber } = params
 
-    console.log('📲 [Wallet] Unregistering device:', {
-      device: deviceLibraryIdentifier,
-      serial: serialNumber
-    })
-
-    const supabase = await createClient()
+    console.log('📲 [Wallet] === DEVICE UNREGISTRATION REQUEST ===')
+    console.log('📲 [Wallet] Path:', path)
+    console.log('📲 [Wallet] Device:', deviceLibraryIdentifier)
+    console.log('📲 [Wallet] Serial:', serialNumber)
 
     // Mark token as inactive using serial number directly
     await supabase
@@ -111,10 +157,12 @@ export async function DELETE(
       .eq('device_library_identifier', deviceLibraryIdentifier)
 
     console.log('✅ [Wallet] Device unregistered successfully')
+    await logRequest(supabase, 'DELETE', path, request, {}, 200)
 
     return NextResponse.json({}, { status: 200 })
   } catch (error: any) {
     console.error('🔴 [Wallet] Unregister error:', error)
+    await logRequest(supabase, 'DELETE', path, request, {}, 200, error?.message)
     return NextResponse.json({}, { status: 200 }) // Apple expects 200 even on error
   }
 }

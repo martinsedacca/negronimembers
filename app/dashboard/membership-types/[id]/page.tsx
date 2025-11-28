@@ -22,8 +22,7 @@ export default function EditMembershipTypePage() {
     description: '',
     points_required: 0,
     visits_required: 0,
-    is_active: true,
-    benefits: {} as Record<string, any>
+    is_active: true
   })
 
   // Load existing data
@@ -47,8 +46,7 @@ export default function EditMembershipTypePage() {
           description: data.description || '',
           points_required: (data as any).points_required || 0,
           visits_required: (data as any).visits_required || 0,
-          is_active: data.is_active ?? true,
-          benefits: (data.benefits as Record<string, any>) || {}
+          is_active: data.is_active ?? true
         })
       }
       setLoading(false)
@@ -71,7 +69,6 @@ export default function EditMembershipTypePage() {
           points_required: formData.points_required,
           visits_required: formData.visits_required,
           is_active: formData.is_active,
-          benefits: formData.benefits,
           updated_at: new Date().toISOString()
         })
         .eq('id', id)

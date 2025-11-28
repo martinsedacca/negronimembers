@@ -1,11 +1,21 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Clock, MapPin, DollarSign, Award, Calendar } from 'lucide-react'
+import { Clock, MapPin, DollarSign, Award, Calendar, User } from 'lucide-react'
 import { useState } from 'react'
 
+interface Transaction {
+  id: string
+  amount_spent: number | null
+  points_earned: number | null
+  created_at: string
+  branch_location: string | null
+  branches?: { name: string } | null
+  staff_members?: { first_name: string; last_name: string } | null
+}
+
 interface HistoryClientProps {
-  transactions: any[]
+  transactions: Transaction[]
 }
 
 export default function HistoryClient({ transactions }: HistoryClientProps) {
@@ -144,12 +154,21 @@ export default function HistoryClient({ transactions }: HistoryClientProps) {
                   </div>
                 </div>
 
-                {tx.branch_location && (
-                  <div className="flex items-center gap-2 text-xs text-neutral-400 pt-2 border-t border-neutral-700">
-                    <MapPin className="w-3 h-3" />
-                    <span>{tx.branch_location}</span>
-                  </div>
-                )}
+                {/* Location and Staff Info */}
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-neutral-400 pt-2 border-t border-neutral-700">
+                  {(tx.branches?.name || tx.branch_location) && (
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-orange-500/70" />
+                      <span>{tx.branches?.name || tx.branch_location}</span>
+                    </div>
+                  )}
+                  {tx.staff_members && (
+                    <div className="flex items-center gap-1">
+                      <User className="w-3 h-3 text-blue-500/70" />
+                      <span>Served by {tx.staff_members.first_name}</span>
+                    </div>
+                  )}
+                </div>
               </motion.div>
             ))}
           </div>

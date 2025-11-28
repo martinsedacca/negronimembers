@@ -37,9 +37,27 @@ export default function EditPromotionModal({
     end_date: promotion.end_date ? new Date(promotion.end_date).toISOString().slice(0, 16) : '',
     min_usage_count: promotion.min_usage_count.toString(),
     max_usage_count: promotion.max_usage_count?.toString() || '',
+    max_uses_per_member: (promotion as any).max_uses_per_member?.toString() || '',
     is_active: promotion.is_active,
     terms_conditions: promotion.terms_conditions || '',
   })
+  const [validDays, setValidDays] = useState<number[]>((promotion as any).valid_days || [])
+  
+  const dayNames = [
+    { value: 0, label: 'Sun' },
+    { value: 1, label: 'Mon' },
+    { value: 2, label: 'Tue' },
+    { value: 3, label: 'Wed' },
+    { value: 4, label: 'Thu' },
+    { value: 5, label: 'Fri' },
+    { value: 6, label: 'Sat' },
+  ]
+
+  const toggleDay = (day: number) => {
+    setValidDays(prev => 
+      prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day].sort()
+    )
+  }
   const [isAllMembers, setIsAllMembers] = useState(true)
   const [selectedTiers, setSelectedTiers] = useState<string[]>([])
   const [selectedCodes, setSelectedCodes] = useState<string[]>([])
@@ -57,11 +75,33 @@ export default function EditPromotionModal({
     } else {
       setIsAllMembers(false)
       
-      // Extract tiers
-      const tiers = applicable_to
+      // Extract tiers - support both tier_id: (new) and tier: (legacy) formats
+      const tierIds = applicable_to
+        .filter(item => item.startsWith('tier_id:'))
+        .map(item => item.replace('tier_id:', ''))
+      
+      // For legacy tier: format, we need to lookup IDs by name
+      const tierNames = applicable_to
         .filter(item => item.startsWith('tier:'))
         .map(item => item.replace('tier:', ''))
-      setSelectedTiers(tiers)
+      
+      if (tierNames.length > 0) {
+        // Fetch tier IDs by name
+        supabase
+          .from('membership_types')
+          .select('id, name')
+          .in('name', tierNames)
+          .then(({ data }) => {
+            if (data) {
+              const legacyTierIds = data.map(t => t.id)
+              setSelectedTiers([...tierIds, ...legacyTierIds])
+            } else {
+              setSelectedTiers(tierIds)
+            }
+          })
+      } else {
+        setSelectedTiers(tierIds)
+      }
       
       // Extract codes - need to match by code name after fetching
       const codeNames = applicable_to
@@ -139,7 +179,7 @@ export default function EditPromotionModal({
       
       if (!isAllMembers) {
         applicable_to = [
-          ...selectedTiers.map(tier => `tier:${tier}`),
+          ...selectedTiers.map(tierId => `tier_id:${tierId}`),
           ...selectedCodes.map(codeId => {
             const code = codes.find(c => c.id === codeId)
             return `code:${code?.code}`
@@ -166,6 +206,8 @@ export default function EditPromotionModal({
           end_date: formData.end_date ? new Date(formData.end_date).toISOString() : new Date('2099-12-31').toISOString(),
           min_usage_count: parseInt(formData.min_usage_count),
           max_usage_count: formData.max_usage_count ? parseInt(formData.max_usage_count) : null,
+          max_uses_per_member: formData.max_uses_per_member ? parseInt(formData.max_uses_per_member) : null,
+          valid_days: validDays.length > 0 ? validDays : null,
           applicable_to,
           applicable_branches,
           is_active: formData.is_active,
@@ -303,7 +345,59 @@ export default function EditPromotionModal({
                 onChange={(value) => setFormData({ ...formData, end_date: value })}
                 type="datetime"
               />
-              <p className="text-xs text-neutral-500 mt-1">Leave empty for no expiration</p>
+              <div className="mt-2 flex flex-wrap gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const today = new Date()
+                    setFormData({ ...formData, end_date: today.toISOString().slice(0, 16) })
+                  }}
+                  className="px-2 py-1 text-[10px] bg-neutral-700 text-neutral-300 rounded hover:bg-neutral-600 transition"
+                >
+                  Today
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const nextWeek = new Date()
+                    nextWeek.setDate(nextWeek.getDate() + 7)
+                    setFormData({ ...formData, end_date: nextWeek.toISOString().slice(0, 16) })
+                  }}
+                  className="px-2 py-1 text-[10px] bg-neutral-700 text-neutral-300 rounded hover:bg-neutral-600 transition"
+                >
+                  +1 Week
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const nextMonth = new Date()
+                    nextMonth.setMonth(nextMonth.getMonth() + 1)
+                    setFormData({ ...formData, end_date: nextMonth.toISOString().slice(0, 16) })
+                  }}
+                  className="px-2 py-1 text-[10px] bg-neutral-700 text-neutral-300 rounded hover:bg-neutral-600 transition"
+                >
+                  +1 Month
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const endYear = new Date()
+                    endYear.setMonth(11, 31)
+                    endYear.setHours(23, 59)
+                    setFormData({ ...formData, end_date: endYear.toISOString().slice(0, 16) })
+                  }}
+                  className="px-2 py-1 text-[10px] bg-neutral-700 text-neutral-300 rounded hover:bg-neutral-600 transition"
+                >
+                  End of Year
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, end_date: '' })}
+                  className="px-2 py-1 text-[10px] bg-neutral-700 text-neutral-300 rounded hover:bg-neutral-600 transition"
+                >
+                  No Expiry
+                </button>
+              </div>
             </div>
           </div>
 
@@ -322,7 +416,7 @@ export default function EditPromotionModal({
             </div>
             <div>
               <label className="block text-sm font-medium text-neutral-300 mb-2">
-                Maximum Usage Allowed (optional)
+                Total Usage Limit
               </label>
               <input
                 type="number"
@@ -331,7 +425,52 @@ export default function EditPromotionModal({
                 placeholder="Unlimited"
                 className="w-full px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               />
+              <p className="mt-1 text-xs text-neutral-500">Max uses by all members combined</p>
             </div>
+          </div>
+
+          {/* Per-Member Limit */}
+          <div>
+            <label className="block text-sm font-medium text-neutral-300 mb-2">
+              Limit Per Member
+            </label>
+            <input
+              type="number"
+              value={formData.max_uses_per_member}
+              onChange={(e) => setFormData({ ...formData, max_uses_per_member: e.target.value })}
+              placeholder="Unlimited"
+              className="w-full px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            />
+            <p className="mt-1 text-xs text-neutral-500">Max times each member can use this benefit</p>
+          </div>
+
+          {/* Valid Days */}
+          <div className="border border-neutral-700 rounded-lg p-4">
+            <h3 className="text-sm font-medium text-white mb-3">Valid Days</h3>
+            <p className="text-xs text-neutral-500 mb-3">
+              Select specific days when this benefit is available. Leave all unselected for every day.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {dayNames.map((day) => (
+                <button
+                  key={day.value}
+                  type="button"
+                  onClick={() => toggleDay(day.value)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                    validDays.includes(day.value)
+                      ? 'bg-orange-500 text-white'
+                      : 'bg-neutral-700 text-neutral-300 hover:bg-neutral-600'
+                  }`}
+                >
+                  {day.label}
+                </button>
+              ))}
+            </div>
+            {validDays.length > 0 && (
+              <p className="mt-2 text-xs text-orange-400">
+                Only available on: {validDays.map(d => dayNames.find(dn => dn.value === d)?.label).join(', ')}
+              </p>
+            )}
           </div>
 
           {/* APPLICABILITY SECTION */}

@@ -23,7 +23,8 @@ import {
   Ticket,
   ChevronDown,
   ChevronUp,
-  Crown
+  Crown,
+  UserCog
 } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
 import PushNotificationButton from '@/components/ui/PushNotificationButton'
@@ -87,6 +88,7 @@ export default function DashboardNav({ user }: DashboardNavProps) {
       title: 'ADMINISTRATION',
       items: [
         { name: 'Users', href: '/dashboard/users', icon: Users },
+        { name: 'Staff', href: '/dashboard/staff', icon: UserCog },
         { name: 'Locations', href: '/dashboard/branches', icon: Building2 },
       ]
     },

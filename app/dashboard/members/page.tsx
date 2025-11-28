@@ -9,11 +9,32 @@ export const revalidate = 60
 export default async function MembersPage() {
   const supabase = await createClient()
 
+  // Get members with calculated stats from card_usage
   const { data: members, error } = await supabase
     .from('members')
     .select('*')
     .order('created_at', { ascending: false })
-    .limit(100) // Limitar a 100 registros
+    .limit(100)
+
+  // Get all card_usage to calculate stats
+  const { data: allUsage } = await supabase
+    .from('card_usage')
+    .select('member_id, amount_spent, points_earned, created_at')
+
+  // Calculate stats for each member
+  const membersWithStats = (members || []).map(member => {
+    const memberUsage = (allUsage || []).filter(u => u.member_id === member.id)
+    const lifetimeSpent = memberUsage.reduce((sum, u) => sum + (parseFloat(String(u.amount_spent)) || 0), 0)
+    const totalVisits = memberUsage.length
+    const totalPoints = memberUsage.reduce((sum, u) => sum + (u.points_earned || 0), 0)
+    
+    return {
+      ...member,
+      lifetime_spent: lifetimeSpent,
+      total_visits: totalVisits,
+      points: totalPoints, // Override with calculated
+    }
+  })
 
   const { data: membershipTypes } = await supabase
     .from('membership_types')
@@ -43,7 +64,7 @@ export default async function MembersPage() {
       </div>
 
       <MembersList 
-        members={members || []} 
+        members={membersWithStats} 
         membershipTypes={membershipTypes || []}
       />
     </div>

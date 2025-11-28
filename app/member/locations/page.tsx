@@ -5,7 +5,7 @@ import { useRequireAuth } from '../context/MemberContext'
 import { createClient } from '@/lib/supabase/client'
 import { Loader2, MapPin, Phone, Navigation, Search, Locate, X, ExternalLink, Share2 } from 'lucide-react'
 import dynamic from 'next/dynamic'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, PanInfo } from 'framer-motion'
 
 // Dynamically import the map component to avoid SSR issues
 const LocationsMap = dynamic(() => import('./LocationsMap'), {
@@ -292,26 +292,36 @@ export default function LocationsPage() {
         )}
       </div>
 
-      {/* Location Detail Modal */}
+      {/* Location Detail Modal - Bottom Sheet with drag to dismiss */}
       <AnimatePresence>
         {showModal && selectedLocation && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 z-50 flex items-end"
+            className="fixed inset-0 bg-black/80 z-[100] flex items-end"
             onClick={() => setShowModal(false)}
           >
             <motion.div
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 25 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              drag="y"
+              dragConstraints={{ top: 0, bottom: 0 }}
+              dragElastic={{ top: 0, bottom: 0.8 }}
+              onDragEnd={(event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+                // Si se arrastra más de 100px hacia abajo o con velocidad alta, cerrar
+                if (info.offset.y > 100 || info.velocity.y > 500) {
+                  setShowModal(false)
+                }
+              }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full bg-neutral-900 rounded-t-3xl p-6 pb-10"
+              className="w-full bg-neutral-900 rounded-t-3xl p-6 pb-10 touch-none"
+              style={{ touchAction: 'none' }}
             >
-              {/* Handle */}
-              <div className="w-12 h-1 bg-neutral-700 rounded-full mx-auto mb-6" />
+              {/* Drag Handle - visual indicator */}
+              <div className="w-12 h-1.5 bg-neutral-600 rounded-full mx-auto mb-6 cursor-grab active:cursor-grabbing" />
               
               {/* Location Info */}
               <div className="mb-6">

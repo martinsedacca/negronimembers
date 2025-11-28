@@ -22,7 +22,7 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
     full_name: '',
     email: '',
     phone: '',
-    membership_type: membershipTypes[0]?.name || 'basic',
+    membership_type_id: membershipTypes[0]?.id || '',
     status: 'active' as 'active' | 'inactive' | 'suspended',
   })
 
@@ -41,13 +41,10 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
       const memberNumber = generateMemberNumber()
       
       // Calculate expiry date based on membership type
-      const membershipType = membershipTypes.find(t => t.name === formData.membership_type)
+      const membershipType = membershipTypes.find(t => t.id === formData.membership_type_id)
       const expiryDate = new Date()
-      if (membershipType?.duration_months) {
-        expiryDate.setMonth(expiryDate.getMonth() + membershipType.duration_months)
-      } else {
-        expiryDate.setFullYear(expiryDate.getFullYear() + 1)
-      }
+      // Default to 1 year expiry
+      expiryDate.setFullYear(expiryDate.getFullYear() + 1)
 
       const { data: newMember, error: insertError } = await supabase
         .from('members')
@@ -55,7 +52,8 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
           full_name: formData.full_name,
           email: formData.email,
           phone: formData.phone || null,
-          membership_type: formData.membership_type,
+          membership_type_id: formData.membership_type_id,
+          membership_type: membershipType?.name || 'Member', // Keep for backwards compatibility
           status: formData.status,
           member_number: memberNumber,
           expiry_date: expiryDate.toISOString(),
@@ -158,12 +156,12 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
           <select
             id="membership_type"
             required
-            value={formData.membership_type}
-            onChange={(e) => setFormData({ ...formData, membership_type: e.target.value })}
+            value={formData.membership_type_id}
+            onChange={(e) => setFormData({ ...formData, membership_type_id: e.target.value })}
             className="mt-1 block w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
           >
             {membershipTypes.map((type) => (
-              <option key={type.id} value={type.name}>
+              <option key={type.id} value={type.id}>
                 {type.name} - ${type.price}
               </option>
             ))}
@@ -189,15 +187,11 @@ export default function NewMemberForm({ membershipTypes }: NewMemberFormProps) {
 
       <div className="bg-neutral-900/50 p-4 rounded-md border border-neutral-700">
         <h4 className="text-sm font-medium text-white mb-2">Membership Information</h4>
-        {membershipTypes.find(t => t.name === formData.membership_type) && (
+        {membershipTypes.find(t => t.id === formData.membership_type_id) && (
           <div className="text-sm text-neutral-400 space-y-1">
             <p>
-              <span className="font-medium">Duration:</span>{' '}
-              {membershipTypes.find(t => t.name === formData.membership_type)?.duration_months} months
-            </p>
-            <p>
               <span className="font-medium">Price:</span> $
-              {membershipTypes.find(t => t.name === formData.membership_type)?.price}
+              {membershipTypes.find(t => t.id === formData.membership_type_id)?.price}
             </p>
           </div>
         )}

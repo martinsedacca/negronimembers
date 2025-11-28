@@ -32,9 +32,28 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
     end_date: '',
     min_usage_count: '0',
     max_usage_count: '',
+    max_uses_per_member: '',
     is_active: true,
     terms_conditions: '',
   })
+
+  const [validDays, setValidDays] = useState<number[]>([]) // Empty = all days valid
+  
+  const dayNames = [
+    { value: 0, label: 'Sun' },
+    { value: 1, label: 'Mon' },
+    { value: 2, label: 'Tue' },
+    { value: 3, label: 'Wed' },
+    { value: 4, label: 'Thu' },
+    { value: 5, label: 'Fri' },
+    { value: 6, label: 'Sat' },
+  ]
+
+  const toggleDay = (day: number) => {
+    setValidDays(prev => 
+      prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day].sort()
+    )
+  }
 
   const [isAllMembers, setIsAllMembers] = useState(true)
   const [selectedTiers, setSelectedTiers] = useState<string[]>([])
@@ -98,7 +117,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
       
       if (!isAllMembers) {
         applicable_to = [
-          ...selectedTiers.map(tier => `tier:${tier}`),
+          ...selectedTiers.map(tierId => `tier_id:${tierId}`),
           ...selectedCodes.map(codeId => {
             const code = codes.find(c => c.id === codeId)
             return `code:${code?.code}`
@@ -123,6 +142,8 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
         end_date: formData.end_date ? new Date(formData.end_date).toISOString() : new Date('2099-12-31').toISOString(),
         min_usage_count: parseInt(formData.min_usage_count) || 0,
         max_usage_count: formData.max_usage_count ? parseInt(formData.max_usage_count) : null,
+        max_uses_per_member: formData.max_uses_per_member ? parseInt(formData.max_uses_per_member) : null,
+        valid_days: validDays.length > 0 ? validDays : null,
         applicable_to,
         applicable_branches,
         is_active: formData.is_active,
@@ -240,9 +261,58 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
               onChange={(value) => setFormData({ ...formData, end_date: value })}
               type="date"
             />
-            <p className="mt-1 text-xs text-neutral-500">
-              Leave empty for no expiration
-            </p>
+            <div className="mt-2 flex flex-wrap gap-1">
+              <button
+                type="button"
+                onClick={() => {
+                  const today = new Date()
+                  setFormData({ ...formData, end_date: today.toISOString().split('T')[0] })
+                }}
+                className="px-2 py-1 text-[10px] bg-neutral-700 text-neutral-300 rounded hover:bg-neutral-600 transition"
+              >
+                Today
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const nextWeek = new Date()
+                  nextWeek.setDate(nextWeek.getDate() + 7)
+                  setFormData({ ...formData, end_date: nextWeek.toISOString().split('T')[0] })
+                }}
+                className="px-2 py-1 text-[10px] bg-neutral-700 text-neutral-300 rounded hover:bg-neutral-600 transition"
+              >
+                +1 Week
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const nextMonth = new Date()
+                  nextMonth.setMonth(nextMonth.getMonth() + 1)
+                  setFormData({ ...formData, end_date: nextMonth.toISOString().split('T')[0] })
+                }}
+                className="px-2 py-1 text-[10px] bg-neutral-700 text-neutral-300 rounded hover:bg-neutral-600 transition"
+              >
+                +1 Month
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const endYear = new Date()
+                  endYear.setMonth(11, 31)
+                  setFormData({ ...formData, end_date: endYear.toISOString().split('T')[0] })
+                }}
+                className="px-2 py-1 text-[10px] bg-neutral-700 text-neutral-300 rounded hover:bg-neutral-600 transition"
+              >
+                End of Year
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, end_date: '' })}
+                className="px-2 py-1 text-[10px] bg-neutral-700 text-neutral-300 rounded hover:bg-neutral-600 transition"
+              >
+                No Expiry
+              </button>
+            </div>
           </div>
         </div>
 
@@ -268,7 +338,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
 
           <div>
             <label htmlFor="max_usage_count" className="block text-sm font-medium text-neutral-300">
-              Maximum Usage Allowed
+              Total Usage Limit
             </label>
             <input
               type="number"
@@ -280,9 +350,57 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
               placeholder="Unlimited"
             />
             <p className="mt-1 text-xs text-neutral-500">
-              Leave empty for unlimited usage
+              Max times this benefit can be used by all members combined
             </p>
           </div>
+        </div>
+
+        {/* Per-Member Limit */}
+        <div>
+          <label htmlFor="max_uses_per_member" className="block text-sm font-medium text-neutral-300">
+            Limit Per Member
+          </label>
+          <input
+            type="number"
+            id="max_uses_per_member"
+            min="1"
+            value={formData.max_uses_per_member}
+            onChange={(e) => setFormData({ ...formData, max_uses_per_member: e.target.value })}
+            className="mt-1 block w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
+            placeholder="Unlimited"
+          />
+          <p className="mt-1 text-xs text-neutral-500">
+            Max times each member can use this benefit. Leave empty for unlimited.
+          </p>
+        </div>
+
+        {/* Valid Days */}
+        <div className="border border-neutral-700 rounded-lg p-4">
+          <h3 className="text-sm font-medium text-white mb-3">Valid Days</h3>
+          <p className="text-xs text-neutral-500 mb-3">
+            Select specific days when this benefit is available. Leave all unselected for every day.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {dayNames.map((day) => (
+              <button
+                key={day.value}
+                type="button"
+                onClick={() => toggleDay(day.value)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                  validDays.includes(day.value)
+                    ? 'bg-orange-500 text-white'
+                    : 'bg-neutral-700 text-neutral-300 hover:bg-neutral-600'
+                }`}
+              >
+                {day.label}
+              </button>
+            ))}
+          </div>
+          {validDays.length > 0 && (
+            <p className="mt-2 text-xs text-orange-400">
+              Only available on: {validDays.map(d => dayNames.find(dn => dn.value === d)?.label).join(', ')}
+            </p>
+          )}
         </div>
 
         {/* APPLICABILITY SECTION */}

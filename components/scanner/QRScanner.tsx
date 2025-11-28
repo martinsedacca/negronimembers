@@ -19,7 +19,8 @@ interface SearchResult {
   email: string
   phone: string | null
   member_number: string
-  membership_type: string
+  membership_type: string // Tier name
+  membership_type_id?: string // FK to membership_types
   status: string
   points: number
 }
@@ -182,12 +183,12 @@ export default function QRScanner({
           {mode === 'scan' ? (
             <>
               <Camera className="w-5 h-5 text-orange-500" />
-              Escaner QR
+              QR Scanner
             </>
           ) : (
             <>
               <Search className="w-5 h-5 text-orange-500" />
-              Buscar Miembro
+              Search Member
             </>
           )}
         </h2>
@@ -208,7 +209,7 @@ export default function QRScanner({
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-neutral-300 mb-2">
-                Buscar por nombre, email, teléfono o número de miembro
+                Search by name, email, phone or member number
               </label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
@@ -216,7 +217,7 @@ export default function QRScanner({
                   type="text"
                   value={searchQuery}
                   onChange={(e) => handleSearch(e.target.value)}
-                  placeholder="Ej: Ana Laura, ana@email.com, +1234567890"
+                  placeholder="e.g. John Smith, john@email.com, +1234567890"
                   className="w-full pl-10 pr-4 py-3 bg-neutral-700 border border-neutral-600 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder-neutral-400"
                   disabled={loading}
                 />
@@ -225,14 +226,14 @@ export default function QRScanner({
                 )}
               </div>
               <p className="mt-2 text-xs text-neutral-500">
-                Busca por nombre completo o parcial en cualquier orden, email o teléfono
+                Search by full or partial name in any order, email or phone
               </p>
             </div>
 
             {/* Search Results */}
             {searchResults.length > 0 && (
               <div className="space-y-2 max-h-80 overflow-y-auto">
-                <p className="text-sm text-neutral-400">{searchResults.length} resultado(s)</p>
+                <p className="text-sm text-neutral-400">{searchResults.length} result(s)</p>
                 {searchResults.map((member) => (
                   <button
                     key={member.id}
@@ -287,15 +288,15 @@ export default function QRScanner({
             {searchQuery.length >= 2 && !searching && searchResults.length === 0 && (
               <div className="text-center py-8 text-neutral-500">
                 <User className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p>No se encontraron miembros</p>
-                <p className="text-sm mt-1">Intenta con otro término de búsqueda</p>
+                <p>No members found</p>
+                <p className="text-sm mt-1">Try a different search term</p>
               </div>
             )}
 
             {loading && (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
-                <span className="ml-2 text-neutral-400">Cargando información...</span>
+                <span className="ml-2 text-neutral-400">Loading...</span>
               </div>
             )}
           </div>

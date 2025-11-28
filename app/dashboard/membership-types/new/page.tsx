@@ -18,12 +18,7 @@ export default function NewMembershipTypePage() {
     description: '',
     points_required: 0,
     visits_required: 0,
-    is_active: true,
-    benefits: {
-      access: 'standard',
-      events: true,
-      discounts: 'basic'
-    }
+    is_active: true
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,8 +34,7 @@ export default function NewMembershipTypePage() {
           description: formData.description,
           points_required: formData.points_required,
           visits_required: formData.visits_required,
-          is_active: formData.is_active,
-          benefits: formData.benefits
+          is_active: formData.is_active
         })
 
       if (insertError) throw insertError

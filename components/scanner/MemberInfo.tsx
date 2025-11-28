@@ -1,6 +1,12 @@
 'use client'
 
-import { Award, Mail, Phone, TrendingUp, Clock, X, Smartphone, CheckCircle2, XCircle } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Award, Mail, Phone, Clock, X, Smartphone, CheckCircle2, XCircle, MapPin } from 'lucide-react'
+
+interface Branch {
+  id: string
+  name: string
+}
 
 interface MemberInfoProps {
   memberData: any
@@ -9,6 +15,31 @@ interface MemberInfoProps {
 
 export default function MemberInfo({ memberData, onReset }: MemberInfoProps) {
   const { member, stats, available_promotions, assigned_promotions, wallet_status } = memberData
+  const [branches, setBranches] = useState<Branch[]>([])
+
+  useEffect(() => {
+    fetch('/api/branches')
+      .then(res => res.json())
+      .then(data => {
+        const branchList = data.branches || data || []
+        setBranches(branchList.filter((b: any) => b.is_active))
+      })
+      .catch(console.error)
+  }, [])
+
+  // Get location names for a benefit (same logic as member app)
+  const getLocationText = (applicableBranches: string[] | null): string => {
+    if (!applicableBranches || applicableBranches.length === 0) {
+      return 'All locations'
+    }
+    const names = applicableBranches
+      .map(id => branches.find(b => b.id === id)?.name)
+      .filter(Boolean)
+    if (names.length === 0) return 'All locations'
+    if (names.length === 1) return `Only at ${names[0]}`
+    if (names.length === branches.length) return 'All locations'
+    return names.join(', ')
+  }
 
   const tierColors: Record<string, string> = {
     Basic: 'bg-neutral-600',
@@ -66,7 +97,7 @@ export default function MemberInfo({ memberData, onReset }: MemberInfoProps) {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Smartphone className="w-5 h-5 text-neutral-400" />
-                <span className="text-sm font-medium text-white">Tarjeta Digital</span>
+                <span className="text-sm font-medium text-white">Digital Card</span>
               </div>
               {wallet_status.has_wallet ? (
                 <CheckCircle2 className="w-5 h-5 text-green-500" />
@@ -82,13 +113,13 @@ export default function MemberInfo({ memberData, onReset }: MemberInfoProps) {
                       {pass.pass_type === 'apple' ? '🍎 Apple Wallet' : '📱 Google Wallet'}
                     </span>
                     <span className="text-neutral-600">•</span>
-                    <span>Instalada {new Date(pass.installed_at).toLocaleDateString('es-ES')}</span>
+                    <span>Installed {new Date(pass.installed_at).toLocaleDateString('en-US')}</span>
                   </div>
                 ))}
               </div>
             ) : (
               <div className="mt-2 text-xs text-neutral-500">
-                No tiene tarjeta instalada
+                No card installed
               </div>
             )}
           </div>
@@ -98,19 +129,19 @@ export default function MemberInfo({ memberData, onReset }: MemberInfoProps) {
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-neutral-900/50 p-4 rounded-lg">
             <div className="text-2xl font-bold text-white">${stats.lifetime_spent || 0}</div>
-            <div className="text-xs text-neutral-400 mt-1">Gasto Total</div>
+            <div className="text-xs text-neutral-400 mt-1">Lifetime Spent</div>
           </div>
           <div className="bg-neutral-900/50 p-4 rounded-lg">
             <div className="text-2xl font-bold text-white">{stats.total_visits || 0}</div>
-            <div className="text-xs text-neutral-400 mt-1">Visitas</div>
+            <div className="text-xs text-neutral-400 mt-1">Visits</div>
           </div>
           <div className="bg-neutral-900/50 p-4 rounded-lg">
             <div className="text-2xl font-bold text-white">${stats.spent_last_30_days || 0}</div>
-            <div className="text-xs text-neutral-400 mt-1">Último Mes</div>
+            <div className="text-xs text-neutral-400 mt-1">Last 30 Days</div>
           </div>
           <div className="bg-neutral-900/50 p-4 rounded-lg">
             <div className="text-2xl font-bold text-orange-500">{member.points}</div>
-            <div className="text-xs text-neutral-400 mt-1">Puntos</div>
+            <div className="text-xs text-neutral-400 mt-1">Points</div>
           </div>
         </div>
 
@@ -118,19 +149,30 @@ export default function MemberInfo({ memberData, onReset }: MemberInfoProps) {
         {stats.last_visit && (
           <div className="flex items-center gap-2 text-sm text-neutral-400">
             <Clock className="w-4 h-4" />
-            Última visita: {new Date(stats.last_visit).toLocaleDateString('es-ES')}
+            Last visit: {new Date(stats.last_visit).toLocaleDateString('en-US')}
           </div>
         )}
 
-        {/* Available Promotions */}
+        {/* Available Benefits */}
         {available_promotions.length > 0 && (
           <div>
-            <h4 className="text-sm font-medium text-white mb-2">Available Promotions</h4>
+            <h4 className="text-sm font-medium text-white mb-2">Available Benefits</h4>
             <div className="space-y-2">
               {available_promotions.slice(0, 3).map((promo: any) => (
                 <div key={promo.promotion_id} className="text-xs bg-green-900/20 border border-green-700/50 rounded-lg p-2">
                   <div className="font-medium text-green-400">{promo.title}</div>
-                  <div className="text-neutral-400 mt-1">{promo.discount_value}{promo.discount_type === 'percentage' ? '%' : '$'} descuento</div>
+                  {promo.discount_value && promo.discount_type && (
+                    <div className="text-orange-400 mt-1 font-medium">
+                      {promo.discount_type === 'percentage' ? `${promo.discount_value}% OFF` : `$${promo.discount_value} OFF`}
+                    </div>
+                  )}
+                  {promo.description && (
+                    <div className="text-neutral-400 mt-1 line-clamp-2">{promo.description}</div>
+                  )}
+                  <div className="text-neutral-500 mt-1 text-[10px] flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />
+                    <span>{getLocationText(promo.applicable_branches)}</span>
+                  </div>
                 </div>
               ))}
             </div>

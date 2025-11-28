@@ -16,7 +16,8 @@ export type Database = {
           email: string
           full_name: string
           phone: string | null
-          membership_type: string
+          membership_type: string // @deprecated - use membership_type_id
+          membership_type_id: string | null // FK to membership_types.id
           status: 'active' | 'inactive'
           member_number: string
           joined_date: string
@@ -32,6 +33,7 @@ export type Database = {
           full_name: string
           phone?: string | null
           membership_type?: string
+          membership_type_id?: string | null
           status?: 'active' | 'inactive'
           member_number: string
           joined_date?: string
@@ -47,6 +49,7 @@ export type Database = {
           full_name?: string
           phone?: string | null
           membership_type?: string
+          membership_type_id?: string | null
           status?: 'active' | 'inactive'
           member_number?: string
           joined_date?: string

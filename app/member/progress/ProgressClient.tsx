@@ -11,7 +11,6 @@ interface MembershipType {
   description: string
   points_required: number
   visits_required: number
-  benefits: Record<string, any>
 }
 
 interface ProgressClientProps {

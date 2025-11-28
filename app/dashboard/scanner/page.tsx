@@ -14,6 +14,7 @@ interface MemberData {
     email: string
     phone: string | null
     membership_type: string
+    membership_type_id?: string
     status: string
     member_number: string
     points: number
@@ -56,9 +57,9 @@ export default function ScannerPage() {
     <div className="min-h-screen space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Scanner de Membresías</h1>
+          <h1 className="text-3xl font-bold text-white">Membership Scanner</h1>
           <p className="mt-2 text-neutral-400">
-            Escanea el QR del cliente para registrar compras y aplicar promociones
+            Scan customer QR to register purchases and apply benefits
           </p>
         </div>
         
@@ -73,7 +74,7 @@ export default function ScannerPage() {
             }`}
           >
             <Scan className="w-4 h-4 inline mr-2" />
-            Escanear QR
+            Scan QR
           </button>
           <button
             onClick={() => setMode('manual')}
@@ -84,7 +85,7 @@ export default function ScannerPage() {
             }`}
           >
             <User className="w-4 h-4 inline mr-2" />
-            Ingreso Manual
+            Manual Search
           </button>
         </div>
       </div>
@@ -124,10 +125,10 @@ export default function ScannerPage() {
             <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-12 text-center">
               <Scan className="w-16 h-16 text-neutral-600 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-neutral-400 mb-2">
-                Esperando escaneo
+                Waiting for scan
               </h3>
               <p className="text-sm text-neutral-500">
-                Escanea el código QR del cliente para comenzar
+                Scan the customer's QR code to begin
               </p>
             </div>
           )}

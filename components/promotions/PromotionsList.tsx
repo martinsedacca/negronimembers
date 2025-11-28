@@ -23,6 +23,19 @@ export default function PromotionsList({ promotions, membershipTypes }: Promotio
 
   const now = new Date()
 
+  // Helper to display tier name from applicable_to entry
+  const getApplicableToDisplay = (entry: string): string => {
+    if (entry === 'all') return 'All Members'
+    if (entry.startsWith('tier_id:')) {
+      const tierId = entry.replace('tier_id:', '')
+      const tier = membershipTypes.find(t => t.id === tierId)
+      return tier?.name || tierId
+    }
+    if (entry.startsWith('tier:')) return entry.replace('tier:', '')
+    if (entry.startsWith('code:')) return entry.replace('code:', '')
+    return entry
+  }
+
   const filteredPromotions = promotions.filter((promo) => {
     const matchesSearch =
       promo.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -177,7 +190,7 @@ export default function PromotionsList({ promotions, membershipTypes }: Promotio
                             key={type}
                             className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-brand-100 text-indigo-800"
                           >
-                            {type.replace('tier:', '').replace('code:', '')}
+                            {getApplicableToDisplay(type)}
                           </span>
                         ))}
                       </div>
