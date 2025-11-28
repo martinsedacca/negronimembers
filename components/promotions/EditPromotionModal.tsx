@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Save, Loader2, Trash2 } from 'lucide-react'
+import { X, Save, Loader2, Trash2, ImagePlus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Database } from '@/lib/types/database'
 import DatePicker from '@/components/ui/DatePicker'
@@ -31,6 +31,7 @@ export default function EditPromotionModal({
   const [formData, setFormData] = useState({
     title: promotion.title,
     description: promotion.description || '',
+    image_url: (promotion as any).image_url || '',
     discount_type: promotion.discount_type,
     discount_value: promotion.discount_value?.toString() || '',
     start_date: new Date(promotion.start_date).toISOString().slice(0, 16),
@@ -200,6 +201,7 @@ export default function EditPromotionModal({
         body: JSON.stringify({
           title: formData.title,
           description: formData.description || null,
+          image_url: formData.image_url || null,
           discount_type: formData.discount_type,
           discount_value: formData.discount_type === 'perk' ? null : parseFloat(formData.discount_value),
           start_date: new Date(formData.start_date).toISOString(),
@@ -292,6 +294,48 @@ export default function EditPromotionModal({
               rows={3}
               className="w-full px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
             />
+          </div>
+
+          {/* Promo Image */}
+          <div className="border border-neutral-700 rounded-lg p-4">
+            <label className="block text-sm font-medium text-neutral-300 mb-2">
+              <div className="flex items-center gap-2">
+                <ImagePlus className="w-4 h-4" />
+                Promo Image (optional)
+              </div>
+            </label>
+            <p className="text-xs text-neutral-500 mb-3">
+              If set, this image will be shown instead of text in the member app
+            </p>
+            
+            {formData.image_url ? (
+              <div className="relative">
+                <img 
+                  src={formData.image_url} 
+                  alt="Preview" 
+                  className="w-full h-40 object-cover rounded-lg"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = ''
+                    setFormData({ ...formData, image_url: '' })
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, image_url: '' })}
+                  className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <input
+                type="url"
+                value={formData.image_url}
+                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                className="w-full px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                placeholder="https://example.com/promo-image.jpg"
+              />
+            )}
           </div>
 
           {/* Discount Type and Value */}

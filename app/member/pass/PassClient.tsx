@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { motion, AnimatePresence, PanInfo } from 'framer-motion'
-import { Download, Sparkles, Award, Loader2, CheckCircle, AlertCircle, UtensilsCrossed, MapPin, ExternalLink, X, ChevronLeft } from 'lucide-react'
+import { Download, Sparkles, Award, Loader2, CheckCircle, AlertCircle, UtensilsCrossed, MapPin, ExternalLink, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -30,8 +30,6 @@ export default function PassClient({ member }: PassClientProps) {
   const [checkingPass, setCheckingPass] = useState(true)
   const [showMenuModal, setShowMenuModal] = useState(false)
   const [branches, setBranches] = useState<Branch[]>([])
-  const [selectedMenuUrl, setSelectedMenuUrl] = useState<string | null>(null)
-  const [selectedBranchName, setSelectedBranchName] = useState<string>('')
 
   useEffect(() => {
     // Detect device type
@@ -367,20 +365,14 @@ export default function PassClient({ member }: PassClientProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-end sm:items-center sm:justify-center"
-            onClick={() => {
-              if (selectedMenuUrl) {
-                setSelectedMenuUrl(null)
-              } else {
-                setShowMenuModal(false)
-              }
-            }}
+            onClick={() => setShowMenuModal(false)}
           >
             <motion.div
               initial={{ y: '100%', opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: '100%', opacity: 0 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              drag={selectedMenuUrl ? false : "y"}
+              drag="y"
               dragConstraints={{ top: 0, bottom: 0 }}
               dragElastic={{ top: 0, bottom: 0.8 }}
               onDragEnd={(event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
@@ -389,123 +381,80 @@ export default function PassClient({ member }: PassClientProps) {
                 }
               }}
               onClick={(e) => e.stopPropagation()}
-              className={`w-full bg-neutral-900 rounded-t-3xl sm:rounded-2xl overflow-hidden ${
-                selectedMenuUrl 
-                  ? 'h-[95vh] sm:max-w-4xl' 
-                  : 'max-h-[85vh] sm:max-w-md p-6 pb-10 sm:pb-6'
-              }`}
-              style={{ touchAction: selectedMenuUrl ? 'auto' : 'none' }}
+              className="w-full sm:max-w-md bg-neutral-900 rounded-t-3xl sm:rounded-2xl p-6 pb-10 sm:pb-6 max-h-[85vh] overflow-hidden"
+              style={{ touchAction: 'none' }}
             >
-              {selectedMenuUrl ? (
-                /* PDF Viewer */
-                <>
-                  {/* Header with back button */}
-                  <div className="flex items-center gap-3 p-4 border-b border-neutral-700 bg-neutral-900">
-                    <button
-                      onClick={() => setSelectedMenuUrl(null)}
-                      className="p-2 bg-neutral-800 rounded-lg hover:bg-neutral-700 transition"
-                    >
-                      <ChevronLeft className="w-5 h-5 text-white" />
-                    </button>
-                    <div className="flex-1 min-w-0">
-                      <h2 className="text-lg font-bold text-white truncate">{selectedBranchName} Menu</h2>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setSelectedMenuUrl(null)
-                        setShowMenuModal(false)
-                      }}
-                      className="p-2 bg-neutral-800 rounded-lg hover:bg-neutral-700 transition"
-                    >
-                      <X className="w-5 h-5 text-neutral-400" />
-                    </button>
-                  </div>
-                  
-                  {/* PDF iframe */}
-                  <div className="flex-1 h-[calc(95vh-72px)] bg-neutral-800">
-                    <iframe
-                      src={`${selectedMenuUrl}#toolbar=0&navpanes=0`}
-                      className="w-full h-full"
-                      title={`${selectedBranchName} Menu`}
-                    />
-                  </div>
-                </>
-              ) : (
-                /* Branches List */
-                <>
-                  {/* Drag Handle (mobile) */}
-                  <div className="w-12 h-1.5 bg-neutral-600 rounded-full mx-auto mb-6 sm:hidden cursor-grab active:cursor-grabbing" />
-                  
-                  {/* Close Button */}
-                  <button
-                    onClick={() => setShowMenuModal(false)}
-                    className="absolute top-4 right-4 p-2 bg-neutral-800 rounded-full hover:bg-neutral-700 transition hidden sm:flex"
-                  >
-                    <X className="w-5 h-5 text-neutral-400" />
-                  </button>
+              {/* Drag Handle (mobile) */}
+              <div className="w-12 h-1.5 bg-neutral-600 rounded-full mx-auto mb-6 sm:hidden cursor-grab active:cursor-grabbing" />
+              
+              {/* Close Button */}
+              <button
+                onClick={() => setShowMenuModal(false)}
+                className="absolute top-4 right-4 p-2 bg-neutral-800 rounded-full hover:bg-neutral-700 transition hidden sm:flex"
+              >
+                <X className="w-5 h-5 text-neutral-400" />
+              </button>
 
-                  {/* Header */}
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-12 h-12 rounded-xl bg-orange-500/20 border-2 border-orange-500/50 flex items-center justify-center">
-                      <UtensilsCrossed className="w-6 h-6 text-orange-500" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-bold text-white">Our Menus</h2>
-                      <p className="text-sm text-neutral-400">Select a location to view the menu</p>
-                    </div>
-                  </div>
+              {/* Header */}
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-xl bg-orange-500/20 border-2 border-orange-500/50 flex items-center justify-center">
+                  <UtensilsCrossed className="w-6 h-6 text-orange-500" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white">Our Menus</h2>
+                  <p className="text-sm text-neutral-400">Select a location to view the menu</p>
+                </div>
+              </div>
 
-                  {/* Branches List */}
-                  <div className="space-y-3 overflow-y-auto max-h-[50vh]">
-                    {branches.length > 0 ? (
-                      branches.map((branch) => (
-                        <div
-                          key={branch.id}
-                          className="p-4 bg-neutral-800/50 border border-neutral-700 rounded-xl"
-                        >
-                          <div className="flex items-center justify-between gap-3">
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-white">{branch.name}</h3>
-                              {(branch.address || branch.city) && (
-                                <p className="text-sm text-neutral-400 flex items-center gap-1 mt-1">
-                                  <MapPin className="w-3 h-3 flex-shrink-0" />
-                                  <span className="truncate">{branch.city || branch.address}</span>
-                                </p>
-                              )}
-                            </div>
-                            {branch.menu_url ? (
-                              <button
-                                onClick={() => {
-                                  setSelectedMenuUrl(branch.menu_url)
-                                  setSelectedBranchName(branch.name)
-                                }}
-                                className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition text-sm flex-shrink-0"
-                              >
-                                View Menu
-                              </button>
-                            ) : (
-                              <span className="text-sm text-neutral-500 italic">Coming soon</span>
-                            )}
-                          </div>
+              {/* Branches List */}
+              <div className="space-y-3 overflow-y-auto max-h-[50vh]">
+                {branches.length > 0 ? (
+                  branches.map((branch) => (
+                    <div
+                      key={branch.id}
+                      className="p-4 bg-neutral-800/50 border border-neutral-700 rounded-xl"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-white">{branch.name}</h3>
+                          {(branch.address || branch.city) && (
+                            <p className="text-sm text-neutral-400 flex items-center gap-1 mt-1">
+                              <MapPin className="w-3 h-3 flex-shrink-0" />
+                              <span className="truncate">{branch.city || branch.address}</span>
+                            </p>
+                          )}
                         </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-8">
-                        <UtensilsCrossed className="w-12 h-12 text-neutral-600 mx-auto mb-3" />
-                        <p className="text-neutral-400">No locations available</p>
+                        {branch.menu_url ? (
+                          <a
+                            href={branch.menu_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition text-sm flex-shrink-0"
+                          >
+                            View Menu
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        ) : (
+                          <span className="text-sm text-neutral-500 italic">Coming soon</span>
+                        )}
                       </div>
-                    )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <UtensilsCrossed className="w-12 h-12 text-neutral-600 mx-auto mb-3" />
+                    <p className="text-neutral-400">No locations available</p>
                   </div>
+                )}
+              </div>
 
-                  {/* Close Button */}
-                  <button
-                    onClick={() => setShowMenuModal(false)}
-                    className="w-full mt-6 py-3 bg-neutral-800 border border-neutral-700 text-white rounded-xl font-semibold hover:bg-neutral-700 transition"
-                  >
-                    Close
-                  </button>
-                </>
-              )}
+              {/* Close Button */}
+              <button
+                onClick={() => setShowMenuModal(false)}
+                className="w-full mt-6 py-3 bg-neutral-800 border border-neutral-700 text-white rounded-xl font-semibold hover:bg-neutral-700 transition"
+              >
+                Close
+              </button>
             </motion.div>
           </motion.div>
         )}
