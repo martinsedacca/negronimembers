@@ -32,6 +32,7 @@ export default function EditPromotionModal({
     title: promotion.title,
     description: promotion.description || '',
     image_url: (promotion as any).image_url || '',
+    booking_url: (promotion as any).booking_url || '',
     discount_type: promotion.discount_type,
     discount_value: promotion.discount_value?.toString() || '',
     start_date: new Date(promotion.start_date).toISOString().slice(0, 16),
@@ -254,6 +255,7 @@ export default function EditPromotionModal({
           title: formData.title,
           description: formData.description || null,
           image_url: formData.image_url || null,
+          booking_url: formData.booking_url || null,
           discount_type: formData.discount_type,
           discount_value: formData.discount_type === 'perk' ? null : parseFloat(formData.discount_value),
           start_date: new Date(formData.start_date).toISOString(),
@@ -400,6 +402,23 @@ export default function EditPromotionModal({
                 />
               </label>
             )}
+          </div>
+
+          {/* Booking URL */}
+          <div>
+            <label className="block text-sm font-medium text-neutral-300 mb-2">
+              Booking URL (optional)
+            </label>
+            <input
+              type="url"
+              value={formData.booking_url}
+              onChange={(e) => setFormData({ ...formData, booking_url: e.target.value })}
+              className="w-full px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              placeholder="https://opentable.com/r/your-promo-booking"
+            />
+            <p className="mt-1 text-xs text-neutral-500">
+              If this benefit has its own booking page
+            </p>
           </div>
 
           {/* Discount Type and Value */}

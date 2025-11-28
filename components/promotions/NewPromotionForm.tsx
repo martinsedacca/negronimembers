@@ -27,6 +27,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
     title: '',
     description: '',
     image_url: '',
+    booking_url: '',
     discount_type: 'percentage' as 'percentage' | 'fixed' | 'points' | 'perk',
     discount_value: '',
     start_date: new Date().toISOString().split('T')[0], // Today's date
@@ -196,6 +197,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
         title: formData.title,
         description: formData.description || null,
         image_url: formData.image_url || null,
+        booking_url: formData.booking_url || null,
         discount_type: formData.discount_type,
         discount_value: formData.discount_type === 'perk' ? null : parseFloat(formData.discount_value),
         start_date: formData.start_date ? new Date(formData.start_date).toISOString() : new Date().toISOString(),
@@ -313,6 +315,24 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
               />
             </label>
           )}
+        </div>
+
+        {/* Booking URL */}
+        <div>
+          <label htmlFor="booking_url" className="block text-sm font-medium text-neutral-300">
+            Booking URL (optional)
+          </label>
+          <input
+            type="url"
+            id="booking_url"
+            value={formData.booking_url}
+            onChange={(e) => setFormData({ ...formData, booking_url: e.target.value })}
+            className="mt-1 block w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-md shadow-sm focus:ring-orange-500 focus:border-brand-500"
+            placeholder="https://opentable.com/r/your-promo-booking"
+          />
+          <p className="mt-1 text-xs text-neutral-500">
+            If this benefit has its own booking page, add the link here
+          </p>
         </div>
 
         {/* Discount Type & Value */}

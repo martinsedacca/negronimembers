@@ -30,6 +30,7 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
     email: branch?.email || '',
     manager_name: branch?.manager_name || '',
     menu_url: (branch as any)?.menu_url || '',
+    booking_url: (branch as any)?.booking_url || '',
     latitude: branch?.latitude?.toString() || '',
     longitude: branch?.longitude?.toString() || '',
     is_active: branch?.is_active ?? true,
@@ -279,6 +280,22 @@ export default function BranchFormModal({ branch, onClose, onSuccess }: BranchFo
             />
             <p className="text-xs text-neutral-500 mt-1">
               Link to the menu for this location
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-neutral-300 mb-2">
+              Booking URL
+            </label>
+            <input
+              type="url"
+              value={formData.booking_url}
+              onChange={(e) => setFormData({ ...formData, booking_url: e.target.value })}
+              className="w-full px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              placeholder="https://opentable.com/r/location"
+            />
+            <p className="text-xs text-neutral-500 mt-1">
+              Link to book a table (OpenTable, Resy, etc.)
             </p>
           </div>
 
