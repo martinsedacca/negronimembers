@@ -13,10 +13,12 @@ export async function GET(
   try {
     const { serialNumber } = params
     const authHeader = request.headers.get('Authorization')
+    const ifModifiedSince = request.headers.get('if-modified-since')
 
     console.log('📲 [Wallet] Pass update request:', {
       serial: serialNumber,
-      hasAuth: !!authHeader
+      hasAuth: !!authHeader,
+      ifModifiedSince: ifModifiedSince || 'none'
     })
 
     // Validate authentication token
@@ -67,8 +69,27 @@ export async function GET(
     console.log('🔍 [Wallet] Pass record:', {
       id: walletPass.id,
       member_id: walletPass.member_id,
-      voided: walletPass.voided
+      voided: walletPass.voided,
+      last_updated_at: walletPass.last_updated_at
     })
+
+    // Check if-modified-since header - return 304 if pass hasn't changed
+    if (ifModifiedSince && walletPass.last_updated_at) {
+      const clientDate = new Date(ifModifiedSince)
+      const passDate = new Date(walletPass.last_updated_at)
+      
+      console.log('🔍 [Wallet] Comparing dates:', {
+        clientDate: clientDate.toISOString(),
+        passDate: passDate.toISOString(),
+        passIsNewer: passDate > clientDate
+      })
+      
+      // If pass hasn't been modified since the client's version, return 304
+      if (passDate <= clientDate) {
+        console.log('✅ [Wallet] Pass not modified, returning 304')
+        return new NextResponse(null, { status: 304 })
+      }
+    }
 
     if (walletPass.voided) {
       console.log('⚠️ [Wallet] Pass is voided:', serialNumber)
@@ -103,19 +124,20 @@ export async function GET(
     // Generate fresh pass with latest member data - pass the existing authToken
     const passBuffer = await generateApplePass(member, walletPass.authentication_token)
 
-    // Update last_updated timestamp
-    await supabase
-      .from('wallet_passes')
-      .update({ updated_at: new Date().toISOString() })
-      .eq('id', walletPass.id)
-
     // Convert Buffer to Uint8Array for NextResponse
     const uint8Array = new Uint8Array(passBuffer)
+    
+    // Use the pass's last_updated_at for Last-Modified header
+    const lastModified = walletPass.last_updated_at 
+      ? new Date(walletPass.last_updated_at).toUTCString()
+      : new Date().toUTCString()
+
+    console.log('📤 [Wallet] Sending pass with Last-Modified:', lastModified)
 
     return new NextResponse(uint8Array, {
       headers: {
         'Content-Type': 'application/vnd.apple.pkpass',
-        'Last-Modified': new Date().toUTCString(),
+        'Last-Modified': lastModified,
       },
     })
   } catch (error: any) {

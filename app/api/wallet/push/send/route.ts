@@ -87,6 +87,21 @@ export async function POST(request: NextRequest) {
 
     console.log(`📲 [Wallet Push] Sending to ${tokens.length} devices`)
 
+    // Get unique member IDs from tokens
+    const uniqueMemberIds = [...new Set(tokens.map(t => t.member_id))]
+    
+    // Update wallet_passes last_updated_at so Apple knows the pass changed
+    const { error: updatePassError } = await supabase
+      .from('wallet_passes')
+      .update({ last_updated_at: new Date().toISOString() })
+      .in('member_id', uniqueMemberIds)
+    
+    if (updatePassError) {
+      console.error('⚠️ [Wallet Push] Failed to update pass timestamps:', updatePassError)
+    } else {
+      console.log(`📲 [Wallet Push] Updated ${uniqueMemberIds.length} pass timestamps`)
+    }
+
     // Send notifications
     const pushTokens = tokens.map(t => t.push_token)
     const result = await sendBulkWalletPushNotifications(pushTokens, {
