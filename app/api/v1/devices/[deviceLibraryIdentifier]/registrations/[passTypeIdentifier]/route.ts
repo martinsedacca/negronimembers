@@ -34,7 +34,7 @@ export async function GET(
 
     if (!tokens || tokens.length === 0) {
       console.log('⚠️ [Wallet] No registered passes for device')
-      return NextResponse.json({}, { status: 204 })
+      return new NextResponse(null, { status: 204 })
     }
 
     // Get the wallet passes for these serial numbers
@@ -72,7 +72,7 @@ export async function GET(
 
     if (updatedSerials.length === 0) {
       console.log('✅ [Wallet] No updates available')
-      return NextResponse.json({}, { status: 204 })
+      return new NextResponse(null, { status: 204 })
     }
 
     console.log(`✅ [Wallet] ${updatedSerials.length} passes need update`)
