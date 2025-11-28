@@ -140,22 +140,29 @@ export default function PassClient({ member }: PassClientProps) {
     setDownloadStatus('idle')
     
     try {
+      // Debug: show member ID
+      console.log('Member ID:', member.id)
+      
       const response = await fetch(`/api/wallet/google/${member.id}`)
       
       if (!response.ok) {
         const error = await response.json()
+        alert(`Error: ${error.details || error.error || 'Unknown error'}`)
         throw new Error(error.details || 'Error generating pass')
       }
 
       const { url } = await response.json()
       
-      // Try to open in new window first (better for Android)
-      const newWindow = window.open(url, '_blank')
+      // Debug: show URL length (JWT can be very long)
+      console.log('Google Wallet URL length:', url?.length)
       
-      // If popup was blocked or failed, try direct navigation
-      if (!newWindow) {
-        window.location.href = url
+      if (!url) {
+        alert('No URL received from server')
+        throw new Error('No URL received')
       }
+      
+      // Open Google Wallet URL
+      window.location.href = url
       
       setDownloadStatus('success')
       
