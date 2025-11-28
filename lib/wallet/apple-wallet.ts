@@ -194,14 +194,13 @@ export async function generateApplePass(member: Member, authToken?: string, push
 
       // Push notification message field - this triggers visible notifications when changed
       // The changeMessage property makes Apple show a notification when this field changes
-      if (pushMessage) {
-        pass.backFields.push({
-          key: 'latest_update',
-          label: 'Último mensaje',
-          value: pushMessage,
-          changeMessage: '%@', // %@ is replaced with the new value
-        });
-      }
+      // IMPORTANT: This field must ALWAYS be present for changeMessage to work
+      pass.backFields.push({
+        key: 'latest_update',
+        label: 'Último mensaje',
+        value: pushMessage || 'Bienvenido a Negroni Members',
+        changeMessage: '%@', // %@ is replaced with the new value, shown as notification
+      });
 
       pass.backFields.push({
         key: 'terms',
