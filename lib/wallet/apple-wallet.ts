@@ -173,7 +173,7 @@ export async function generateApplePass(member: Member, authToken?: string, push
       // Permanent link to member portal - always visible
       pass.backFields.push({
         key: 'member_portal',
-        label: '📱 Mi Cuenta',
+        label: '📱 My Account',
         value: 'https://www.negronimembers.com/member',
       });
 
@@ -185,7 +185,7 @@ export async function generateApplePass(member: Member, authToken?: string, push
         },
         {
           key: 'joined_date',
-          label: 'Miembro desde',
+          label: 'Member Since',
           value: member.joined_date || new Date().toISOString().split('T')[0],
           dateStyle: 'PKDateStyleMedium',
         }
@@ -194,7 +194,7 @@ export async function generateApplePass(member: Member, authToken?: string, push
       if (member.phone) {
         pass.backFields.push({
           key: 'phone',
-          label: 'Teléfono',
+          label: 'Phone',
           value: member.phone,
         });
       }
@@ -204,8 +204,8 @@ export async function generateApplePass(member: Member, authToken?: string, push
       // IMPORTANT: This field must ALWAYS be present for changeMessage to work
       pass.backFields.push({
         key: 'latest_update',
-        label: 'Último mensaje',
-        value: pushMessage || 'Bienvenido a Negroni Members',
+        label: 'Latest Message',
+        value: pushMessage || 'Welcome to Negroni Members',
         changeMessage: '%@', // %@ is replaced with the new value, shown as notification
       });
 
@@ -213,15 +213,15 @@ export async function generateApplePass(member: Member, authToken?: string, push
       if (pushLink) {
         pass.backFields.push({
           key: 'promo_link',
-          label: 'Más información',
+          label: 'More Info',
           value: pushLink,
         });
       }
 
       pass.backFields.push({
         key: 'terms',
-        label: 'Términos y Condiciones',
-        value: 'Esta tarjeta es personal e intransferible. Válida solo para el titular. Para más información visita nuestro sitio web.',
+        label: 'Terms & Conditions',
+        value: 'This card is personal and non-transferable. Valid only for the cardholder. For more information visit our website.',
       });
 
       // Add barcode - Use member ID for unique identification
