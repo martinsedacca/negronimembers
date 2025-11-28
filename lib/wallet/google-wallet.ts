@@ -83,7 +83,8 @@ async function getAccessToken(credentials: GoogleWalletCredentials): Promise<str
 
 // Create or get loyalty object via API
 async function createOrGetLoyaltyObject(member: Member, accessToken: string): Promise<string> {
-  const objectId = `${ISSUER_ID}.member_${member.id.replace(/-/g, '_')}`;
+  // Use v2 suffix to force new object with full design
+  const objectId = `${ISSUER_ID}.member_v2_${member.id.replace(/-/g, '_')}`;
   
   // Format expiry date
   const expiryDate = member.expiry_date 
@@ -166,21 +167,27 @@ async function createOrGetLoyaltyObject(member: Member, accessToken: string): Pr
   );
   
   if (getResponse.ok) {
-    // Update existing object with latest data
+    // Update existing object with latest data using PATCH
     const updateResponse = await fetch(
       `https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject/${objectId}`,
       {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(loyaltyObject),
+        body: JSON.stringify({
+          barcode: loyaltyObject.barcode,
+          textModulesData: loyaltyObject.textModulesData,
+          linksModuleData: loyaltyObject.linksModuleData,
+          hexBackgroundColor: loyaltyObject.hexBackgroundColor,
+        }),
       }
     );
     
     if (!updateResponse.ok) {
-      console.error('Failed to update object, using existing');
+      const errorData = await updateResponse.json();
+      console.error('Failed to update object:', errorData);
     }
     
     return objectId;
