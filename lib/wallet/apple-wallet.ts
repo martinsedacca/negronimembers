@@ -69,8 +69,9 @@ export async function generateApplePass(member: Member, authToken?: string): Pro
           passTemplate.barcode.message = member.member_number;
           
           // Add web service URL for automatic updates (MUST be in pass.json template)
+          // NOTE: webServiceURL MUST end with a trailing slash for Apple to call it
           if (authToken) {
-            const wsUrl = `${getWebServiceURL()}/api/v1`;
+            const wsUrl = `${getWebServiceURL()}/api/v1/`;
             passTemplate.webServiceURL = wsUrl;
             passTemplate.authenticationToken = authToken;
             console.log('🔗 [Wallet] Adding to pass.json - webServiceURL:', wsUrl);
