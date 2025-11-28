@@ -24,7 +24,8 @@ import {
   ChevronDown,
   ChevronUp,
   Crown,
-  UserCog
+  UserCog,
+  PartyPopper
 } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
 import PushNotificationButton from '@/components/ui/PushNotificationButton'
@@ -59,6 +60,7 @@ export default function DashboardNav({ user }: DashboardNavProps) {
         { name: 'Dashboard', href: '/dashboard', icon: Home },
         { name: 'Scanner', href: '/dashboard/scanner', icon: ScanLine },
         { name: 'Events', href: '/dashboard/events', icon: Calendar },
+        { name: 'Event Requests', href: '/dashboard/event-requests', icon: PartyPopper },
       ]
     },
     {
