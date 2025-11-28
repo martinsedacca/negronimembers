@@ -54,7 +54,7 @@ export async function GET(
     // Find the wallet pass by serial number and verify token
     const { data: walletPass, error: passError } = await supabase
       .from('wallet_passes')
-      .select('*, members(*)')
+      .select('*')
       .eq('serial_number', serialNumber)
       .eq('authentication_token', authToken)
       .single()
@@ -64,14 +64,26 @@ export async function GET(
       return NextResponse.json({ error: 'Pass not found' }, { status: 404 })
     }
 
+    console.log('🔍 [Wallet] Pass record:', {
+      id: walletPass.id,
+      member_id: walletPass.member_id,
+      voided: walletPass.voided
+    })
+
     if (walletPass.voided) {
       console.log('⚠️ [Wallet] Pass is voided:', serialNumber)
       return NextResponse.json({ error: 'Pass voided' }, { status: 410 })
     }
 
-    const member = walletPass.members
-    if (!member) {
-      console.error('🔴 [Wallet] Member not found for pass:', serialNumber)
+    // Fetch member separately using member_id
+    const { data: member, error: memberError } = await supabase
+      .from('members')
+      .select('*')
+      .eq('id', walletPass.member_id)
+      .single()
+
+    if (memberError || !member) {
+      console.error('🔴 [Wallet] Member not found for pass:', serialNumber, 'member_id:', walletPass.member_id, memberError?.message)
       return NextResponse.json({ error: 'Member not found' }, { status: 404 })
     }
 
