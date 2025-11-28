@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Membership Cards - Admin Dashboard",
+  title: "Negroni Members",
   description: "Gestión de tarjetas de membresía para Apple Wallet y Google Wallet",
 };
 
