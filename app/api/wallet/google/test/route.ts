@@ -23,43 +23,13 @@ export async function GET() {
 
     const objectId = `${ISSUER_ID}.test_member_123`;
 
-    const loyaltyClass = {
-      id: CLASS_ID,
-      issuerName: 'Negroni Restaurant',
-      programName: 'Negroni Members',
-      programLogo: {
-        sourceUri: {
-          uri: 'https://www.negronimembers.com/NEGRONI-Logo-hueso_png.png',
-        },
-      },
-      hexBackgroundColor: '#1a1a1a',
-      reviewStatus: 'UNDER_REVIEW',
-    };
-
+    // Simple loyalty object - class already exists in Google
     const loyaltyObject = {
       id: objectId,
       classId: CLASS_ID,
       state: 'ACTIVE',
       accountId: testMember.member_number,
       accountName: testMember.full_name,
-      barcode: {
-        type: 'QR_CODE',
-        value: testMember.id,
-        alternateText: testMember.member_number,
-      },
-      textModulesData: [
-        {
-          id: 'member_name',
-          header: 'MEMBER NAME',
-          body: testMember.full_name,
-        },
-        {
-          id: 'member_number',
-          header: 'MEMBER #',
-          body: testMember.member_number,
-        },
-      ],
-      hexBackgroundColor: '#1a1a1a',
     };
 
     const claims = {
@@ -68,7 +38,6 @@ export async function GET() {
       typ: 'savetowallet',
       iat: Math.floor(Date.now() / 1000),
       origins: ['https://www.negronimembers.com'],
-      loyaltyClasses: [loyaltyClass],
       loyaltyObjects: [loyaltyObject],
     };
 
@@ -103,7 +72,6 @@ export async function GET() {
         iss: claims.iss,
         aud: claims.aud,
         typ: claims.typ,
-        loyaltyClasses_count: claims.loyaltyClasses.length,
         loyaltyObjects_count: claims.loyaltyObjects.length,
       },
       save_url: saveUrl,
