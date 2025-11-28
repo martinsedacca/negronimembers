@@ -13,7 +13,8 @@ export async function POST(request: NextRequest) {
     
     const { 
       title,
-      message, 
+      message,
+      link, // Optional URL to include in the pass
       target_type = 'segment',
       target_filter = {},
       member_ids = []
@@ -90,19 +91,20 @@ export async function POST(request: NextRequest) {
     // Get unique member IDs from tokens
     const uniqueMemberIds = [...new Set(tokens.map(t => t.member_id))]
     
-    // Update wallet_passes with new message and timestamp so Apple shows visible notification
+    // Update wallet_passes with new message, link and timestamp so Apple shows visible notification
     const { error: updatePassError } = await supabase
       .from('wallet_passes')
       .update({ 
         last_updated_at: new Date().toISOString(),
-        push_message: message // Store the message to include in the pass
+        push_message: message, // Store the message to include in the pass
+        push_link: link || null // Store the link to include in the pass
       })
       .in('member_id', uniqueMemberIds)
     
     if (updatePassError) {
       console.error('⚠️ [Wallet Push] Failed to update pass timestamps:', updatePassError)
     } else {
-      console.log(`📲 [Wallet Push] Updated ${uniqueMemberIds.length} passes with message: "${message}"`)
+      console.log(`📲 [Wallet Push] Updated ${uniqueMemberIds.length} passes with message: "${message}"${link ? ` and link: ${link}` : ''}`)
     }
 
     // Send notifications

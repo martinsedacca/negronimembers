@@ -75,6 +75,7 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
   // Wallet push states
   const [showWalletPushModal, setShowWalletPushModal] = useState(false)
   const [walletPushMessage, setWalletPushMessage] = useState('')
+  const [walletPushLink, setWalletPushLink] = useState('')
   const [sendingWalletPush, setSendingWalletPush] = useState(false)
   
   // Onboarding questions
@@ -220,6 +221,7 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
     try {
       console.log('📲 [Frontend] Sending wallet push notification:', {
         message: walletPushMessage,
+        link: walletPushLink,
         memberCount: matchingMembers.length
       })
 
@@ -228,6 +230,7 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: walletPushMessage,
+          link: walletPushLink || undefined,
           target_type: 'segment',
           target_filter: filters,
           member_ids: matchingMembers.map(m => m.id),
@@ -251,6 +254,7 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
               `Fallidas: ${data.stats.failed}`)
         setShowWalletPushModal(false)
         setWalletPushMessage('')
+        setWalletPushLink('')
       } else {
         alert(`⚠️ ${data.message || 'No se pudieron enviar notificaciones'}`)
       }
@@ -966,6 +970,22 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
                   maxLength={120}
                 />
                 <p className="text-xs text-neutral-500 mt-1">{walletPushMessage.length}/120 caracteres</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  Link (opcional)
+                </label>
+                <input
+                  type="url"
+                  value={walletPushLink}
+                  onChange={(e) => setWalletPushLink(e.target.value)}
+                  placeholder="https://negronimembers.com/promotions/xyz"
+                  className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
+                />
+                <p className="text-xs text-neutral-500 mt-1">
+                  Aparecerá en el reverso de la tarjeta como link clickeable
+                </p>
               </div>
 
               <div className="bg-neutral-900/50 p-3 rounded-lg">

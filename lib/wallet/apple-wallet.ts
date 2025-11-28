@@ -34,7 +34,7 @@ const getCertificates = (): { wwdr: Buffer; signerCert: Buffer; signerKey: Buffe
   };
 };
 
-export async function generateApplePass(member: Member, authToken?: string, pushMessage?: string): Promise<Buffer> {
+export async function generateApplePass(member: Member, authToken?: string, pushMessage?: string, pushLink?: string): Promise<Buffer> {
   try {
     // Read certificates
     const { wwdr, signerCert, signerKey } = getCertificates();
@@ -201,6 +201,15 @@ export async function generateApplePass(member: Member, authToken?: string, push
         value: pushMessage || 'Bienvenido a Negroni Members',
         changeMessage: '%@', // %@ is replaced with the new value, shown as notification
       });
+
+      // Link field - URLs are automatically clickable in Apple Wallet
+      if (pushLink) {
+        pass.backFields.push({
+          key: 'promo_link',
+          label: 'Más información',
+          value: pushLink,
+        });
+      }
 
       pass.backFields.push({
         key: 'terms',

@@ -119,10 +119,10 @@ export async function GET(
       return NextResponse.json({ error: 'Member not found' }, { status: 404 })
     }
 
-    console.log('✅ [Wallet] Generating updated pass for:', member.full_name, 'with message:', walletPass.push_message || 'none')
+    console.log('✅ [Wallet] Generating updated pass for:', member.full_name, 'with message:', walletPass.push_message || 'none', 'link:', walletPass.push_link || 'none')
 
-    // Generate fresh pass with latest member data - pass the existing authToken and push message
-    const passBuffer = await generateApplePass(member, walletPass.authentication_token, walletPass.push_message)
+    // Generate fresh pass with latest member data - pass the existing authToken, message and link
+    const passBuffer = await generateApplePass(member, walletPass.authentication_token, walletPass.push_message, walletPass.push_link)
 
     // Convert Buffer to Uint8Array for NextResponse
     const uint8Array = new Uint8Array(passBuffer)
