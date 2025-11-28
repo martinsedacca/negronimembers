@@ -545,7 +545,7 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
                       <img 
                         src={benefit.image_url} 
                         alt={benefit.title}
-                        className="w-full h-40 object-cover"
+                        className="w-full h-auto"
                       />
                       {/* Overlay badges */}
                       <div className="absolute top-2 right-2 flex flex-col gap-1">
@@ -885,7 +885,7 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
                   <img 
                     src={selectedBenefit.image_url} 
                     alt={selectedBenefit.title}
-                    className="w-full h-48 object-cover"
+                    className="w-full h-auto"
                   />
                 </div>
               )}

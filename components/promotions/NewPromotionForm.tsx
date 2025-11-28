@@ -280,7 +280,7 @@ export default function NewPromotionForm({ membershipTypes }: NewPromotionFormPr
               <img 
                 src={formData.image_url} 
                 alt="Preview" 
-                className="w-full h-40 object-cover rounded-lg"
+                className="w-full h-[300px] object-contain rounded-lg bg-neutral-900"
               />
               <button
                 type="button"
