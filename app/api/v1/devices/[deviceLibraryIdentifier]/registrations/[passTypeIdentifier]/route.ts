@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { NextRequest, NextResponse } from 'next/server'
 
 /**
@@ -18,7 +18,7 @@ export async function GET(
       since: passesUpdatedSince
     })
 
-    const supabase = await createClient()
+    const supabase = createServiceClient()
 
     // Get all active tokens for this device with their associated passes
     const { data: tokens, error: tokensError } = await supabase

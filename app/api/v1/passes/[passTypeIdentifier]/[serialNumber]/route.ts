@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { generateApplePass } from '@/lib/wallet/apple-wallet'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -26,7 +26,7 @@ export async function GET(
     }
 
     const authToken = authHeader.replace('ApplePass ', '')
-    const supabase = await createClient()
+    const supabase = createServiceClient()
 
     console.log('🔍 [Wallet] Looking for pass:', {
       serialNumber,

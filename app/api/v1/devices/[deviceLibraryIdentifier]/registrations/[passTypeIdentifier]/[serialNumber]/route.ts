@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { NextRequest, NextResponse } from 'next/server'
 
 // Helper to log requests to database
@@ -35,7 +35,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { deviceLibraryIdentifier: string; passTypeIdentifier: string; serialNumber: string } }
 ) {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const path = request.nextUrl.pathname
   let body: any = {}
   
@@ -138,7 +138,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { deviceLibraryIdentifier: string; passTypeIdentifier: string; serialNumber: string } }
 ) {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const path = request.nextUrl.pathname
   
   try {
