@@ -149,8 +149,14 @@ export default function PassClient({ member }: PassClientProps) {
 
       const { url } = await response.json()
       
-      // Open the Google Wallet save URL
-      window.location.href = url
+      // Try to open in new window first (better for Android)
+      const newWindow = window.open(url, '_blank')
+      
+      // If popup was blocked or failed, try direct navigation
+      if (!newWindow) {
+        window.location.href = url
+      }
+      
       setDownloadStatus('success')
       
       // Reset status after 3 seconds
