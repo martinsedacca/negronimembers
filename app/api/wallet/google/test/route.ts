@@ -4,6 +4,7 @@ import { SignJWT } from 'jose';
 export async function GET() {
   try {
     const ISSUER_ID = process.env.GOOGLE_WALLET_ISSUER_ID || '';
+    const CLASS_ID = `${ISSUER_ID}.negroni_membership`;
     const credentialsJson = process.env.GOOGLE_WALLET_CREDENTIALS;
     
     if (!credentialsJson) {
@@ -14,66 +15,21 @@ export async function GET() {
     
     // Test member data
     const testMember = {
-      id: 'test-member-456',
+      id: 'test-member-789',
       full_name: 'Test User',
       member_number: 'NM-0001',
       membership_type: 'GOLD',
     };
 
-    const classId = `${ISSUER_ID}.negroni_generic`;
     const objectId = `${ISSUER_ID}.member_${Date.now()}`;
 
-    // Use Generic Pass instead of Loyalty
-    const genericClass = {
-      id: classId,
-      classTemplateInfo: {
-        cardTemplateOverride: {
-          cardRowTemplateInfos: [{
-            oneItem: {
-              item: {
-                firstValue: {
-                  fields: [{
-                    fieldPath: "object.textModulesData['member_number']"
-                  }]
-                }
-              }
-            }
-          }]
-        }
-      }
-    };
-
-    const genericObject = {
+    // Simple loyalty object - matches what worked in create-class
+    const loyaltyObject = {
       id: objectId,
-      classId: classId,
-      cardTitle: {
-        defaultValue: {
-          language: 'en',
-          value: 'Negroni Members'
-        }
-      },
-      header: {
-        defaultValue: {
-          language: 'en',
-          value: testMember.full_name
-        }
-      },
-      subheader: {
-        defaultValue: {
-          language: 'en',
-          value: testMember.membership_type
-        }
-      },
-      textModulesData: [{
-        id: 'member_number',
-        header: 'MEMBER #',
-        body: testMember.member_number
-      }],
-      barcode: {
-        type: 'QR_CODE',
-        value: testMember.id
-      },
-      hexBackgroundColor: '#1a1a1a'
+      classId: CLASS_ID,
+      state: 'active',
+      accountId: testMember.member_number,
+      accountName: testMember.full_name,
     };
 
     const claims = {
@@ -82,9 +38,10 @@ export async function GET() {
       typ: 'savetowallet',
       iat: Math.floor(Date.now() / 1000),
       origins: ['https://www.negronimembers.com'],
-      genericClasses: [genericClass],
-      genericObjects: [genericObject],
+      loyaltyObjects: [loyaltyObject],
     };
+    
+    const classId = CLASS_ID;
 
     // Import private key
     const pemContents = credentials.private_key
@@ -117,7 +74,7 @@ export async function GET() {
         iss: claims.iss,
         aud: claims.aud,
         typ: claims.typ,
-        genericObjects_count: claims.genericObjects.length,
+        loyaltyObjects_count: claims.loyaltyObjects.length,
       },
       save_url: saveUrl,
       token_length: token.length,
