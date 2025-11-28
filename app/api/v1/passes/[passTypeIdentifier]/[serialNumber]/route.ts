@@ -28,6 +28,29 @@ export async function GET(
     const authToken = authHeader.replace('ApplePass ', '')
     const supabase = await createClient()
 
+    console.log('🔍 [Wallet] Looking for pass:', {
+      serialNumber,
+      authTokenPreview: authToken.substring(0, 20) + '...'
+    })
+
+    // First, find the pass by serial number to debug
+    const { data: passCheck } = await supabase
+      .from('wallet_passes')
+      .select('id, serial_number, authentication_token, member_id')
+      .eq('serial_number', serialNumber)
+      .single()
+
+    if (passCheck) {
+      console.log('🔍 [Wallet] Pass found in DB:', {
+        id: passCheck.id,
+        serial: passCheck.serial_number,
+        dbTokenPreview: passCheck.authentication_token?.substring(0, 20) + '...',
+        tokenMatch: passCheck.authentication_token === authToken
+      })
+    } else {
+      console.log('🔴 [Wallet] No pass found with serial:', serialNumber)
+    }
+
     // Find the wallet pass by serial number and verify token
     const { data: walletPass, error: passError } = await supabase
       .from('wallet_passes')
@@ -37,7 +60,7 @@ export async function GET(
       .single()
 
     if (passError || !walletPass) {
-      console.error('🔴 [Wallet] Pass not found or token invalid:', serialNumber)
+      console.error('🔴 [Wallet] Pass not found or token invalid:', serialNumber, passError?.message)
       return NextResponse.json({ error: 'Pass not found' }, { status: 404 })
     }
 
