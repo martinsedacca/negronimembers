@@ -199,7 +199,7 @@ export default function PassClient({ member }: PassClientProps) {
             </div>
 
             {/* QR Code */}
-            <div className="flex justify-center mb-6">
+            <div className="flex justify-center mb-4">
               <div className="bg-white p-6 rounded-2xl">
                 <QRCodeSVG
                   value={member.id}
@@ -209,6 +209,53 @@ export default function PassClient({ member }: PassClientProps) {
                 />
               </div>
             </div>
+
+            {/* Add to Apple Wallet Button - Below QR */}
+            {deviceType === 'ios' && (
+              <div className="flex justify-center mb-6">
+                <button
+                  onClick={handleDownload}
+                  disabled={downloading}
+                  className={`flex flex-col items-center justify-center gap-1 px-6 py-3 rounded-xl transition ${
+                    downloading 
+                      ? 'opacity-75 cursor-not-allowed'
+                      : downloadStatus === 'success'
+                      ? 'bg-green-600'
+                      : 'bg-black hover:bg-neutral-900'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    {downloading ? (
+                      <Loader2 className="w-5 h-5 text-white animate-spin" />
+                    ) : downloadStatus === 'success' ? (
+                      <CheckCircle className="w-5 h-5 text-white" />
+                    ) : (
+                      <img 
+                        src="/images/apple-wallet-icon.svg" 
+                        alt="Apple Wallet" 
+                        className="w-5 h-5"
+                      />
+                    )}
+                    <span className="text-white font-medium">
+                      {downloading 
+                        ? 'Generating...' 
+                        : downloadStatus === 'success'
+                        ? 'Pass Ready!'
+                        : isPassInstalled 
+                        ? 'Reinstall in Wallet' 
+                        : 'Add to Apple Wallet'
+                      }
+                    </span>
+                  </div>
+                  {isPassInstalled && !downloading && downloadStatus === 'idle' && (
+                    <span className="text-[10px] text-green-400 flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3" />
+                      Pass installed on a device
+                    </span>
+                  )}
+                </button>
+              </div>
+            )}
 
             {/* Membership Badge */}
             <div className="flex items-center justify-center gap-3 mb-4">
@@ -261,21 +308,14 @@ export default function PassClient({ member }: PassClientProps) {
         </motion.div>
       </div>
 
-      {/* Download Wallet Button */}
+      {/* Download Wallet Button - Only for non-iOS */}
+      {deviceType !== 'ios' && (
       <div className="px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          {/* Installed indicator */}
-          {isPassInstalled && !checkingPass && (
-            <div className="w-full mb-3 py-2 px-4 rounded-xl bg-green-600/10 border border-green-500/30 text-green-400 flex items-center justify-center gap-2 text-sm">
-              <CheckCircle className="w-4 h-4" />
-              Pass installed on a device
-            </div>
-          )}
-          
           <button
             onClick={handleDownload}
             disabled={downloading || (deviceType === 'android')}
@@ -307,25 +347,24 @@ export default function PassClient({ member }: PassClientProps) {
             ) : (
               <>
                 <Download className="w-5 h-5" />
-                {deviceType === 'ios' 
-                  ? (isPassInstalled ? 'Reinstall in Apple Wallet' : 'Add to Apple Wallet')
-                  : deviceType === 'android'
+                {deviceType === 'android'
                   ? 'Google Wallet (Coming Soon)'
                   : 'Download Wallet Pass'}
               </>
             )}
           </button>
           <p className="text-xs text-neutral-500 text-center mt-3">
-            {deviceType === 'ios' 
-              ? 'Your pass will open in Apple Wallet automatically'
-              : deviceType === 'android'
+            {deviceType === 'android'
               ? 'Google Wallet support coming soon'
               : 'Download and open on a mobile device to add to Wallet'
             }
           </p>
         </motion.div>
+      </div>
+      )}
 
-        {/* Additional Info */}
+      {/* Additional Info */}
+      <div className="px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

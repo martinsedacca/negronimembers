@@ -1,6 +1,6 @@
 // Service Worker for Push Notifications + Offline QR Cache
 // Change this version to force update on all clients
-const SW_VERSION = '280a4d0';
+const SW_VERSION = 'b3f1536';
 const CACHE_VERSION = `negroni-v${SW_VERSION}`;
 const CRITICAL_CACHE = 'negroni-critical';
 const QR_CACHE = 'negroni-qr';
