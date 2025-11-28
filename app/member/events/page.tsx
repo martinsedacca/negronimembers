@@ -239,7 +239,7 @@ export default function EventsPage() {
               exit={{ opacity: 0, height: 0 }}
               className="text-center mb-6"
             >
-              <h1 className="text-2xl text-white mb-3" style={{ fontFamily: 'Georgia, serif' }}>
+              <h1 className="text-2xl font-bold text-white mb-3">
                 Plan Your Event
               </h1>
               <p className="text-neutral-500 text-sm leading-relaxed">
