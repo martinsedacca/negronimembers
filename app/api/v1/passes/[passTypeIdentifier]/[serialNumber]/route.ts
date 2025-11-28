@@ -80,10 +80,21 @@ export async function GET(
       .from('members')
       .select('*')
       .eq('id', walletPass.member_id)
-      .single()
+      .maybeSingle()
 
-    if (memberError || !member) {
-      console.error('🔴 [Wallet] Member not found for pass:', serialNumber, 'member_id:', walletPass.member_id, memberError?.message)
+    console.log('🔍 [Wallet] Member query result:', {
+      found: !!member,
+      member_id: walletPass.member_id,
+      error: memberError?.message || null
+    })
+
+    if (memberError) {
+      console.error('🔴 [Wallet] Member query error:', memberError)
+      return NextResponse.json({ error: 'Database error' }, { status: 500 })
+    }
+
+    if (!member) {
+      console.error('🔴 [Wallet] Member not found for pass:', serialNumber, 'member_id:', walletPass.member_id)
       return NextResponse.json({ error: 'Member not found' }, { status: 404 })
     }
 
