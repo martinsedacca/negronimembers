@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, PanInfo } from 'framer-motion'
 import { Sparkles, Tag, Gift, Percent, Star, HelpCircle, X, ChevronLeft, ChevronRight, Lock, MapPin, Ban, Calendar, Clock } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -802,11 +802,20 @@ export default function BenefitsClient({ member, benefits, hasCodes, membershipT
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: '100%', opacity: 0 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              drag="y"
+              dragConstraints={{ top: 0, bottom: 0 }}
+              dragElastic={{ top: 0, bottom: 0.8 }}
+              onDragEnd={(event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+                if (info.offset.y > 100 || info.velocity.y > 500) {
+                  setSelectedBenefit(null)
+                }
+              }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full sm:max-w-md bg-neutral-900 rounded-t-3xl sm:rounded-2xl p-6 pb-10 sm:pb-6 max-h-[85vh] overflow-y-auto"
+              className="w-full sm:max-w-md bg-neutral-900 rounded-t-3xl sm:rounded-2xl p-6 pb-10 sm:pb-6 max-h-[85vh] overflow-y-auto touch-none"
+              style={{ touchAction: 'none' }}
             >
               {/* Drag Handle (mobile) */}
-              <div className="w-12 h-1.5 bg-neutral-600 rounded-full mx-auto mb-6 sm:hidden" />
+              <div className="w-12 h-1.5 bg-neutral-600 rounded-full mx-auto mb-6 sm:hidden cursor-grab active:cursor-grabbing" />
               
               {/* Close Button */}
               <button
