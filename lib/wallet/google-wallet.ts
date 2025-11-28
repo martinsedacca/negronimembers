@@ -151,13 +151,15 @@ export async function generateGoogleWalletUrl(member: Member): Promise<string> {
     typ: 'savetowallet',
     iat: now,
     origins: ['https://www.negronimembers.com'],
-    loyaltyObjects: [{
-      id: objectId,
-      classId: CLASS_ID,
-      state: 'ACTIVE',
-      accountId: member.member_number || 'MEMBER',
-      accountName: member.full_name || 'Member',
-    }],
+    payload: {
+      loyaltyObjects: [{
+        id: objectId,
+        classId: CLASS_ID,
+        state: 'ACTIVE',
+        accountId: member.member_number || 'MEMBER',
+        accountName: member.full_name || 'Member',
+      }],
+    },
   };
   
   const token = await new SignJWT(claims)
