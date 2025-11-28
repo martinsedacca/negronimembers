@@ -135,6 +135,35 @@ export default function PassClient({ member }: PassClientProps) {
     }
   }
 
+  const handleGoogleWallet = async () => {
+    setDownloading(true)
+    setDownloadStatus('idle')
+    
+    try {
+      const response = await fetch(`/api/wallet/google/${member.id}`)
+      
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.details || 'Error generating pass')
+      }
+
+      const { url } = await response.json()
+      
+      // Open the Google Wallet save URL
+      window.location.href = url
+      setDownloadStatus('success')
+      
+      // Reset status after 3 seconds
+      setTimeout(() => setDownloadStatus('idle'), 3000)
+    } catch (error) {
+      console.error('Error with Google Wallet:', error)
+      setDownloadStatus('error')
+      setTimeout(() => setDownloadStatus('idle'), 3000)
+    } finally {
+      setDownloading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen pb-6 relative overflow-hidden">
       {/* Background Image */}
@@ -213,53 +242,85 @@ export default function PassClient({ member }: PassClientProps) {
               </div>
             </div>
 
-            {/* Add to Apple Wallet Button - Below QR */}
+            {/* Add to Wallet Button - Below QR */}
             <div className="flex justify-center mb-6">
-              <button
-                onClick={handleDownload}
-                disabled={downloading || deviceType === 'android'}
-                className={`flex flex-col items-center justify-center gap-1 px-6 py-3 rounded-xl transition ${
-                  downloading 
-                    ? 'opacity-75 cursor-not-allowed'
-                    : downloadStatus === 'success'
-                    ? 'bg-green-600'
-                    : deviceType === 'android'
-                    ? 'bg-neutral-700 cursor-not-allowed'
-                    : 'bg-black hover:bg-neutral-900'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  {downloading ? (
-                    <Loader2 className="w-5 h-5 text-white animate-spin" />
-                  ) : downloadStatus === 'success' ? (
-                    <CheckCircle className="w-5 h-5 text-white" />
-                  ) : (
-                    <img 
-                      src="/images/apple-wallet-icon.svg" 
-                      alt="Apple Wallet" 
-                      className="w-5 h-5"
-                    />
-                  )}
-                  <span className="text-white font-medium">
-                    {downloading 
-                      ? 'Generating...' 
+              {deviceType === 'android' ? (
+                <button
+                  onClick={handleGoogleWallet}
+                  disabled={downloading}
+                  className={`flex flex-col items-center justify-center gap-1 px-6 py-3 rounded-xl transition ${
+                    downloading 
+                      ? 'opacity-75 cursor-not-allowed'
                       : downloadStatus === 'success'
-                      ? 'Pass Ready!'
-                      : deviceType === 'android'
-                      ? 'Google Wallet (Coming Soon)'
-                      : isPassInstalled 
-                      ? 'Reinstall in Wallet' 
-                      : 'Add to Apple Wallet'
-                    }
-                  </span>
-                </div>
-                {isPassInstalled && !checkingPass && !downloading && downloadStatus === 'idle' && (
-                  <span className="text-[10px] text-green-400 flex items-center gap-1">
-                    <CheckCircle className="w-3 h-3" />
-                    Pass installed on a device
-                  </span>
-                )}
-              </button>
+                      ? 'bg-green-600'
+                      : 'bg-black hover:bg-neutral-900'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    {downloading ? (
+                      <Loader2 className="w-5 h-5 text-white animate-spin" />
+                    ) : downloadStatus === 'success' ? (
+                      <CheckCircle className="w-5 h-5 text-white" />
+                    ) : (
+                      <img 
+                        src="/images/google-wallet-icon.svg" 
+                        alt="Google Wallet" 
+                        className="h-5"
+                      />
+                    )}
+                    <span className="text-white font-medium">
+                      {downloading 
+                        ? 'Generating...' 
+                        : downloadStatus === 'success'
+                        ? 'Opening Wallet...'
+                        : 'Add to Google Wallet'
+                      }
+                    </span>
+                  </div>
+                </button>
+              ) : (
+                <button
+                  onClick={handleDownload}
+                  disabled={downloading}
+                  className={`flex flex-col items-center justify-center gap-1 px-6 py-3 rounded-xl transition ${
+                    downloading 
+                      ? 'opacity-75 cursor-not-allowed'
+                      : downloadStatus === 'success'
+                      ? 'bg-green-600'
+                      : 'bg-black hover:bg-neutral-900'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    {downloading ? (
+                      <Loader2 className="w-5 h-5 text-white animate-spin" />
+                    ) : downloadStatus === 'success' ? (
+                      <CheckCircle className="w-5 h-5 text-white" />
+                    ) : (
+                      <img 
+                        src="/images/apple-wallet-icon.svg" 
+                        alt="Apple Wallet" 
+                        className="w-5 h-5"
+                      />
+                    )}
+                    <span className="text-white font-medium">
+                      {downloading 
+                        ? 'Generating...' 
+                        : downloadStatus === 'success'
+                        ? 'Pass Ready!'
+                        : isPassInstalled 
+                        ? 'Reinstall in Wallet' 
+                        : 'Add to Apple Wallet'
+                      }
+                    </span>
+                  </div>
+                  {isPassInstalled && !checkingPass && !downloading && downloadStatus === 'idle' && (
+                    <span className="text-[10px] text-green-400 flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3" />
+                      Pass installed on a device
+                    </span>
+                  )}
+                </button>
+              )}
             </div>
 
             {/* Membership Badge */}
