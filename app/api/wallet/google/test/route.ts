@@ -4,7 +4,6 @@ import { SignJWT } from 'jose';
 export async function GET() {
   try {
     const ISSUER_ID = process.env.GOOGLE_WALLET_ISSUER_ID || '';
-    const CLASS_ID = `${ISSUER_ID}.negroni_membership`;
     const credentialsJson = process.env.GOOGLE_WALLET_CREDENTIALS;
     
     if (!credentialsJson) {
@@ -15,21 +14,66 @@ export async function GET() {
     
     // Test member data
     const testMember = {
-      id: 'test-member-123',
+      id: 'test-member-456',
       full_name: 'Test User',
       member_number: 'NM-0001',
       membership_type: 'GOLD',
     };
 
-    const objectId = `${ISSUER_ID}.test_member_123`;
+    const classId = `${ISSUER_ID}.negroni_generic`;
+    const objectId = `${ISSUER_ID}.member_${Date.now()}`;
 
-    // Simple loyalty object - class already exists in Google
-    const loyaltyObject = {
+    // Use Generic Pass instead of Loyalty
+    const genericClass = {
+      id: classId,
+      classTemplateInfo: {
+        cardTemplateOverride: {
+          cardRowTemplateInfos: [{
+            oneItem: {
+              item: {
+                firstValue: {
+                  fields: [{
+                    fieldPath: "object.textModulesData['member_number']"
+                  }]
+                }
+              }
+            }
+          }]
+        }
+      }
+    };
+
+    const genericObject = {
       id: objectId,
-      classId: CLASS_ID,
-      state: 'ACTIVE',
-      accountId: testMember.member_number,
-      accountName: testMember.full_name,
+      classId: classId,
+      cardTitle: {
+        defaultValue: {
+          language: 'en',
+          value: 'Negroni Members'
+        }
+      },
+      header: {
+        defaultValue: {
+          language: 'en',
+          value: testMember.full_name
+        }
+      },
+      subheader: {
+        defaultValue: {
+          language: 'en',
+          value: testMember.membership_type
+        }
+      },
+      textModulesData: [{
+        id: 'member_number',
+        header: 'MEMBER #',
+        body: testMember.member_number
+      }],
+      barcode: {
+        type: 'QR_CODE',
+        value: testMember.id
+      },
+      hexBackgroundColor: '#1a1a1a'
     };
 
     const claims = {
@@ -38,7 +82,8 @@ export async function GET() {
       typ: 'savetowallet',
       iat: Math.floor(Date.now() / 1000),
       origins: ['https://www.negronimembers.com'],
-      loyaltyObjects: [loyaltyObject],
+      genericClasses: [genericClass],
+      genericObjects: [genericObject],
     };
 
     // Import private key
@@ -66,13 +111,13 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       issuer_id: ISSUER_ID,
-      class_id: CLASS_ID,
+      class_id: classId,
       object_id: objectId,
       claims_preview: {
         iss: claims.iss,
         aud: claims.aud,
         typ: claims.typ,
-        loyaltyObjects_count: claims.loyaltyObjects.length,
+        genericObjects_count: claims.genericObjects.length,
       },
       save_url: saveUrl,
       token_length: token.length,
