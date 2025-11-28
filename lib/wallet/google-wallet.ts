@@ -26,70 +26,6 @@ function getCredentials(): GoogleWalletCredentials {
   }
 }
 
-// Create the loyalty class (only needs to be done once)
-export async function createLoyaltyClass(): Promise<void> {
-  const credentials = getCredentials();
-  
-  const classDefinition = {
-    id: CLASS_ID,
-    issuerName: 'Negroni Restaurant',
-    programName: 'Negroni Members',
-    programLogo: {
-      sourceUri: {
-        uri: 'https://www.negronimembers.com/NEGRONI-Logo-hueso_png.png',
-      },
-    },
-    hexBackgroundColor: '#000000',
-    heroImage: {
-      sourceUri: {
-        uri: 'https://www.negronimembers.com/header-wallet.jpg',
-      },
-    },
-    reviewStatus: 'UNDER_REVIEW',
-    classTemplateInfo: {
-      cardTemplateOverride: {
-        cardRowTemplateInfos: [
-          {
-            twoItems: {
-              startItem: {
-                firstValue: {
-                  fields: [{ fieldPath: "object.textModulesData['member_name']" }],
-                },
-              },
-              endItem: {
-                firstValue: {
-                  fields: [{ fieldPath: "object.textModulesData['member_number']" }],
-                },
-              },
-            },
-          },
-        ],
-      },
-    },
-  };
-
-  // Create JWT for authentication
-  const token = await createAuthToken(credentials);
-
-  // Create the class via API
-  const response = await fetch(
-    `https://walletobjects.googleapis.com/walletobjects/v1/loyaltyClass`,
-    {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(classDefinition),
-    }
-  );
-
-  if (!response.ok && response.status !== 409) { // 409 = already exists
-    const error = await response.text();
-    throw new Error(`Failed to create loyalty class: ${error}`);
-  }
-}
-
 // Create a loyalty object for a member
 function createLoyaltyObject(member: Member): object {
   const objectId = `${ISSUER_ID}.${member.id.replace(/-/g, '_')}`;
@@ -138,25 +74,6 @@ function createLoyaltyObject(member: Member): object {
   };
 }
 
-// Create auth token for Google API
-async function createAuthToken(credentials: GoogleWalletCredentials): Promise<string> {
-  const now = Math.floor(Date.now() / 1000);
-  
-  const privateKey = await importPrivateKey(credentials.private_key);
-  
-  const token = await new SignJWT({
-    iss: credentials.client_email,
-    sub: credentials.client_email,
-    aud: 'https://walletobjects.googleapis.com/',
-    iat: now,
-    exp: now + 3600,
-  })
-    .setProtectedHeader({ alg: 'RS256', typ: 'JWT' })
-    .sign(privateKey);
-  
-  return token;
-}
-
 // Import private key for signing
 async function importPrivateKey(pem: string) {
   const pemContents = pem
@@ -178,6 +95,27 @@ async function importPrivateKey(pem: string) {
   );
 }
 
+// Create loyalty class definition for JWT
+function createLoyaltyClass(): object {
+  return {
+    id: CLASS_ID,
+    issuerName: 'Negroni Restaurant',
+    programName: 'Negroni Members',
+    programLogo: {
+      sourceUri: {
+        uri: 'https://www.negronimembers.com/NEGRONI-Logo-hueso_png.png',
+      },
+    },
+    hexBackgroundColor: '#1a1a1a',
+    heroImage: {
+      sourceUri: {
+        uri: 'https://www.negronimembers.com/header-wallet.jpg',
+      },
+    },
+    reviewStatus: 'UNDER_REVIEW',
+  };
+}
+
 // Generate "Add to Google Wallet" URL
 export async function generateGoogleWalletUrl(member: Member): Promise<string> {
   if (!ISSUER_ID) {
@@ -185,22 +123,24 @@ export async function generateGoogleWalletUrl(member: Member): Promise<string> {
   }
 
   const credentials = getCredentials();
+  const loyaltyClass = createLoyaltyClass();
   const loyaltyObject = createLoyaltyObject(member);
   
-  // Create JWT with the pass object
+  // Create JWT with class and object (required for demo mode)
   const now = Math.floor(Date.now() / 1000);
   const privateKey = await importPrivateKey(credentials.private_key);
   
-  const token = await new SignJWT({
+  const claims = {
     iss: credentials.client_email,
     aud: 'google',
     typ: 'savetowallet',
     iat: now,
     origins: ['https://www.negronimembers.com'],
-    payload: {
-      loyaltyObjects: [loyaltyObject],
-    },
-  })
+    loyaltyClasses: [loyaltyClass],
+    loyaltyObjects: [loyaltyObject],
+  };
+  
+  const token = await new SignJWT(claims)
     .setProtectedHeader({ alg: 'RS256', typ: 'JWT' })
     .sign(privateKey);
   
