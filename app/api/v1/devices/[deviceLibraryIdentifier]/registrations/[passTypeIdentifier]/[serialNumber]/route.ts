@@ -156,6 +156,35 @@ export async function DELETE(
       .eq('pass_serial_number', serialNumber)
       .eq('device_library_identifier', deviceLibraryIdentifier)
 
+    // Check if member has any other active tokens
+    const { data: activeTokens } = await supabase
+      .from('wallet_push_tokens')
+      .select('id, member_id')
+      .eq('pass_serial_number', serialNumber)
+      .eq('is_active', true)
+
+    // If no more active tokens, update member status
+    if (!activeTokens || activeTokens.length === 0) {
+      // Get member_id from the pass
+      const { data: pass } = await supabase
+        .from('wallet_passes')
+        .select('member_id')
+        .eq('serial_number', serialNumber)
+        .single()
+
+      if (pass?.member_id) {
+        await supabase
+          .from('members')
+          .update({ 
+            has_wallet_push: false,
+            wallet_push_unregistered_at: new Date().toISOString()
+          })
+          .eq('id', pass.member_id)
+        
+        console.log('📲 [Wallet] Member wallet push disabled:', pass.member_id)
+      }
+    }
+
     console.log('✅ [Wallet] Device unregistered successfully')
     await logRequest(supabase, 'DELETE', path, request, {}, 200)
 
