@@ -211,51 +211,53 @@ export default function PassClient({ member }: PassClientProps) {
             </div>
 
             {/* Add to Apple Wallet Button - Below QR */}
-            {deviceType === 'ios' && (
-              <div className="flex justify-center mb-6">
-                <button
-                  onClick={handleDownload}
-                  disabled={downloading}
-                  className={`flex flex-col items-center justify-center gap-1 px-6 py-3 rounded-xl transition ${
-                    downloading 
-                      ? 'opacity-75 cursor-not-allowed'
-                      : downloadStatus === 'success'
-                      ? 'bg-green-600'
-                      : 'bg-black hover:bg-neutral-900'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    {downloading ? (
-                      <Loader2 className="w-5 h-5 text-white animate-spin" />
-                    ) : downloadStatus === 'success' ? (
-                      <CheckCircle className="w-5 h-5 text-white" />
-                    ) : (
-                      <img 
-                        src="/images/apple-wallet-icon.svg" 
-                        alt="Apple Wallet" 
-                        className="w-5 h-5"
-                      />
-                    )}
-                    <span className="text-white font-medium">
-                      {downloading 
-                        ? 'Generating...' 
-                        : downloadStatus === 'success'
-                        ? 'Pass Ready!'
-                        : isPassInstalled 
-                        ? 'Reinstall in Wallet' 
-                        : 'Add to Apple Wallet'
-                      }
-                    </span>
-                  </div>
-                  {isPassInstalled && !downloading && downloadStatus === 'idle' && (
-                    <span className="text-[10px] text-green-400 flex items-center gap-1">
-                      <CheckCircle className="w-3 h-3" />
-                      Pass installed on a device
-                    </span>
+            <div className="flex justify-center mb-6">
+              <button
+                onClick={handleDownload}
+                disabled={downloading || deviceType === 'android'}
+                className={`flex flex-col items-center justify-center gap-1 px-6 py-3 rounded-xl transition ${
+                  downloading 
+                    ? 'opacity-75 cursor-not-allowed'
+                    : downloadStatus === 'success'
+                    ? 'bg-green-600'
+                    : deviceType === 'android'
+                    ? 'bg-neutral-700 cursor-not-allowed'
+                    : 'bg-black hover:bg-neutral-900'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  {downloading ? (
+                    <Loader2 className="w-5 h-5 text-white animate-spin" />
+                  ) : downloadStatus === 'success' ? (
+                    <CheckCircle className="w-5 h-5 text-white" />
+                  ) : (
+                    <img 
+                      src="/images/apple-wallet-icon.svg" 
+                      alt="Apple Wallet" 
+                      className="w-5 h-5"
+                    />
                   )}
-                </button>
-              </div>
-            )}
+                  <span className="text-white font-medium">
+                    {downloading 
+                      ? 'Generating...' 
+                      : downloadStatus === 'success'
+                      ? 'Pass Ready!'
+                      : deviceType === 'android'
+                      ? 'Google Wallet (Coming Soon)'
+                      : isPassInstalled 
+                      ? 'Reinstall in Wallet' 
+                      : 'Add to Apple Wallet'
+                    }
+                  </span>
+                </div>
+                {isPassInstalled && !checkingPass && !downloading && downloadStatus === 'idle' && (
+                  <span className="text-[10px] text-green-400 flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3" />
+                    Pass installed on a device
+                  </span>
+                )}
+              </button>
+            </div>
 
             {/* Membership Badge */}
             <div className="flex items-center justify-center gap-3 mb-4">
@@ -307,61 +309,6 @@ export default function PassClient({ member }: PassClientProps) {
           </p>
         </motion.div>
       </div>
-
-      {/* Download Wallet Button - Only for non-iOS */}
-      {deviceType !== 'ios' && (
-      <div className="px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <button
-            onClick={handleDownload}
-            disabled={downloading || (deviceType === 'android')}
-            className={`w-full py-4 rounded-2xl font-semibold transition flex items-center justify-center gap-3 ${
-              downloadStatus === 'success' 
-                ? 'bg-green-600 border-2 border-green-500 text-white'
-                : downloadStatus === 'error'
-                ? 'bg-red-600 border-2 border-red-500 text-white'
-                : deviceType === 'android'
-                ? 'bg-neutral-800 border-2 border-neutral-700 text-neutral-500 cursor-not-allowed'
-                : 'bg-neutral-800 border-2 border-neutral-700 text-white hover:border-orange-500 hover:bg-neutral-700'
-            } ${downloading ? 'opacity-75 cursor-not-allowed' : ''}`}
-          >
-            {downloading ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Generating Pass...
-              </>
-            ) : downloadStatus === 'success' ? (
-              <>
-                <CheckCircle className="w-5 h-5" />
-                Pass Ready!
-              </>
-            ) : downloadStatus === 'error' ? (
-              <>
-                <AlertCircle className="w-5 h-5" />
-                Error - Try Again
-              </>
-            ) : (
-              <>
-                <Download className="w-5 h-5" />
-                {deviceType === 'android'
-                  ? 'Google Wallet (Coming Soon)'
-                  : 'Download Wallet Pass'}
-              </>
-            )}
-          </button>
-          <p className="text-xs text-neutral-500 text-center mt-3">
-            {deviceType === 'android'
-              ? 'Google Wallet support coming soon'
-              : 'Download and open on a mobile device to add to Wallet'
-            }
-          </p>
-        </motion.div>
-      </div>
-      )}
 
       {/* Additional Info */}
       <div className="px-6">
