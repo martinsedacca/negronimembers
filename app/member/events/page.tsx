@@ -214,19 +214,55 @@ export default function EventsPage() {
     
     try {
       const supabase = createClient()
+      
+      // Get location name
+      const selectedBranch = branches.find(b => b.id === formData.location)
+      
+      const eventData = {
+        full_name: formData.fullName || member?.full_name || '',
+        phone: member?.phone || '',
+        email: formData.email || member?.email || '',
+        guests: formData.guests,
+        event_date: formData.eventDate,
+        event_type: formData.eventType,
+        location_id: formData.location,
+        location_name: selectedBranch?.name || ''
+      }
+      
       const { error: insertError } = await supabase
         .from('event_requests')
         .insert({
-          full_name: formData.fullName || member?.full_name,
-          phone: member?.phone || '',
-          email: formData.email || member?.email,
-          guests: formData.guests,
-          event_date: formData.eventDate,
-          event_type: formData.eventType,
-          location_id: formData.location
+          full_name: eventData.full_name,
+          phone: eventData.phone,
+          email: eventData.email,
+          guests: eventData.guests,
+          event_date: eventData.event_date,
+          event_type: eventData.event_type,
+          location_id: eventData.location_id
         })
       
       if (insertError) throw insertError
+      
+      // Send webhook notification
+      try {
+        await fetch('https://n8n.srv981992.hstgr.cloud/webhook-test/36dfe944-631b-46a5-89e2-6cd6f2ced1b6', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            full_name: eventData.full_name,
+            email: eventData.email,
+            phone: eventData.phone,
+            guests: eventData.guests,
+            location: eventData.location_name,
+            event_type: eventData.event_type,
+            event_date: eventData.event_date
+          })
+        })
+      } catch (webhookError) {
+        // Don't fail the submission if webhook fails
+        console.error('Webhook error:', webhookError)
+      }
+      
       setSubmitted(true)
     } catch (err: any) {
       setError(err.message || 'Something went wrong. Please try again.')
