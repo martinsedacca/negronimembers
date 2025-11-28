@@ -100,8 +100,8 @@ export async function GET(
 
     console.log('✅ [Wallet] Generating updated pass for:', member.full_name)
 
-    // Generate fresh pass with latest member data
-    const passBuffer = await generateApplePass(member)
+    // Generate fresh pass with latest member data - pass the existing authToken
+    const passBuffer = await generateApplePass(member, walletPass.authentication_token)
 
     // Update last_updated timestamp
     await supabase
