@@ -34,7 +34,7 @@ const getCertificates = (): { wwdr: Buffer; signerCert: Buffer; signerKey: Buffe
   };
 };
 
-export async function generateApplePass(member: Member, authToken?: string): Promise<Buffer> {
+export async function generateApplePass(member: Member, authToken?: string, pushMessage?: string): Promise<Buffer> {
   try {
     // Read certificates
     const { wwdr, signerCert, signerKey } = getCertificates();
@@ -189,6 +189,17 @@ export async function generateApplePass(member: Member, authToken?: string): Pro
           key: 'phone',
           label: 'Teléfono',
           value: member.phone,
+        });
+      }
+
+      // Push notification message field - this triggers visible notifications when changed
+      // The changeMessage property makes Apple show a notification when this field changes
+      if (pushMessage) {
+        pass.backFields.push({
+          key: 'latest_update',
+          label: 'Último mensaje',
+          value: pushMessage,
+          changeMessage: '%@', // %@ is replaced with the new value
         });
       }
 
