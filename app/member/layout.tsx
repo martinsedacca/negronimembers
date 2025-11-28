@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { CreditCard, Gift, User, MapPin } from 'lucide-react'
+import { CreditCard, Gift, User, MapPin, PartyPopper } from 'lucide-react'
 import { MemberProvider, useMember } from './context/MemberContext'
 import { PushNotificationPrompt } from '@/components/member/PushNotificationPrompt'
 
@@ -17,6 +17,7 @@ function MemberLayoutContent({ children }: { children: React.ReactNode }) {
   const navItems = [
     { href: '/member/pass', icon: CreditCard, label: 'Pass' },
     { href: '/member/benefits', icon: Gift, label: 'Benefits' },
+    { href: '/member/events', icon: PartyPopper, label: 'Events' },
     { href: '/member/locations', icon: MapPin, label: 'Find Us' },
     { href: '/member/profile', icon: User, label: 'Profile' },
   ]
