@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Save, Loader2, Trash2, ImagePlus } from 'lucide-react'
+import { X, Save, Loader2, Trash2, ImagePlus, Upload } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Database } from '@/lib/types/database'
 import DatePicker from '@/components/ui/DatePicker'
@@ -64,6 +64,7 @@ export default function EditPromotionModal({
   const [selectedCodes, setSelectedCodes] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [uploadingImage, setUploadingImage] = useState(false)
 
   // Initialize from promotion's applicable_to
   useEffect(() => {
@@ -170,6 +171,57 @@ export default function EditPromotionModal({
     setSelectedBranches(prev => 
       prev.includes(branchId) ? prev.filter(b => b !== branchId) : [...prev, branchId]
     )
+  }
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file')
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image must be less than 5MB')
+      return
+    }
+
+    setUploadingImage(true)
+    try {
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
+      const filePath = `promotions/${fileName}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('promo-images')
+        .upload(filePath, file)
+
+      if (uploadError) throw uploadError
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('promo-images')
+        .getPublicUrl(filePath)
+
+      setFormData(prev => ({ ...prev, image_url: publicUrl }))
+    } catch (error: any) {
+      console.error('Upload error:', error)
+      alert('Error uploading image: ' + error.message)
+    } finally {
+      setUploadingImage(false)
+    }
+  }
+
+  const handleRemoveImage = async () => {
+    if (!formData.image_url) return
+
+    const urlParts = formData.image_url.split('/promo-images/')
+    if (urlParts.length > 1) {
+      const filePath = urlParts[1]
+      await supabase.storage.from('promo-images').remove([filePath])
+    }
+    
+    setFormData(prev => ({ ...prev, image_url: '' }))
   }
 
   const handleSave = async () => {
@@ -314,27 +366,39 @@ export default function EditPromotionModal({
                   src={formData.image_url} 
                   alt="Preview" 
                   className="w-full h-40 object-cover rounded-lg"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = ''
-                    setFormData({ ...formData, image_url: '' })
-                  }}
                 />
                 <button
                   type="button"
-                  onClick={() => setFormData({ ...formData, image_url: '' })}
+                  onClick={handleRemoveImage}
                   className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
             ) : (
-              <input
-                type="url"
-                value={formData.image_url}
-                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                className="w-full px-4 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                placeholder="https://example.com/promo-image.jpg"
-              />
+              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-neutral-600 border-dashed rounded-lg cursor-pointer bg-neutral-700/50 hover:bg-neutral-700 transition">
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  {uploadingImage ? (
+                    <>
+                      <Loader2 className="w-8 h-8 mb-2 text-orange-500 animate-spin" />
+                      <p className="text-sm text-neutral-400">Uploading...</p>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-8 h-8 mb-2 text-neutral-400" />
+                      <p className="text-sm text-neutral-400">Click to upload image</p>
+                      <p className="text-xs text-neutral-500">PNG, JPG, GIF or WebP (max 5MB)</p>
+                    </>
+                  )}
+                </div>
+                <input 
+                  type="file" 
+                  className="hidden" 
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={uploadingImage}
+                />
+              </label>
             )}
           </div>
 
