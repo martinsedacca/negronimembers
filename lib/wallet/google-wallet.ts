@@ -26,51 +26,16 @@ function getCredentials(): GoogleWalletCredentials {
   }
 }
 
-// Create a loyalty object for a member
+// Create a loyalty object for a member (simplified - class exists in Google)
 function createLoyaltyObject(member: Member): object {
-  const objectId = `${ISSUER_ID}.${member.id.replace(/-/g, '_')}`;
+  const objectId = `${ISSUER_ID}.member_${member.id.replace(/-/g, '_')}`;
   
   return {
     id: objectId,
     classId: CLASS_ID,
-    state: 'ACTIVE',
-    accountId: member.member_number,
+    state: 'active',
+    accountId: member.member_number || 'MEMBER',
     accountName: member.full_name || 'Member',
-    barcode: {
-      type: 'QR_CODE',
-      value: member.id,
-      alternateText: member.member_number,
-    },
-    textModulesData: [
-      {
-        id: 'member_name',
-        header: "MEMBER'S NAME",
-        body: member.full_name || 'Member',
-      },
-      {
-        id: 'member_number',
-        header: 'MEMBER #',
-        body: member.member_number,
-      },
-      {
-        id: 'tier',
-        header: 'TIER',
-        body: member.membership_type?.toUpperCase() || 'MEMBER',
-      },
-    ],
-    linksModuleData: {
-      uris: [
-        {
-          uri: 'https://www.negronimembers.com/member',
-          description: 'My Account',
-        },
-        {
-          uri: 'https://www.negronimembers.com/member/benefits',
-          description: 'View Benefits',
-        },
-      ],
-    },
-    hexBackgroundColor: '#000000',
   };
 }
 
@@ -95,27 +60,6 @@ async function importPrivateKey(pem: string) {
   );
 }
 
-// Create loyalty class definition for JWT
-function createLoyaltyClass(): object {
-  return {
-    id: CLASS_ID,
-    issuerName: 'Negroni Restaurant',
-    programName: 'Negroni Members',
-    programLogo: {
-      sourceUri: {
-        uri: 'https://www.negronimembers.com/NEGRONI-Logo-hueso_png.png',
-      },
-    },
-    hexBackgroundColor: '#1a1a1a',
-    heroImage: {
-      sourceUri: {
-        uri: 'https://www.negronimembers.com/header-wallet.jpg',
-      },
-    },
-    reviewStatus: 'UNDER_REVIEW',
-  };
-}
-
 // Generate "Add to Google Wallet" URL
 export async function generateGoogleWalletUrl(member: Member): Promise<string> {
   if (!ISSUER_ID) {
@@ -123,10 +67,9 @@ export async function generateGoogleWalletUrl(member: Member): Promise<string> {
   }
 
   const credentials = getCredentials();
-  const loyaltyClass = createLoyaltyClass();
   const loyaltyObject = createLoyaltyObject(member);
   
-  // Create JWT with class and object (required for demo mode)
+  // Create JWT with object only (class already exists in Google)
   const now = Math.floor(Date.now() / 1000);
   const privateKey = await importPrivateKey(credentials.private_key);
   
@@ -136,7 +79,6 @@ export async function generateGoogleWalletUrl(member: Member): Promise<string> {
     typ: 'savetowallet',
     iat: now,
     origins: ['https://www.negronimembers.com'],
-    loyaltyClasses: [loyaltyClass],
     loyaltyObjects: [loyaltyObject],
   };
   
