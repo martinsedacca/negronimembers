@@ -85,6 +85,77 @@ async function getAccessToken(credentials: GoogleWalletCredentials): Promise<str
 async function createOrGetLoyaltyObject(member: Member, accessToken: string): Promise<string> {
   const objectId = `${ISSUER_ID}.member_${member.id.replace(/-/g, '_')}`;
   
+  // Format expiry date
+  const expiryDate = member.expiry_date 
+    ? new Date(member.expiry_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+    : 'Unlimited';
+  
+  // Format joined date
+  const joinedDate = member.joined_date
+    ? new Date(member.joined_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+    : new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
+  // Full loyalty object with design similar to Apple Wallet
+  const loyaltyObject = {
+    id: objectId,
+    classId: CLASS_ID,
+    state: 'ACTIVE',
+    accountId: member.member_number || 'MEMBER',
+    accountName: member.full_name || 'Member',
+    barcode: {
+      type: 'QR_CODE',
+      value: member.id,
+      alternateText: member.member_number || 'MEMBER',
+    },
+    textModulesData: [
+      {
+        id: 'member_name',
+        header: "MEMBER'S NAME",
+        body: member.full_name || 'Member',
+      },
+      {
+        id: 'member_number',
+        header: 'MEMBER #',
+        body: member.member_number || 'N/A',
+      },
+      {
+        id: 'tier',
+        header: 'TIER',
+        body: member.membership_type?.toUpperCase() || 'MEMBER',
+      },
+      {
+        id: 'valid_until',
+        header: 'VALID UNTIL',
+        body: expiryDate,
+      },
+      {
+        id: 'member_since',
+        header: 'MEMBER SINCE',
+        body: joinedDate,
+      },
+    ],
+    linksModuleData: {
+      uris: [
+        {
+          uri: 'https://www.negronimembers.com/member',
+          description: 'My Account',
+          id: 'my_account',
+        },
+        {
+          uri: 'https://www.negronimembers.com/member/benefits',
+          description: 'View Benefits',
+          id: 'benefits',
+        },
+        {
+          uri: 'https://www.negronimembers.com/member/locations',
+          description: 'Locations',
+          id: 'locations',
+        },
+      ],
+    },
+    hexBackgroundColor: '#000000',
+  };
+  
   // Try to get existing object
   const getResponse = await fetch(
     `https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject/${objectId}`,
@@ -95,18 +166,27 @@ async function createOrGetLoyaltyObject(member: Member, accessToken: string): Pr
   );
   
   if (getResponse.ok) {
-    return objectId; // Object exists
+    // Update existing object with latest data
+    const updateResponse = await fetch(
+      `https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject/${objectId}`,
+      {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(loyaltyObject),
+      }
+    );
+    
+    if (!updateResponse.ok) {
+      console.error('Failed to update object, using existing');
+    }
+    
+    return objectId;
   }
   
   // Create new object
-  const loyaltyObject = {
-    id: objectId,
-    classId: CLASS_ID,
-    state: 'ACTIVE',
-    accountId: member.member_number || 'MEMBER',
-    accountName: member.full_name || 'Member',
-  };
-  
   const createResponse = await fetch(
     `https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject`,
     {
@@ -145,6 +225,15 @@ export async function generateGoogleWalletUrl(member: Member): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
   const privateKey = await importPrivateKey(credentials.private_key);
   
+  // Format dates for JWT
+  const expiryDate = member.expiry_date 
+    ? new Date(member.expiry_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+    : 'Unlimited';
+  
+  const joinedDate = member.joined_date
+    ? new Date(member.joined_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+    : new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
   const claims = {
     iss: credentials.client_email,
     aud: 'google',
@@ -158,6 +247,53 @@ export async function generateGoogleWalletUrl(member: Member): Promise<string> {
         state: 'ACTIVE',
         accountId: member.member_number || 'MEMBER',
         accountName: member.full_name || 'Member',
+        barcode: {
+          type: 'QR_CODE',
+          value: member.id,
+          alternateText: member.member_number || 'MEMBER',
+        },
+        textModulesData: [
+          {
+            id: 'member_name',
+            header: "MEMBER'S NAME",
+            body: member.full_name || 'Member',
+          },
+          {
+            id: 'member_number',
+            header: 'MEMBER #',
+            body: member.member_number || 'N/A',
+          },
+          {
+            id: 'tier',
+            header: 'TIER',
+            body: member.membership_type?.toUpperCase() || 'MEMBER',
+          },
+          {
+            id: 'valid_until',
+            header: 'VALID UNTIL',
+            body: expiryDate,
+          },
+          {
+            id: 'member_since',
+            header: 'MEMBER SINCE',
+            body: joinedDate,
+          },
+        ],
+        linksModuleData: {
+          uris: [
+            {
+              uri: 'https://www.negronimembers.com/member',
+              description: 'My Account',
+              id: 'my_account',
+            },
+            {
+              uri: 'https://www.negronimembers.com/member/benefits',
+              description: 'View Benefits',
+              id: 'benefits',
+            },
+          ],
+        },
+        hexBackgroundColor: '#000000',
       }],
     },
   };
