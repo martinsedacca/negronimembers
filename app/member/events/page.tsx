@@ -245,7 +245,7 @@ export default function EventsPage() {
       
       // Send webhook notification
       try {
-        await fetch('https://n8n.srv981992.hstgr.cloud/webhook-test/36dfe944-631b-46a5-89e2-6cd6f2ced1b6', {
+        await fetch('https://n8n.srv981992.hstgr.cloud/webhook/36dfe944-631b-46a5-89e2-6cd6f2ced1b6', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
