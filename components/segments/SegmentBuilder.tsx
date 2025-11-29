@@ -1,12 +1,21 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Users, Save, Play, Download, Tag, Loader2, Bell, CreditCard } from 'lucide-react'
+import { Users, Save, Play, Download, Tag, Loader2, Bell, CreditCard, Trash2, FolderOpen } from 'lucide-react'
 import type { Database } from '@/lib/types/database'
 
-type MemberSegment = Database['public']['Tables']['member_segments']['Row']
 type MembershipType = Database['public']['Tables']['membership_types']['Row']
 type Promotion = Database['public']['Tables']['promotions']['Row']
+
+// Type for saved segments
+interface SavedSegment {
+  id: string
+  name: string
+  description: string | null
+  filters: SegmentFilters
+  member_count: number
+  created_at: string
+}
 
 interface SegmentFilters {
   // Points
@@ -53,17 +62,18 @@ interface OnboardingQuestion {
 }
 
 interface SegmentBuilderProps {
-  savedSegments: MemberSegment[]
   membershipTypes: MembershipType[]
 }
 
-export default function SegmentBuilder({ savedSegments, membershipTypes }: SegmentBuilderProps) {
+export default function SegmentBuilder({ membershipTypes }: SegmentBuilderProps) {
   const [filters, setFilters] = useState<SegmentFilters>({})
   const [matchingMembers, setMatchingMembers] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [segmentName, setSegmentName] = useState('')
   const [segmentDescription, setSegmentDescription] = useState('')
   const [saving, setSaving] = useState(false)
+  const [savedSegments, setSavedSegments] = useState<SavedSegment[]>([])
+  const [selectedSegmentId, setSelectedSegmentId] = useState<string>('')
   const [showAssignPromo, setShowAssignPromo] = useState(false)
   const [promotions, setPromotions] = useState<Promotion[]>([])
   const [selectedPromo, setSelectedPromo] = useState('')
@@ -93,7 +103,22 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
   // Onboarding questions
   const [onboardingQuestions, setOnboardingQuestions] = useState<OnboardingQuestion[]>([])
 
+  const loadSegments = async () => {
+    try {
+      const res = await fetch('/api/segments')
+      const data = await res.json()
+      if (Array.isArray(data)) {
+        setSavedSegments(data)
+      }
+    } catch (error) {
+      console.error('Error loading segments:', error)
+    }
+  }
+
   useEffect(() => {
+    // Fetch saved segments
+    loadSegments()
+    
     // Fetch promotions
     fetch('/api/promotions')
       .then(res => res.json())
@@ -147,7 +172,9 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
       if (!response.ok) throw new Error('Error al guardar')
 
       alert('Segmento guardado exitosamente')
-      window.location.reload()
+      setSegmentName('')
+      setSegmentDescription('')
+      loadSegments() // Reload saved segments
     } catch (error: any) {
       alert('Error: ' + error.message)
     } finally {
@@ -155,11 +182,32 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
     }
   }
 
-  const loadSavedSegment = (segment: MemberSegment) => {
-    setFilters(segment.filters as SegmentFilters)
+  const loadSavedSegment = (segment: SavedSegment) => {
+    setFilters(segment.filters)
     setSegmentName(segment.name)
     setSegmentDescription(segment.description || '')
-    applyFilters()
+    setSelectedSegmentId(segment.id)
+    // Trigger filter application
+    setTimeout(() => applyFilters(), 100)
+  }
+
+  const deleteSegment = async (id: string) => {
+    if (!confirm('¿Eliminar este segmento?')) return
+    
+    try {
+      const res = await fetch(`/api/segments?id=${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Error al eliminar')
+      loadSegments()
+      if (selectedSegmentId === id) {
+        setSelectedSegmentId('')
+        setFilters({})
+        setSegmentName('')
+        setSegmentDescription('')
+        setMatchingMembers([])
+      }
+    } catch (error: any) {
+      alert('Error: ' + error.message)
+    }
   }
 
   const exportToCSV = () => {
@@ -401,19 +449,39 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
       {/* Saved Segments */}
       {savedSegments.length > 0 && (
         <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Segmentos Guardados</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <FolderOpen className="w-5 h-5 text-orange-500" />
+            Segmentos Guardados
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
             {savedSegments.map((segment) => (
-              <button
+              <div
                 key={segment.id}
+                className={`relative p-4 rounded-lg transition cursor-pointer ${
+                  selectedSegmentId === segment.id 
+                    ? 'bg-orange-500/20 border-2 border-orange-500' 
+                    : 'bg-neutral-700 hover:bg-neutral-600 border border-transparent'
+                }`}
                 onClick={() => loadSavedSegment(segment)}
-                className="text-left p-4 bg-neutral-700 hover:bg-neutral-600 rounded-lg transition"
               >
-                <div className="font-medium text-white">{segment.name}</div>
-                <div className="text-sm text-neutral-400 mt-1">
-                  {segment.member_count} miembros
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    deleteSegment(segment.id)
+                  }}
+                  className="absolute top-2 right-2 p-1 text-neutral-500 hover:text-red-400 transition"
+                  title="Eliminar segmento"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+                <div className="font-medium text-white pr-6">{segment.name}</div>
+                {segment.description && (
+                  <div className="text-xs text-neutral-500 mt-1 truncate">{segment.description}</div>
+                )}
+                <div className="text-sm text-neutral-400 mt-2">
+                  <span className="text-orange-400 font-semibold">{segment.member_count}</span> miembros
                 </div>
-              </button>
+              </div>
             ))}
           </div>
         </div>

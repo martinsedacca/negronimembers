@@ -5,12 +5,6 @@ import { Filter } from 'lucide-react'
 export default async function SegmentsPage() {
   const supabase = await createClient()
 
-  // Get saved segments
-  const { data: segments } = await supabase
-    .from('member_segments')
-    .select('*')
-    .order('created_at', { ascending: false })
-
   // Get membership types for filters
   const { data: membershipTypes } = await supabase
     .from('membership_types')
@@ -32,7 +26,6 @@ export default async function SegmentsPage() {
       </div>
 
       <SegmentBuilder 
-        savedSegments={segments || []}
         membershipTypes={membershipTypes || []}
       />
     </div>
