@@ -33,6 +33,11 @@ interface SegmentFilters {
   // Wallet Push
   has_wallet_push?: boolean
   
+  // Wallet Platform
+  has_apple_wallet?: boolean
+  has_google_wallet?: boolean
+  has_no_wallet?: boolean
+  
   // Promotions
   never_used_promotions?: boolean
   
@@ -504,6 +509,40 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
               <span className="text-sm font-medium text-blue-400">📱 Solo con Wallet Push</span>
             </label>
             <p className="text-xs text-neutral-500 mt-1">Solo miembros que pueden recibir push notifications</p>
+          </div>
+
+          {/* Wallet Platform Filters */}
+          <div className="p-3 bg-neutral-800 border border-neutral-700 rounded-lg">
+            <h4 className="text-sm font-semibold text-white mb-3">📲 Wallet Instalado</h4>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filters.has_apple_wallet || false}
+                  onChange={(e) => setFilters({ ...filters, has_apple_wallet: e.target.checked || undefined })}
+                  className="rounded"
+                />
+                <span className="text-sm text-neutral-300">🍎 Apple Wallet</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filters.has_google_wallet || false}
+                  onChange={(e) => setFilters({ ...filters, has_google_wallet: e.target.checked || undefined })}
+                  className="rounded"
+                />
+                <span className="text-sm text-neutral-300">🤖 Google Wallet</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filters.has_no_wallet || false}
+                  onChange={(e) => setFilters({ ...filters, has_no_wallet: e.target.checked || undefined })}
+                  className="rounded"
+                />
+                <span className="text-sm text-neutral-300">❌ Sin Wallet</span>
+              </label>
+            </div>
           </div>
 
           {/* Onboarding Responses */}

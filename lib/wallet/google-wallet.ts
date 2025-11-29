@@ -1,5 +1,6 @@
 import { SignJWT } from 'jose';
 import type { Database } from '@/lib/types/database';
+import { createServiceClient } from '@/lib/supabase/service';
 
 type Member = Database['public']['Tables']['members']['Row'];
 
@@ -406,6 +407,29 @@ export async function generateGoogleWalletUrl(member: Member): Promise<string> {
   const token = await new SignJWT(claims)
     .setProtectedHeader({ alg: 'RS256', typ: 'JWT' })
     .sign(privateKey);
+  
+  // Step 4: Save pass record to database
+  try {
+    const supabase = createServiceClient();
+    await supabase
+      .from('wallet_passes')
+      .upsert({
+        member_id: member.id,
+        platform: 'google',
+        serial_number: member.member_number || objectId,
+        pass_type_identifier: null, // Google doesn't use this
+        authentication_token: objectId, // Store the object ID
+        voided: false,
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'member_id,platform',
+        ignoreDuplicates: false,
+      });
+    console.log('✅ [Google Wallet] Pass saved to database for member:', member.id);
+  } catch (error) {
+    console.error('⚠️ [Google Wallet] Failed to save pass to database:', error);
+    // Don't throw - still return the URL
+  }
   
   return `https://pay.google.com/gp/v/save/${token}`;
 }

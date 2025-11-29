@@ -79,6 +79,44 @@ export async function POST(request: NextRequest) {
     if (filters.never_used_promotions) {
       filteredMembers = filteredMembers.filter(m => (m.promotions_used || 0) === 0)
     }
+    
+    // Filter by wallet platform
+    const hasWalletPlatformFilter = filters.has_apple_wallet || filters.has_google_wallet || filters.has_no_wallet
+    if (hasWalletPlatformFilter && filteredMembers.length > 0) {
+      const memberIds = filteredMembers.map(m => m.id)
+      
+      // Get wallet passes for these members
+      const { data: walletPasses } = await supabase
+        .from('wallet_passes')
+        .select('member_id, platform')
+        .in('member_id', memberIds)
+        .eq('voided', false)
+      
+      // Create a map of member_id -> platforms[]
+      const memberPlatforms: Record<string, string[]> = {}
+      walletPasses?.forEach(pass => {
+        if (!memberPlatforms[pass.member_id]) {
+          memberPlatforms[pass.member_id] = []
+        }
+        if (!memberPlatforms[pass.member_id].includes(pass.platform)) {
+          memberPlatforms[pass.member_id].push(pass.platform)
+        }
+      })
+      
+      filteredMembers = filteredMembers.filter(m => {
+        const platforms = memberPlatforms[m.id] || []
+        const hasApple = platforms.includes('apple')
+        const hasGoogle = platforms.includes('google')
+        const hasNone = platforms.length === 0
+        
+        // If multiple filters are selected, treat as OR
+        if (filters.has_apple_wallet && hasApple) return true
+        if (filters.has_google_wallet && hasGoogle) return true
+        if (filters.has_no_wallet && hasNone) return true
+        
+        return false
+      })
+    }
 
     // Filter by onboarding responses
     if (filters.onboarding_responses && Object.keys(filters.onboarding_responses).length > 0) {

@@ -198,7 +198,7 @@ export default function MembersList({ members, membershipTypes }: MembersListPro
                             <span title="Apple Wallet" className="text-lg">🍎</span>
                           )}
                           {member.wallet_types?.includes('google') && (
-                            <span title="Google Wallet" className="text-lg">📱</span>
+                            <span title="Google Wallet" className="text-lg">🤖</span>
                           )}
                         </>
                       ) : (

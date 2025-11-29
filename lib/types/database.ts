@@ -222,32 +222,44 @@ export type Database = {
         Row: {
           id: string
           member_id: string
-          pass_type: 'apple' | 'google'
-          pass_id: string
+          platform: 'apple' | 'google'
+          pass_type_identifier: string | null
           serial_number: string
-          pass_data: Json | null
-          last_updated: string
+          authentication_token: string | null
+          voided: boolean
           created_at: string
+          updated_at: string
+          last_updated_at: string | null
+          push_message: string | null
+          push_link: string | null
         }
         Insert: {
           id?: string
           member_id: string
-          pass_type: 'apple' | 'google'
-          pass_id: string
+          platform: 'apple' | 'google'
+          pass_type_identifier?: string | null
           serial_number: string
-          pass_data?: Json | null
-          last_updated?: string
+          authentication_token?: string | null
+          voided?: boolean
           created_at?: string
+          updated_at?: string
+          last_updated_at?: string | null
+          push_message?: string | null
+          push_link?: string | null
         }
         Update: {
           id?: string
           member_id?: string
-          pass_type?: 'apple' | 'google'
-          pass_id?: string
+          platform?: 'apple' | 'google'
+          pass_type_identifier?: string | null
           serial_number?: string
-          pass_data?: Json | null
-          last_updated?: string
+          authentication_token?: string | null
+          voided?: boolean
           created_at?: string
+          updated_at?: string
+          last_updated_at?: string | null
+          push_message?: string | null
+          push_link?: string | null
         }
       }
       user_roles: {

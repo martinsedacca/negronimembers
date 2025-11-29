@@ -61,13 +61,14 @@ export async function GET(
       .from('wallet_passes')
       .upsert({
         member_id: member.id,
+        platform: 'apple',
         pass_type_identifier: PASS_TYPE_IDENTIFIER,
         serial_number: member.member_number,
         authentication_token: authToken,
         voided: false,
         updated_at: new Date().toISOString(),
       }, {
-        onConflict: 'serial_number',
+        onConflict: 'member_id,platform',
       });
 
     if (passError) {
