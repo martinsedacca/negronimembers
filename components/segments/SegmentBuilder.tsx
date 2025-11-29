@@ -77,11 +77,18 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
   const [pushUrl, setPushUrl] = useState('')
   const [sendingPush, setSendingPush] = useState(false)
   
-  // Wallet push states
+  // Wallet push states (Apple)
   const [showWalletPushModal, setShowWalletPushModal] = useState(false)
   const [walletPushMessage, setWalletPushMessage] = useState('')
   const [walletPushLink, setWalletPushLink] = useState('')
   const [sendingWalletPush, setSendingWalletPush] = useState(false)
+  
+  // Google Wallet push states
+  const [showGoogleWalletModal, setShowGoogleWalletModal] = useState(false)
+  const [googleWalletHeader, setGoogleWalletHeader] = useState('')
+  const [googleWalletMessage, setGoogleWalletMessage] = useState('')
+  const [googleWalletLink, setGoogleWalletLink] = useState('')
+  const [sendingGooglePush, setSendingGooglePush] = useState(false)
   
   // Onboarding questions
   const [onboardingQuestions, setOnboardingQuestions] = useState<OnboardingQuestion[]>([])
@@ -267,6 +274,63 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
       alert('Error: ' + error.message)
     } finally {
       setSendingWalletPush(false)
+    }
+  }
+
+  const sendGoogleWalletNotification = async () => {
+    if (!googleWalletHeader.trim() || !googleWalletMessage.trim()) {
+      alert('Ingresa título y mensaje para la notificación')
+      return
+    }
+
+    if (matchingMembers.length === 0) {
+      alert('No hay miembros para enviar la notificación')
+      return
+    }
+
+    setSendingGooglePush(true)
+    try {
+      console.log('🤖 [Frontend] Sending Google Wallet notification:', {
+        header: googleWalletHeader,
+        message: googleWalletMessage,
+        link: googleWalletLink,
+        memberCount: matchingMembers.length
+      })
+
+      const response = await fetch('/api/wallet/google/push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          header: googleWalletHeader,
+          body: googleWalletMessage,
+          link: googleWalletLink || undefined,
+          member_ids: matchingMembers.map(m => m.id),
+        }),
+      })
+
+      const data = await response.json()
+      
+      console.log('🤖 [Frontend] Response:', data)
+
+      if (!response.ok) {
+        throw new Error(data.details || data.error || 'Error al enviar notificaciones')
+      }
+
+      if (data.success) {
+        alert(`✅ Notificación enviada a Google Wallet\n\n` +
+              `Total enviadas: ${data.stats.sent}\n` +
+              `Fallidas: ${data.stats.failed}`)
+        setShowGoogleWalletModal(false)
+        setGoogleWalletHeader('')
+        setGoogleWalletMessage('')
+        setGoogleWalletLink('')
+      } else {
+        alert(`⚠️ ${data.message || 'No se pudieron enviar notificaciones'}`)
+      }
+    } catch (error: any) {
+      alert('Error: ' + error.message)
+    } finally {
+      setSendingGooglePush(false)
     }
   }
 
@@ -670,8 +734,16 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
                     className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition"
                     title="Notificación a Apple Wallet (iOS)"
                   >
-                    <CreditCard className="w-4 h-4" />
-                    Enviar a Wallet
+                    <span className="text-base">🍎</span>
+                    Enviar a Apple Wallet
+                  </button>
+                  <button
+                    onClick={() => setShowGoogleWalletModal(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                    title="Notificación a Google Wallet (Android)"
+                  >
+                    <span className="text-base">🤖</span>
+                    Enviar a Google Wallet
                   </button>
                   <button
                     onClick={() => setShowPushModal(true)}
@@ -1056,6 +1128,116 @@ export default function SegmentBuilder({ savedSegments, membershipTypes }: Segme
                   ) : (
                     <>
                       <CreditCard className="w-4 h-4" />
+                      Enviar
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Google Wallet Push Modal */}
+      {showGoogleWalletModal && (
+        <div 
+          className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowGoogleWalletModal(false)}
+        >
+          <div 
+            className="bg-neutral-800 border border-neutral-700 rounded-xl max-w-md w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <span className="text-2xl">🤖</span>
+              Notificación a Google Wallet
+            </h3>
+            
+            <div className="space-y-4">
+              <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+                <p className="text-sm text-green-200">
+                  📱 Esta notificación llegará a los Android que tengan la tarjeta instalada en Google Wallet
+                </p>
+                <p className="text-xs text-green-300/70 mt-1">
+                  ⚠️ Máximo 3 notificaciones por usuario cada 24 horas
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  Título *
+                </label>
+                <input
+                  type="text"
+                  value={googleWalletHeader}
+                  onChange={(e) => setGoogleWalletHeader(e.target.value)}
+                  placeholder="e.g.: ¡Nuevo beneficio disponible!"
+                  className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
+                  maxLength={50}
+                />
+                <p className="text-xs text-neutral-500 mt-1">{googleWalletHeader.length}/50 caracteres</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  Mensaje *
+                </label>
+                <textarea
+                  value={googleWalletMessage}
+                  onChange={(e) => setGoogleWalletMessage(e.target.value)}
+                  placeholder="e.g.: Tienes un 20% de descuento esperándote en tu próxima visita"
+                  className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
+                  rows={3}
+                  maxLength={200}
+                />
+                <p className="text-xs text-neutral-500 mt-1">{googleWalletMessage.length}/200 caracteres</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  Link (opcional)
+                </label>
+                <input
+                  type="url"
+                  value={googleWalletLink}
+                  onChange={(e) => setGoogleWalletLink(e.target.value)}
+                  placeholder="https://negronimembers.com/member/benefits"
+                  className="w-full px-3 py-2 bg-neutral-700 text-white border border-neutral-600 rounded-lg"
+                />
+                <p className="text-xs text-neutral-500 mt-1">
+                  Link clickeable en el mensaje
+                </p>
+              </div>
+
+              <div className="bg-neutral-900/50 p-3 rounded-lg">
+                <p className="text-sm text-neutral-400">
+                  Se enviará a <span className="font-bold text-white">{matchingMembers.length}</span> miembros
+                </p>
+                <p className="text-xs text-neutral-500 mt-1">
+                  Solo llegarán a los que tengan la tarjeta en Google Wallet
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setShowGoogleWalletModal(false)}
+                  className="flex-1 px-4 py-2 bg-neutral-700 text-white rounded-lg hover:bg-neutral-600 transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={sendGoogleWalletNotification}
+                  disabled={sendingGooglePush || !googleWalletHeader.trim() || !googleWalletMessage.trim()}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {sendingGooglePush ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      <span>🤖</span>
                       Enviar
                     </>
                   )}
