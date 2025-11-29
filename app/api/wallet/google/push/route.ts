@@ -70,14 +70,41 @@ export async function POST(request: NextRequest) {
 
     if (!ISSUER_ID) {
       return NextResponse.json(
-        { error: 'Google Wallet is not configured' },
+        { error: 'Google Wallet is not configured (missing ISSUER_ID)' },
+        { status: 500 }
+      );
+    }
+
+    if (!process.env.GOOGLE_WALLET_CREDENTIALS) {
+      return NextResponse.json(
+        { error: 'Google Wallet is not configured (missing credentials)' },
         { status: 500 }
       );
     }
 
     const supabase = createServiceClient();
-    const credentials = getCredentials();
-    const accessToken = await getAccessToken(credentials);
+    
+    let credentials;
+    try {
+      credentials = getCredentials();
+    } catch (credError: any) {
+      console.error('🔴 [Google Wallet Push] Credentials error:', credError);
+      return NextResponse.json(
+        { error: 'Google Wallet credentials are invalid', details: credError.message },
+        { status: 500 }
+      );
+    }
+    
+    let accessToken;
+    try {
+      accessToken = await getAccessToken(credentials);
+    } catch (tokenError: any) {
+      console.error('🔴 [Google Wallet Push] Token error:', tokenError);
+      return NextResponse.json(
+        { error: 'Failed to get Google Wallet access token', details: tokenError.message },
+        { status: 500 }
+      );
+    }
 
     // Get Google Wallet passes for the specified members
     const { data: walletPasses, error: passError } = await supabase
