@@ -14,7 +14,7 @@ interface GoogleWalletCredentials {
 }
 
 // Get credentials from environment
-function getCredentials(): GoogleWalletCredentials {
+export function getCredentials(): GoogleWalletCredentials {
   const credentialsJson = process.env.GOOGLE_WALLET_CREDENTIALS;
   if (!credentialsJson) {
     throw new Error('GOOGLE_WALLET_CREDENTIALS environment variable is not set');
@@ -49,7 +49,7 @@ async function importPrivateKey(pem: string) {
 }
 
 // Get access token for Google API
-async function getAccessToken(credentials: GoogleWalletCredentials): Promise<string> {
+export async function getAccessToken(credentials: GoogleWalletCredentials): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
   const privateKey = await importPrivateKey(credentials.private_key);
 

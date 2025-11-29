@@ -1,60 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/service';
+import { getCredentials, getAccessToken } from '@/lib/wallet/google-wallet';
 
 // Google Wallet API configuration
 const ISSUER_ID = process.env.GOOGLE_WALLET_ISSUER_ID || '';
-
-interface GoogleWalletCredentials {
-  client_email: string;
-  private_key: string;
-}
-
-function getCredentials(): GoogleWalletCredentials {
-  const credentialsJson = process.env.GOOGLE_WALLET_CREDENTIALS;
-  if (!credentialsJson) {
-    throw new Error('GOOGLE_WALLET_CREDENTIALS is not configured');
-  }
-  return JSON.parse(credentialsJson);
-}
-
-async function getAccessToken(credentials: GoogleWalletCredentials): Promise<string> {
-  const { SignJWT } = await import('jose');
-  const privateKey = await importPrivateKey(credentials.private_key);
-  
-  const now = Math.floor(Date.now() / 1000);
-  const token = await new SignJWT({
-    scope: 'https://www.googleapis.com/auth/wallet_object.issuer',
-  })
-    .setProtectedHeader({ alg: 'RS256', typ: 'JWT' })
-    .setIssuer(credentials.client_email)
-    .setSubject(credentials.client_email)
-    .setAudience('https://oauth2.googleapis.com/token')
-    .setIssuedAt(now)
-    .setExpirationTime(now + 3600)
-    .sign(privateKey);
-
-  const response = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-      assertion: token,
-    }),
-  });
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Failed to get access token: ${error}`);
-  }
-
-  const data = await response.json();
-  return data.access_token;
-}
-
-async function importPrivateKey(pem: string) {
-  const { importPKCS8 } = await import('jose');
-  return importPKCS8(pem, 'RS256');
-}
 
 // Send message to a Google Wallet pass object
 async function sendMessageToObject(
